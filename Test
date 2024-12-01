@@ -1,0 +1,114 @@
+<View style={{}}>
+      <ScrollView>
+        <View style={{flex:1,justifyContent:'space-around'}} >
+        <View style={{flexDirection:'row', alignItems:'center', flex:1}}>
+        {images.map((image, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => {
+                      setSelectedImage(index)
+                      image.id == 1 ? setLabel('Caca') : setLabel('')
+                      setSelectedItem(0)
+                    }}
+                    style={[selectedImage == image.id ? styles.imageSelected : styles.imageNonSelected]}
+                  >
+                    <Image source={image.rq} style={styles.image} />
+                  </TouchableOpacity>
+                ))}
+        </View>
+        
+               {handleCategorie(selectedImage)}
+           
+              <View style={{alignItems:'center', flex:1}}>
+            <Text>
+                Quand ai-je effectué la tâche :
+            </Text>
+                  <DateTimePicker
+                    value={selectedDate}
+                    mode="datetime"
+                    display="default"
+                    onChange={handleDateChange}
+                  />
+        </View>
+        <View style={{
+           flex:1
+            }}>
+            <TextInput
+              style={styles.input}
+              multiline
+              numberOfLines={4}
+              placeholder="Enter multiline text"
+              onChangeText={(inputText) => setNote(inputText)}
+            />
+        </View>
+        
+        
+        </View>
+      </ScrollView>
+      <View style={styles.footer}>
+        <TouchableOpacity onPress={updateBabyTaks} >
+          <View style={styles.button}>
+            <Text style={styles.buttonText}>Validate</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+
+  image: {
+    width: 30,
+    height: 30,
+    resizeMode: 'cover',
+  },
+  imageSelected: {
+    width: 55,
+                height: 55,
+                resizeMode: 'cover',
+                borderColor: '#0074D9',
+                borderWidth:5,
+                borderRadius:60, 
+                justifyContent:'center',
+                alignItems:'center'
+  },
+  imageNonSelected: {
+    width: 50,
+                height: 50,
+                resizeMode: 'cover',
+                borderWidth:5,
+                borderRadius:60, 
+                justifyContent:'center',
+                alignItems:'center',
+                borderColor: 'transparent'
+  },
+  input: {
+    height: 100,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
+  },
+
+  footer: {
+    height: 100, // Adjust as needed
+    justifyContent: 'center',
+    alignItems: 'center',
+    
+    // Other styles for the footer
+  },
+  button: {
+    backgroundColor: '#46B0FC', // Dark blue button background
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    marginBottom: 20,
+    width: 300,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});
