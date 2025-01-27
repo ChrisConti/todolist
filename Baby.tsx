@@ -1,268 +1,269 @@
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native'
-import React, { useContext, useEffect, useState } from 'react'
-import s from "./Style.js";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+
 import { auth, db, userRef } from './config';
 import { FieldValue, addDoc, collection, doc, getDocs, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
-import AuthentificationUserProvider, {AuthentificationUserContext} from './Context/AuthentificationContext';
+import AuthentificationUserProvider, { AuthentificationUserContext } from './Context/AuthentificationContext';
 import moment from 'moment';
 import uuid from 'react-native-uuid';
+import { useTranslation } from 'react-i18next';
+import Boy from './assets/garcon.svg';
+import Girl from './assets/fille.svg';
 
-const Baby = ({navigation}) => {
+const Baby = ({ navigation }) => {
     const [name, setName] = useState('');
-    const [code, setCode] = useState('');
     const [birth, setBirth] = useState('');
     const [selectedImage, setSelectedImage] = useState(0);
-    const [selectedCreation, setSelectedCreation] = useState('Creation');
+    const [selectedRole, setSelectedRole] = useState('');
+    const [otherRole, setOtherRole] = useState('');
     const [birthdate, setBirthdate] = useState('');
+    const [isRoleExpanded, setIsRoleExpanded] = useState(false);
     const uniqueId = uuid.v4();
-    const [userErrorDate, setErrorDate] = useState('');
-    const [userErrorName, setErrorName] = useState('');
+    const [userError, setError] = useState('');
 
-    const {user, setUser, babyID, setBabyID} = useContext(AuthentificationUserContext);
+    const { user, setUser, babyID, setBabyID } = useContext(AuthentificationUserContext);
+    const { t } = useTranslation();
 
     const images = [
-        {id: 0, type: 'Boy', rq: require('./assets/boy.png')},
-        {id: 1, type: 'Girl', rq: require('./assets/girl.png')},
-      ];
+        { id: 0, type: 'Boy', rq: require('./assets/boy.png') },
+        { id: 1, type: 'Girl', rq: require('./assets/girl.png') },
+    ];
 
-      useEffect(()=> {
-        if(!user) return
-        
-      },[])
+    const roles = [
+        { label: t('roles.papa'), value: 'papa' },
+        { label: t('roles.maman'), value: 'maman' },
+        { label: t('roles.nounou'), value: 'nounou' },
+        { label: t('roles.papi'), value: 'papi' },
+        { label: t('roles.mami'), value: 'mami' },
+        { label: t('roles.autre'), value: 'autre' },
+    ];
 
-      
+    useEffect(() => {
+        if (!user) return;
+    }, []);
 
-      const handleCreateBaby = async () => {
-  
+    const handleCreateBaby = async () => {
         if (name.length < 2) {
-          setErrorName('Merci de remplir le nom (min 2 caratère)');
+            console.log('name');
+            setError(t('errors.name'));
             return;
         }
         if (birthdate.length < 8) {
-          setErrorDate("Merci de remplir la date correctement.")
-          return;
+            setError(t('errors.birthdate'));
+            return;
         }
-        setBabyID(uniqueId)
-        //console.log(babyID)
-            await addDoc(collection(db, "Baby"), {
-                id : uniqueId,
-                type : images[selectedImage].type,
-                name: name,
-                birthDate: birth,
-                CreatedDate: moment().format('YYYY-MM-DD HH:mm:ss'),
-                user: [user.uid],
-                tasks: [],
-                role : 'Father',
-                admin: user.uid
-            })
-            //console.log(createBaby)
-            navigation.navigate('BabyList')
-      }
+        if (selectedRole === '') {
+            setError(t('errors.role'));
+            return;
+        }
+        if (selectedRole === 'autre' && otherRole.length < 2) {
+            setError(t('errors.otherRole'));
+            return;
+        }
+        setBabyID(uniqueId);
+        await addDoc(collection(db, "Baby"), {
+            id: uniqueId,
+            type: images[selectedImage].type,
+            name: name,
+            birthDate: birth,
+            CreatedDate: moment().format('YYYY-MM-DD HH:mm:ss'),
+            user: [user.uid,],
+            tasks: [],
+            role: selectedRole,
+            roleAutre: selectedRole === 'autre' ? otherRole : '',
+            admin: user.uid,
+        });
+        navigation.navigate('BabyList');
+    };
 
-      const handleChange = (text) => {
+    const handleChange = (text) => {
         // Remove non-numeric characters
         const cleaned = text.replace(/[^0-9]/g, '');
-    
         // Add slashes after day and month
         let formatted = cleaned;
         if (cleaned.length > 2) {
-          formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+            formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
         }
         if (cleaned.length > 4) {
-          formatted = formatted.slice(0, 5) + '/' + cleaned.slice(4);
+            formatted = formatted.slice(0, 5) + '/' + cleaned.slice(4);
         }
-    
         setBirthdate(formatted);
-      };
+    };
 
-  return (
-    <View style={{flex:1, padding:10, backgroundColor:'white'}}>
-        <ScrollView>
-            
-            <View>
-            <View style={{flexDirection:"row", justifyContent:'center', alignItems:'stretch'}}>
-                    {images.map((image, index) => (
-                    
-                        <TouchableOpacity
-                        key={index}
+    return (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
+                <ScrollView>
+                    <View style={{ justifyContent: 'center' }}>
+                        <View style={{ flexDirection: "row", justifyContent: 'center' }}>
+                            <TouchableOpacity
+                                onPress={() => setSelectedImage(0)}
+                                style={[selectedImage == 0 ? styles.imageSelected : styles.imageNonSelected]}
+                            >
+                                <Boy height={90} width={90} />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => setSelectedImage(1)}
+                                style={[selectedImage == 1 ? styles.imageSelected : styles.imageNonSelected]}
+                            >
+                                <Girl height={90} width={90} />
+                            </TouchableOpacity>
+                        </View>
+                        <View>
+                            <TextInput
+                                style={styles.input}
+                                placeholder={t('placeholders.name')}
+                                autoCapitalize="none"
+                                value={name}
+                                onChangeText={(text) => setName(text)}
+                            />
+                        </View>
+
+                        <View style={styles.container}>
+                            <TextInput
+                                style={styles.input}
+                                value={birthdate}
+                                onChangeText={handleChange}
+                                keyboardType="numeric"
+                                placeholder={t('placeholders.birthdate')}
+                                maxLength={10} // Maximum length for DD/MM/YYYY
+                            />
+                        </View>
+                        
+                        <View>
+                            <TouchableOpacity
+                                style={styles.input}
+                                onPress={() => setIsRoleExpanded(!isRoleExpanded)}
+                            >
+                                <Text>{selectedRole ? roles.find(role => role.value === selectedRole).label : t('placeholders.role')}</Text>
+                            </TouchableOpacity>
+                            {isRoleExpanded && (
+                                <View style={styles.roleContainer}>
+                                    {roles.map((role, index) => (
+                                        <TouchableOpacity
+                                            key={index}
+                                            onPress={() => {
+                                                setSelectedRole(role.value);
+                                                setIsRoleExpanded(false);
+                                            }}
+                                            style={styles.roleOption}
+                                        >
+                                            <Text>{role.label}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+                        </View>
+                        {selectedRole === 'autre' && (
+                            <View>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder={t('placeholders.otherRole')}
+                                    autoCapitalize="none"
+                                    value={otherRole}
+                                    onChangeText={(text) => setOtherRole(text)}
+                                />
+                            </View>
+                        )}
+                    </View>
+                </ScrollView>
+                <View style={{
+                    position: 'absolute',
+                    bottom: 10,
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'transparent',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    flexDirection: 'column',
+                }}>
+                    <View>
+                        <Text style={styles.errorText}>{userError}</Text>
+                    </View>
+                    <TouchableOpacity
+                        style={styles.button}
                         onPress={() => {
-                            setSelectedImage(index)
-                            //console.log(index)
+                            handleCreateBaby();
+                            //setError('');
                         }}
-                        style={[selectedImage == image.id ? styles.imageSelected : styles.imageNonSelected]}
-                        >
-                            <Image key={index} source={image.rq} style={styles.image} />
-                        </TouchableOpacity>
-                ))}
+                    >
+                        <Text style={styles.buttonText}>{t('buttons.validate')}</Text>
+                    </TouchableOpacity>
                 </View>
-                
-                <View>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Name"
-                    autoCapitalize="none"
-                    value={name}
-                    onChangeText={(text) => setName(text)}
-                    />
-                </View>
-                <View>
-                  <Text style={styles.errorText}>{userErrorName}</Text>
-                </View>
-                <View style={styles.container}>
-                <TextInput
-                  style={styles.input}
-                  value={birthdate}
-                  onChangeText={handleChange}
-                  keyboardType="numeric"
-                  placeholder="DD/MM/YYYY"
-                  maxLength={10} // Maximum length for DD/MM/YYYY
-                />
-              </View>
-              <View>
-                  <Text style={styles.errorText}>{userErrorDate}</Text>
-              </View>
             </View>
-
-        </ScrollView>
-            <View style={{
-            position: 'absolute',
-            bottom: 10,
-            left: 0,
-            right: 0,
-            backgroundColor: 'transparent', // Set to 'transparent' to cover the entire bottom
-            alignItems: 'center',
-            justifyContent: 'flex-end', // Pushes the button to the bottom
-            flexDirection:'column',
-            
-          }}>
-            <TouchableOpacity style={styles.button} 
-            onPress={() =>{
-              handleCreateBaby()
-              setErrorName('')
-              setErrorDate('')
-            }
-              
-              }>
-              <Text style={styles.buttonText}>Validate</Text>
-            </TouchableOpacity>
-          </View>
-    </View>
-  )
-}
+        </TouchableWithoutFeedback>
+    );
+};
 
 const styles = StyleSheet.create({
-
     image: {
-      width: 50,
-      height: 50,
-      resizeMode: 'cover',
-      
+        width: "100%",
+        height: "105%",
+        resizeMode: 'cover',
+        backgroundColor: 'blue'
     },
     imageSelected: {
-      width: 90,
-                  height: 90,
-                  resizeMode: 'cover',
-                  borderColor: '#0074D9',
-                  borderWidth:5,
-                  borderRadius:60, 
-                  justifyContent:'center',
-                  alignItems:'center',
-                  flexDirection:"row", 
+        width: 120,
+        height: 120,
+        resizeMode: 'cover',
+        borderColor: '#C75B4A',
+        borderWidth: 5,
+        borderRadius: 60,
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: "row",
     },
     imageNonSelected: {
-      width: 90,
-                  height: 90,
-                  resizeMode: 'cover',
-                  borderWidth:5,
-                  borderRadius:60, 
-                  justifyContent:'center',
-                  alignItems:'center',
-                  borderColor: 'transparent',
-                  flexDirection:"row", 
+        width: 120,
+        height: 120,
+        resizeMode: 'cover',
+        borderWidth: 5,
+        borderRadius: 60,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderColor: 'transparent',
+        flexDirection: "row",
     },
     input: {
-      width: '100%',
+        width: '100%',
         height: 50,
         borderBottomWidth: 1,
-        borderColor: '#46B0FC',
+        borderColor: '#C75B4A',
         borderRadius: 8,
         paddingHorizontal: 10,
         marginBottom: 20,
-        backgroundColor: 'white', // White input background
     },
-    buttonSelected: {
-        backgroundColor: '#0074D9', // Blue color
-        borderRadius: 8,
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 3, // Android shadow
-        
-      },
-      buttonUnSelected: {
-        backgroundColor: 'white', // Blue color
-        borderWidth:3,
-        borderColor:'grey',
-        borderRadius: 8,
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 3, // Android shadow
-        
-      },
-      button: {
-        backgroundColor: '#46B0FC', // Dark blue button background
+    button: {
+        backgroundColor: '#C75B4A', // Dark blue button background
         borderRadius: 8,
         paddingVertical: 12,
         paddingHorizontal: 20,
         alignItems: 'center',
         marginBottom: 20,
-        width:250
-      },
-      buttonText: {
+        width: 250,
+    },
+    buttonText: {
         color: '#fff', // White text color
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
-      },
-      errorText: {
+    },
+    errorText: {
         color: 'red',
         fontSize: 16,
         fontWeight: 'bold',
-      }
-  });
+    },
+    roleContainer: {
+        backgroundColor: 'white',
+        borderRadius: 8,
+        padding: 10,
+        marginTop: 10,
+    },
+    roleOption: {
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+    },
+});
 
-export default Baby
-
-
-/*
-<View style={{flexDirection:'row'}}>
-                <TouchableOpacity onPress={()=> {
-                    setSelectedCreation('Creation')
-                }}
-                style={[selectedCreation == 'Creation' ? styles.buttonSelected : styles.buttonUnSelected]}>
-                    <Text>
-                        Creation
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={()=> {
-                    setSelectedCreation('Join')
-                }}
-                style={[selectedCreation == 'Join' ? styles.buttonSelected : styles.buttonUnSelected]}>
-                    <Text>
-                        Joindre
-                    </Text>
-                </TouchableOpacity>
-            </View>*/
+export default Baby;

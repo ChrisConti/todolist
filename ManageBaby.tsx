@@ -1,92 +1,86 @@
-import { View, Text, TouchableOpacity, Modal, Pressable, StyleSheet, ScrollView, Image, SectionList } from 'react-native'
-import React, { useContext, useEffect, useState,  } from 'react'
+import { View, Text, TouchableOpacity, Modal, Pressable, StyleSheet, ScrollView, Image, SectionList } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
-import { addDoc, collection, doc, getDocs, onSnapshot, query, updateDoc, where, } from 'firebase/firestore';
+import { addDoc, collection, doc, getDocs, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 import { db, userRef, babiesRef } from './config';
 import moment from 'moment';
+import { useTranslation } from 'react-i18next';
+import BiberonComponent from './stats/Biberon';
+import DiaperComponent from './stats/Diaper';
+import SommeilComponent from './stats/Sommeil';
+import ThermoComponent from './stats/Thermo';
+import AllaitementComponent from './stats/Allaitement';
+import Allaitement from './assets/allaitement-color.svg';
+import Thermo from './assets/thermo-color.svg';
+import Dodo from './assets/dodo-color.svg';
+import Couche from './assets/couche-color.svg';
+import Sante from './assets/sante-color.svg';
+import Biberon from './assets/biberon-color.svg';
 
-const ManageBaby = () => {
-  const [taskCounts, setTaskCounts] = useState({
-    today: {},
-    lastSevenDays: {},
-    lastThirtyDays: {},
-  });
+const ManageBaby = ({ navigation, route }) => {
+  const { tasks } = route.params;
+  console.log('tasks', tasks);
+  const { t } = useTranslation();
+  const { babyID, setBabyID, userInfo } = useContext(AuthentificationUserContext);
+ const [selectedImage, setSelectedImage] = useState(0);
+ 
   const images = [
-    {id: 0, rq: require('./assets/biberon.png')},
-    {id: 1, rq: require('./assets/diaper.png')},
-    {id: 2, rq: require('./assets/medicaments.png')},
-    {id: 3, rq: require('./assets/sommeil.png')},
-    {id: 4, rq: require('./assets/thermo.png')},
-    {id: 5, rq: require('./assets/allaitement.png')},
+    { id: 0, rq: require('./assets/biberon.png') },
+    { id: 1, rq: require('./assets/diaper.png') },
+    { id: 3, rq: require('./assets/sommeil.png') },
+    { id: 4, rq: require('./assets/thermo.png') },
+    { id: 5, rq: require('./assets/allaitement.png') },
   ];
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
+   const handleImageType = (id) => {
+      if (id == 0) return <Biberon height={45} width={45} />;
+      if (id == 1) return <Couche height={35} width={35} />;
+      if (id == 2) return <Sante height={35} width={35} />;
+      if (id == 3) return <Dodo height={35} width={35} />;
+      if (id == 4) return <Thermo height={35} width={35} />;
+      if (id == 5) return <Allaitement height={35} width={35} />;
+    };
 
-  const fetchTasks = async () => {
-    const tasksRef = collection(db, 'Baby');
-    const querySnapshot = await getDocs(tasksRef);
-    
-    let todayCounts = {};
-    let lastSevenDaysCounts = {};
-    let lastThirtyDaysCounts = {};
-
-    querySnapshot.forEach((doc) => {
-      const tasks = doc.data().tasks;
-
-      tasks.forEach((task) => {
-        const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
-        const taskType = task.id; // Assuming tasks have a 'type' field
-
-        if (taskDate.isSame(moment(), 'day')) {
-          todayCounts[taskType] = (todayCounts[taskType] || 0) + 1;
-        }
-        if (taskDate.isAfter(moment().subtract(7, 'days'))) {
-          lastSevenDaysCounts[taskType] = (lastSevenDaysCounts[taskType] || 0) + 1;
-        }
-        if (taskDate.isAfter(moment().subtract(30, 'days'))) {
-          lastThirtyDaysCounts[taskType] = (lastThirtyDaysCounts[taskType] || 0) + 1;
-        }
-      });
-    });
-
-    setTaskCounts({
-      today: todayCounts,
-      lastSevenDays: lastSevenDaysCounts,
-      lastThirtyDays: lastThirtyDaysCounts,
-    });
-  };
-
-  const renderTaskCounts = (counts) => {
-    return Object.entries(counts).map(([type, count]) => (
-      <View style={{flexDirection:'row', padding:10, alignItems:'center', justifyContent:'space-evenly'}}>
-        <Image source={images[type].rq} style={styles.image} />
-        <Text key={type} style={{fontSize:30, color:'#46B0FC', paddingLeft:20}}>{String(count)}</Text>
-      </View>
-      
-    ));
-  };
+  function handleStatsCategory(selectedImage: number) {
+    const filteredTasks = tasks.filter(task => task.id === selectedImage);
+    switch (selectedImage) {
+      case 0:
+        return <BiberonComponent tasks={filteredTasks} />;
+      case 1:
+        return <DiaperComponent tasks={filteredTasks} />;
+      case 3:
+        return <SommeilComponent tasks={filteredTasks} />;
+      case 4:
+        return <ThermoComponent tasks={filteredTasks} />;
+      case 5:
+        return <AllaitementComponent tasks={filteredTasks} />;
+      default:
+        return null;
+    }
+  }
 
   return (
-    <ScrollView style={{flex:1, padding: 20, backgroundColor:'white'}}>
-    <View style={{flex:1, padding: 20, backgroundColor:'white', justifyContent:'space-evenly' }}>
-      <View>
-        <Text style={styles.titleParameter}>Tasks Done Today:</Text>
-        {renderTaskCounts(taskCounts.today)}
+    <ScrollView style={{ padding: 10, backgroundColor: '#FDF1E7' }}>
+      <View style={{  backgroundColor: '#FDF1E7', alignItems: 'center',  }}>
+        
+              {/* Image picker */}
+              <View style={{ flexDirection: 'row' }}>
+                {images.map((image, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => {
+                      setSelectedImage(image.id);
+                    }}
+                    style={[selectedImage == image.id ? styles.imageSelected : styles.imageNonSelected]}
+                  >
+                    {handleImageType(image.id)}
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <View>
+                {handleStatsCategory(selectedImage)}
+              </View>
       </View>
-      
-    <View>
-      <Text style={styles.titleParameter}>Tasks Done in Last 7 Days:</Text>
-      {renderTaskCounts(taskCounts.lastSevenDays)}
-    </View>
-      
-    <View>
-      <Text style={styles.titleParameter}>Tasks Done in Last 30 Days:</Text>
-      {renderTaskCounts(taskCounts.lastThirtyDays)}
-    </View>
-      
-    </View>
     </ScrollView>
   );
 };
@@ -94,7 +88,6 @@ const ManageBaby = () => {
 export default ManageBaby;
 
 const styles = StyleSheet.create({
-
   image: {
     width: 30,
     height: 30,
@@ -104,7 +97,7 @@ const styles = StyleSheet.create({
     width: 55,
                 height: 55,
                 resizeMode: 'cover',
-                borderColor: '#0074D9',
+                borderColor: '#C75B4A',
                 borderWidth:5,
                 borderRadius:60, 
                 justifyContent:'center',
@@ -127,14 +120,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     borderBottomWidth: 1,
-    borderColor: '#46B0FC',
+    borderColor: '#C75B4A',
     borderRadius: 8,
   },
   input: {
     width: 280,
     height: 50,
     borderBottomWidth: 1,
-    borderColor: '#46B0FC',
+    borderColor: '#C75B4A',
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 20,
@@ -144,11 +137,9 @@ const styles = StyleSheet.create({
     height: 100, // Adjust as needed
     justifyContent: 'center',
     alignItems: 'center',
-    
-    // Other styles for the footer
   },
   button: {
-    backgroundColor: '#46B0FC', // Dark blue button background
+    backgroundColor: '#C75B4A', // Dark blue button background
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -161,11 +152,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  titleParameter:{
+  titleParameter: {
     color: '#7A8889', // White text color
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom:5,
-    marginTop:3
-},
+    marginBottom: 5,
+    marginTop: 3
+  },
 });

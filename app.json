@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "todolist",
+    "name": "tribubaby",
     "slug": "todolist",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,19 +9,21 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#C75B4A"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tribubaby.tribubaby"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.tribubaby.tribubaby"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -30,6 +32,16 @@
       "eas": {
         "projectId": "e46fab65-1809-4d8c-95c1-ac62f86ffef3"
       }
-    }
+    },
+    "plugins": [
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "tribubaby",
+          "organization": "tribubaby"
+        }
+      ]
+    ]
   }
 }
