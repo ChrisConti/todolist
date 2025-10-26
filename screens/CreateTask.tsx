@@ -17,12 +17,13 @@ import Dodo from '../assets/dodo-color.svg';
 import Couche from '../assets/couche-color.svg';
 import Sante from '../assets/sante-color.svg';
 import Biberon from '../assets/biberon-color.svg';
+import analytics from '../services/analytics';
 
 const CreateTask = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { task } = '';
   //const { babyID } = route.params;
-
+  
   const { user, setUser, babyID, setBabyID, userInfo } = useContext(AuthentificationUserContext);
   const [babySelected, setBabySelected] = useState(babyID);
   const [selectedImage, setSelectedImage] = task ? task.id : useState(0);
@@ -43,28 +44,15 @@ const CreateTask = ({ route, navigation }) => {
   const queryResult = query(userRef, where('userId', '==', user.uid));
 
   useEffect(() => {
+    // Track screen view
+    analytics.logScreenView('CreateTask');
     //DocFinder(queryResult);
   }, []);
-
-  async function DocFinder(queryResult) {
-    try {
-      const querySnapshot = await getDocs(queryResult);
-      querySnapshot.forEach((doc) => {
-        const { Baby } = doc.data();
-        setBabySelected(Baby.ID);
-        //navigation.setOptions({ headerTitle: Baby ? Baby.name : t('header.suivi') });
-        return BabyID;
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }
 
   // date picker
   const showDateTimePicker = () => {
     setIsDateTimePickerVisible(true);
   };
-
 
   const handleImageType = (id) => {
     if (id == 0) return <Biberon height={45} width={45} />;
@@ -89,35 +77,62 @@ const CreateTask = ({ route, navigation }) => {
     { id: 1, name: t('diapers.mou'), nameTrad:'mou' },
     { id: 2, name: t('diapers.liquide'), nameTrad:'liquide' },
   ];
+  const returnLabel = (id) => {
+    if (id == 0) return 'biberon';
+    if (id == 1) return 'couche';
+    if (id == 2) return 'Sante';
+    if (id == 3) return 'sommeil';
+    if (id == 4) return 'thermo';
+    if (id == 5) return 'allaitement';
+
+    return 
+  }
 
   const updateBabyTasks = async () => {
     const queryResult = query(babiesRef, where('id', '==', babySelected));
     try {
       const querySnapshot = await getDocs(queryResult);
       querySnapshot.forEach(async (document) => {
+        //console.log('Document data:', document.data());
         await updateDoc(doc(db, 'Baby', document.id), {
           tasks: [...document.data().tasks, 
             { uid: uniqueId, 
               id: selectedImage, 
+              labelTask: returnLabel(selectedImage),
               date: time, 
-              label: label, 
+              label: label ? label : 0, 
               idCaca:label,
               boobLeft: timer1,
               boobRight: timer2,
               user: user.uid, 
-              createdBy: userInfo.username, 
+              createdBy: userInfo?.username || 'Unknown', 
               comment: note }],
         }).then(() => {
           console.log('success');
+          // Track task creation
+          analytics.logEvent('task_created', {
+            taskType: returnLabel(selectedImage),
+            taskId: selectedImage,
+            hasLabel: !!label,
+            hasNote: !!note,
+            userId: user.uid
+          });
         });
       });
 
-      navigation.navigate('BabyList');
+      navigation.goBack();
 
     } catch (error) {
       console.error('Error updating document:', error);
+      
+      analytics.logEvent('task_creation_failed', {
+        taskType: returnLabel(selectedImage),
+        taskId: selectedImage,
+        userId: user.uid,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
-  }
+  };
 
   const handleDateChange = (date) => {
     if (date) {
@@ -144,7 +159,7 @@ const CreateTask = ({ route, navigation }) => {
       );
     } else if (id == 1) {
       return (
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}> 
           {imagesDiapers.map((image, index) => (
             <TouchableOpacity
               key={index}
@@ -170,7 +185,7 @@ const CreateTask = ({ route, navigation }) => {
           returnKeyLabel='Done'
           returnKeyType='done'
           onSubmitEditing={Keyboard.dismiss}
-          maxLength={10}
+          maxLength={20}
           placeholder={t('placeholder.medicaments')}
         />
       );
@@ -209,7 +224,7 @@ const CreateTask = ({ route, navigation }) => {
       return (
         <View>
           <View style={styles.timerContainer}>
-        <Text>Timer 1: {formatTime(timer1)}</Text>
+        <Text>{t('breast.left')} {formatTime(timer1)}</Text>
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={() => startTimer(setTimer1, setIsRunning1, interval1)} disabled={isRunning1}>
             <Ionicons name="play" size={24} color={isRunning1 ? "#C75B4A" : "black"} />
@@ -218,12 +233,12 @@ const CreateTask = ({ route, navigation }) => {
             <Ionicons name="pause" size={24} color={!isRunning1 ? "#C75B4A" : "black"} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => stopTimer(setTimer1, setIsRunning1, interval1)}>
-            <Ionicons name="stop" size={24} color="black" />
+            <Ionicons name="close-circle" size={24} color="black" />
           </TouchableOpacity>
         </View>
       </View>
       <View style={styles.timerContainer}>
-        <Text>Timer 2: {formatTime(timer2)}</Text>
+        <Text>{t('breast.right')} {formatTime(timer2)}</Text>
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={() => startTimer(setTimer2, setIsRunning2, interval2)} disabled={isRunning2}>
             <Ionicons name="play" size={24} color={isRunning2 ? "#C75B4A" : "black"} />
@@ -232,7 +247,7 @@ const CreateTask = ({ route, navigation }) => {
             <Ionicons name="pause" size={24} color={!isRunning2 ? "#C75B4A" : "black"} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => stopTimer(setTimer2, setIsRunning2, interval2)}>
-            <Ionicons name="stop" size={24} color="black" />
+            <Ionicons name="close-circle" size={24} color="black" />
           </TouchableOpacity>
         </View>
       </View>
@@ -289,7 +304,7 @@ const CreateTask = ({ route, navigation }) => {
           </View>
 
           {/* Label */}
-          <View style={{ paddingTop: 20 }}>
+          <View style={{ paddingTop: 20, alignContent: 'center' }}>
             {handleCategorie(selectedImage)}
           </View>
 
@@ -313,13 +328,13 @@ const CreateTask = ({ route, navigation }) => {
               maximumDate={new Date()}
               mode="datetime"
               is24Hour={true}
-              cancelTextIOS={t(`cancel`)}
+              cancelTextIOS={t(`settings.cancel`)}
               confirmTextIOS={t(`validateOnly`)}
             />
             </View>
 
           {/* Notes */}
-          <View style={{ paddingTop: 40 }}>
+          <View style={{ paddingTop: 40, alignSelf: 'center' }}>
             <TextInput
               style={styles.inputComment}
               multiline
@@ -365,8 +380,8 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   imageSelected: {
-    width: 55,
-                height: 55,
+    width: 60,
+                height: 60,
                 resizeMode: 'cover',
                 borderColor: '#C75B4A',
                 borderWidth:5,
@@ -375,8 +390,8 @@ const styles = StyleSheet.create({
                 alignItems:'center'
   },
   imageNonSelected: {
-    width: 50,
-                height: 50,
+    width: 60,
+                height: 60,
                 resizeMode: 'cover',
                 borderWidth:5,
                 borderRadius:60, 
@@ -402,6 +417,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 20,
+    alignSelf: 'center',
     //backgroundColor: 'white', // White input background
   },
   footer: {

@@ -1,17 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { auth, db } from './config';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { addDoc, collection } from 'firebase/firestore';
+import analytics from './services/analytics';
 
 const SignIn = ({ navigation }) => {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [userError, setError] = useState('');
+
+  useEffect(() => {
+    analytics.logScreenView('SignIn');
+  }, []);
 
   const onHandleRegister = () => {
     const emailRegex = /^(([^<>()\[\]\.,;:\s@"]+(\.[^<>()\[\]\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -31,7 +35,7 @@ const SignIn = ({ navigation }) => {
       setError(t('error.shortName'));
       return;
     }
-
+    // add a setInfo
     createUserWithEmailAndPassword(auth, email, password)
       .then(async (res) => {
         await addDoc(collection(db, "Users"), {
@@ -39,6 +43,12 @@ const SignIn = ({ navigation }) => {
           email: res.user.email,
           username: name,
           BabyID: '',
+          creationDate: new Date(),
+        });
+        
+        analytics.logEvent('user_signup', {
+          userId: res.user.uid,
+          method: 'email'
         });
       })
       .catch((error) => {
@@ -47,6 +57,11 @@ const SignIn = ({ navigation }) => {
         } else {
           setError(t('error.general'));
         }
+        
+        analytics.logEvent('signup_error', {
+          errorCode: error.code,
+          errorType: error.code === "auth/email-already-in-use" ? 'email_in_use' : 'general'
+        });
       });
   };
 
@@ -91,8 +106,13 @@ const SignIn = ({ navigation }) => {
           justifyContent: 'flex-end',
           flexDirection: 'column',
         }}>
-          <Text>En cliquant sur valider, vous acceptez nos </Text> 
-          <TouchableOpacity onPress={() => console.log('hvhvtg')} style={{}}><Text style={{color:'#C75B4A'}}>conditions générales d'utilisations.</Text> </TouchableOpacity> 
+           <Text>{t('conditions.label')}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')} style={{}}>
+            <Text style={{color:'#C75B4A', alignSelf:'center'}}>{t('settings.privacyPolicy')}</Text> 
+          </TouchableOpacity> 
+          <TouchableOpacity onPress={() => navigation.navigate('TermsOfUse')} style={{}}>
+            <Text style={{color:'#C75B4A', alignSelf:'center'}}>{t('settings.termsOfUse')}</Text> 
+          </TouchableOpacity> 
           <Text style={styles.errorText}>{userError}</Text>
           <TouchableOpacity style={styles.button} onPress={onHandleRegister}>
             <Text style={styles.buttonText}>{t('button.submit')}</Text>

@@ -6,64 +6,60 @@ import { AuthentificationUserContext } from '../Context/AuthentificationContext'
 import { useTranslation } from 'react-i18next';
 import { getAuth, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 
+
 const ChangeEmail = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { user, userInfo, setUserInfo } = useContext(AuthentificationUserContext);
-  const [email, setEmail] = useState(userInfo.email);
+  const [email, setEmail] = useState(userInfo.email || '');
   const [password, setPassword] = useState('');
   const [userError, setError] = useState('');
-  console.log(user);
 
-  function updateUserEmail() { 
-    const emailRegex = /^(([^<>()\[\]\.,;:\s@"]+(\.[^<>()\[\]\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    const isValidEmail = emailRegex.test(email);
-
-    if (!email || !isValidEmail) {
-      setError(t('enterValidEmail'));
-      return;
-    }
-
-    if (!password) {
-      setError(t('enterValidPassword'));
-      return;
-    }
-
+  const updateAuthEmail = async () => {
     const auth = getAuth();
-    updateEmail(auth.currentUser, email).then(() => {
-      onHandleModification();
-    }).catch((error) => {
-      console.log(error);
+    if (!auth.currentUser) {
+      setError(t('userNotAuthenticated'));
+      return;
+    }
+    await updateEmail(auth.currentUser, email);
+  };
+
+  const updateFirestoreEmail = async () => {
+    const queryResult = query(userRef, where('userId', '==', user.uid));
+    const querySnapshot = await getDocs(queryResult);
+
+    if (querySnapshot.empty) {
+      setError(t('noUserFound'));
+      return;
+    }
+
+    const updatePromises = querySnapshot.docs.map(async (document) => {
+      await updateDoc(doc(db, 'Users', document.id), {
+        email: email,
+      });
     });
-  }
 
-  const onHandleModification = async () => {
-    const auth = getAuth();
-    const user = auth.currentUser;
-    const credential = EmailAuthProvider.credential(user.email, password);
+    await Promise.all(updatePromises);
+  };
 
+  async function updateUserEmail() {
     try {
-      await reauthenticateWithCredential(user, credential);
+      await updateAuthEmail();
+      await updateFirestoreEmail();
+      setUserInfo({ ...userInfo, email: email });
+      Alert.alert(t('emailChanged'));
 
-      const queryResult = query(userRef, where('userId', '==', user.uid));
-      const querySnapshot = await getDocs(queryResult);
+      // Log analytics event for successful email change
 
-      const updatePromises = querySnapshot.docs.map(async (document) => {
-        await updateDoc(doc(db, 'Users', document.id), {
-          email: email,
-        });
-      });
 
-      await Promise.all(updatePromises).then(() => {
-        setUserInfo({ ...userInfo, email: email });
-        Alert.alert(t('emailChanged'));
-        //navigation.goBack();
-      });
       navigation.goBack();
     } catch (error) {
-      console.error('Error updating document:', error);
+      console.error('Error updating email:', error);
       setError(t('errorUpdatingEmail'));
+
+      // Log analytics event for error
+
     }
-  };
+  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -85,16 +81,18 @@ const ChangeEmail = ({ route, navigation }) => {
           onChangeText={(text) => setPassword(text)}
         />
 
-        <View style={{
-          position: 'absolute',
-          bottom: 10,
-          left: 0,
-          right: 0,
-          backgroundColor: 'transparent',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          flexDirection: 'column',
-        }}>
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 10,
+            left: 0,
+            right: 0,
+            backgroundColor: 'transparent',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            flexDirection: 'column',
+          }}
+        >
           <Text style={styles.errorText}>{userError}</Text>
           <TouchableOpacity style={styles.button} onPress={updateUserEmail}>
             <Text style={styles.buttonText}>{t('validate')}</Text>
@@ -109,7 +107,9 @@ export default ChangeEmail;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, padding: 10, backgroundColor: '#FDF1E7'
+    flex: 1,
+    padding: 10,
+    backgroundColor: '#FDF1E7',
   },
   button: {
     backgroundColor: '#C75B4A',
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: 'center',
     marginBottom: 20,
-    width: 250
+    width: 250,
   },
   buttonText: {
     color: 'white',

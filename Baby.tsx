@@ -1,27 +1,26 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 
-import { auth, db, userRef } from './config';
-import { FieldValue, addDoc, collection, doc, getDocs, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
-import AuthentificationUserProvider, { AuthentificationUserContext } from './Context/AuthentificationContext';
+import { auth, db } from './config';
+import { addDoc, collection } from 'firebase/firestore';
+import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import moment from 'moment';
 import uuid from 'react-native-uuid';
 import { useTranslation } from 'react-i18next';
+import analytics from './services/analytics';
 import Boy from './assets/garcon.svg';
 import Girl from './assets/fille.svg';
+
 
 const Baby = ({ navigation }) => {
     const [name, setName] = useState('');
     const [birth, setBirth] = useState('');
     const [selectedImage, setSelectedImage] = useState(0);
-    const [selectedRole, setSelectedRole] = useState('');
-    const [otherRole, setOtherRole] = useState('');
     const [birthdate, setBirthdate] = useState('');
-    const [isRoleExpanded, setIsRoleExpanded] = useState(false);
-    const uniqueId = uuid.v4();
+    
     const [userError, setError] = useState('');
 
-    const { user, setUser, babyID, setBabyID } = useContext(AuthentificationUserContext);
+    const { user, setBabyID, userInfo } = useContext(AuthentificationUserContext);
     const { t } = useTranslation();
 
     const images = [
@@ -29,22 +28,14 @@ const Baby = ({ navigation }) => {
         { id: 1, type: 'Girl', rq: require('./assets/girl.png') },
     ];
 
-    const roles = [
-        { label: t('roles.papa'), value: 'papa' },
-        { label: t('roles.maman'), value: 'maman' },
-        { label: t('roles.nounou'), value: 'nounou' },
-        { label: t('roles.papi'), value: 'papi' },
-        { label: t('roles.mami'), value: 'mami' },
-        { label: t('roles.autre'), value: 'autre' },
-    ];
-
     useEffect(() => {
         if (!user) return;
+
+        analytics.logScreenView('Baby');
     }, []);
 
     const handleCreateBaby = async () => {
         if (name.length < 2) {
-            console.log('name');
             setError(t('errors.name'));
             return;
         }
@@ -52,34 +43,44 @@ const Baby = ({ navigation }) => {
             setError(t('errors.birthdate'));
             return;
         }
-        if (selectedRole === '') {
-            setError(t('errors.role'));
-            return;
+
+        try {
+            const uniqueId = uuid.v4();
+            const docRef = await addDoc(collection(db, "Baby"), {
+                id: uniqueId,
+                type: images[selectedImage].type,
+                name: name,
+                birthDate: birthdate,
+                CreatedDate: moment().format('YYYY-MM-DD HH:mm:ss'),
+                user: [user.uid],
+                admin: user.uid,
+                userName: userInfo?.username || 'Unknown',
+                userEmail: userInfo?.email || '',
+                tasks: [],
+            });
+            setBabyID(uniqueId);
+
+            analytics.logEvent('baby_created', {
+                babyType: images[selectedImage].type,
+                babyId: uniqueId,
+                userId: user.uid
+            });
+
+            navigation.navigate('BabyList');
+        } catch (error) {
+            console.error("Error adding document: ", error);
+            setError(error.message);
+
+            analytics.logEvent('baby_creation_failed', {
+                babyType: images[selectedImage].type,
+                userId: user.uid,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
         }
-        if (selectedRole === 'autre' && otherRole.length < 2) {
-            setError(t('errors.otherRole'));
-            return;
-        }
-        setBabyID(uniqueId);
-        await addDoc(collection(db, "Baby"), {
-            id: uniqueId,
-            type: images[selectedImage].type,
-            name: name,
-            birthDate: birth,
-            CreatedDate: moment().format('YYYY-MM-DD HH:mm:ss'),
-            user: [user.uid,],
-            tasks: [],
-            role: selectedRole,
-            roleAutre: selectedRole === 'autre' ? otherRole : '',
-            admin: user.uid,
-        });
-        navigation.navigate('BabyList');
     };
 
     const handleChange = (text) => {
-        // Remove non-numeric characters
         const cleaned = text.replace(/[^0-9]/g, '');
-        // Add slashes after day and month
         let formatted = cleaned;
         if (cleaned.length > 2) {
             formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
@@ -90,6 +91,13 @@ const Baby = ({ navigation }) => {
         setBirthdate(formatted);
     };
 
+    const handleImageSelection = (id) => {
+        setSelectedImage(id);
+
+        // Log analytics event for image selection
+   
+    };
+
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
@@ -97,13 +105,13 @@ const Baby = ({ navigation }) => {
                     <View style={{ justifyContent: 'center' }}>
                         <View style={{ flexDirection: "row", justifyContent: 'center' }}>
                             <TouchableOpacity
-                                onPress={() => setSelectedImage(0)}
+                                onPress={() => handleImageSelection(0)}
                                 style={[selectedImage == 0 ? styles.imageSelected : styles.imageNonSelected]}
                             >
                                 <Boy height={90} width={90} />
                             </TouchableOpacity>
                             <TouchableOpacity
-                                onPress={() => setSelectedImage(1)}
+                                onPress={() => handleImageSelection(1)}
                                 style={[selectedImage == 1 ? styles.imageSelected : styles.imageNonSelected]}
                             >
                                 <Girl height={90} width={90} />
@@ -129,42 +137,6 @@ const Baby = ({ navigation }) => {
                                 maxLength={10} // Maximum length for DD/MM/YYYY
                             />
                         </View>
-                        
-                        <View>
-                            <TouchableOpacity
-                                style={styles.input}
-                                onPress={() => setIsRoleExpanded(!isRoleExpanded)}
-                            >
-                                <Text>{selectedRole ? roles.find(role => role.value === selectedRole).label : t('placeholders.role')}</Text>
-                            </TouchableOpacity>
-                            {isRoleExpanded && (
-                                <View style={styles.roleContainer}>
-                                    {roles.map((role, index) => (
-                                        <TouchableOpacity
-                                            key={index}
-                                            onPress={() => {
-                                                setSelectedRole(role.value);
-                                                setIsRoleExpanded(false);
-                                            }}
-                                            style={styles.roleOption}
-                                        >
-                                            <Text>{role.label}</Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            )}
-                        </View>
-                        {selectedRole === 'autre' && (
-                            <View>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder={t('placeholders.otherRole')}
-                                    autoCapitalize="none"
-                                    value={otherRole}
-                                    onChangeText={(text) => setOtherRole(text)}
-                                />
-                            </View>
-                        )}
                     </View>
                 </ScrollView>
                 <View style={{
@@ -182,10 +154,7 @@ const Baby = ({ navigation }) => {
                     </View>
                     <TouchableOpacity
                         style={styles.button}
-                        onPress={() => {
-                            handleCreateBaby();
-                            //setError('');
-                        }}
+                        onPress={handleCreateBaby}
                     >
                         <Text style={styles.buttonText}>{t('buttons.validate')}</Text>
                     </TouchableOpacity>
@@ -196,12 +165,6 @@ const Baby = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-    image: {
-        width: "100%",
-        height: "105%",
-        resizeMode: 'cover',
-        backgroundColor: 'blue'
-    },
     imageSelected: {
         width: 120,
         height: 120,
@@ -234,7 +197,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     button: {
-        backgroundColor: '#C75B4A', // Dark blue button background
+        backgroundColor: '#C75B4A',
         borderRadius: 8,
         paddingVertical: 12,
         paddingHorizontal: 20,
@@ -243,7 +206,7 @@ const styles = StyleSheet.create({
         width: 250,
     },
     buttonText: {
-        color: '#fff', // White text color
+        color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
@@ -252,17 +215,6 @@ const styles = StyleSheet.create({
         color: 'red',
         fontSize: 16,
         fontWeight: 'bold',
-    },
-    roleContainer: {
-        backgroundColor: 'white',
-        borderRadius: 8,
-        padding: 10,
-        marginTop: 10,
-    },
-    roleOption: {
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
     },
 });
 

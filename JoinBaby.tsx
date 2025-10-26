@@ -1,64 +1,77 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import React, { useContext, useState } from 'react';
-import { getDocs, query, updateDoc, where } from 'firebase/firestore';
-import { babiesRef, db, userRef } from './config';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, TouchableWithoutFeedback, Keyboard, Alert } from 'react-native';
+import React, { useContext, useState, useEffect } from 'react';
+import { doc, getDocs, query, updateDoc, where, arrayUnion } from 'firebase/firestore';
+import { babiesRef, db } from './config';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
+import analytics from './services/analytics';
 
-const JoinBaby = ({ route, navigation }) => {
+
+const JoinBaby = ({ navigation }) => {
   const { t } = useTranslation();
-  const { user, userInfo, babyID, setBabyID } = useContext(AuthentificationUserContext);
-  const [babyIDPaste, setbabyIDPaste] = useState(userInfo.userbabyIDPaste);
+  const { user, setBabyID } = useContext(AuthentificationUserContext);
+  const [babyIDPaste, setbabyIDPaste] = useState('');
   const [userError, setError] = useState('');
-  const [babyValid, setBabyValid] = useState(false);
-  const [isRoleExpanded, setIsRoleExpanded] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(null);
 
-  const roles = [
-    { label: t('roles.papa'), value: 'papa' },
-    { label: t('roles.maman'), value: 'maman' },
-    { label: t('roles.nounou'), value: 'nounou' },
-    { label: t('roles.papi'), value: 'papi' },
-    { label: t('roles.mami'), value: 'mami' },
-    { label: t('roles.autre'), value: 'autre' },
-  ];
-
-  const queryResult = query(userRef, where('userId', '==', user.uid));
+  // Log screen view when the component is mounted
+  useEffect(() => {
+    analytics.logScreenView('JoinBaby');
+  }, []);
 
   const onHandleModification = async () => {
-    if (!babyIDPaste) {
+    const trimmedBabyID = babyIDPaste.trim();
+    if (!trimmedBabyID) {
       setError(t('error.enterCode'));
+      analytics.logEvent('baby_join_error', {
+        errorType: 'empty_code',
+        userId: user.uid
+      });
       return;
     }
 
-    if (!babyValid) {
-      setError(t('error.validCode'));
-      return;
-    }
-
-    const queryResult = query(babiesRef, where('id', '==', babyIDPaste));
-    console.log('queryResult :' + babyIDPaste);
+    const queryResult = query(babiesRef, where('id', '==', trimmedBabyID));
     try {
       const querySnapshot = await getDocs(queryResult);
+
+      if (querySnapshot.empty) {
+        setError(t('error.invalidCode'));
+        analytics.logEvent('baby_join_error', {
+          errorType: 'invalid_code',
+          userId: user.uid
+        });
+        return;
+      }
+
       querySnapshot.forEach(async (document) => {
         await updateDoc(doc(db, 'Baby', document.id), {
-          user: [...document.data().user, { userID: user.uid, role: selectedRole }],
-        }).then(() => {
-          console.log('success');
-          setBabyID(babyIDPaste);
+          user: arrayUnion(user.uid),
+        });
+        console.log('success');
+        setBabyID(trimmedBabyID);
+
+        analytics.logEvent('baby_joined', {
+          babyId: trimmedBabyID,
+          userId: user.uid
         });
       });
 
+      Alert.alert(t('congratsjoinbaby'));
       navigation.navigate('BabyList');
-
     } catch (error) {
       console.error('Error updating document:', error);
+      setError(t('error.updateFailed'));
+
+      analytics.logEvent('baby_join_error', {
+        errorType: 'update_failed',
+        userId: user.uid,
+        error: error.message
+      });
     }
   };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
+      <View style={styles.container}>
         <TextInput
           style={styles.input}
           placeholder={t('placeholder.code')}
@@ -67,55 +80,12 @@ const JoinBaby = ({ route, navigation }) => {
           clearButtonMode="always"
           value={babyIDPaste}
           onChangeText={(text) => setbabyIDPaste(text)}
+          accessibilityLabel={t('accessibility.enterCode')}
+          accessibilityHint={t('accessibility.enterCodeHint')}
         />
+        {userError ? <Text style={styles.errorText}>{userError}</Text> : null}
 
-        <View>
-          <TouchableOpacity
-            style={styles.input}
-            onPress={() => setIsRoleExpanded(!isRoleExpanded)}
-          >
-            <Text>{selectedRole ? roles.find(role => role.value === selectedRole).label : t('placeholders.role')}</Text>
-          </TouchableOpacity>
-          {isRoleExpanded && (
-            <View style={styles.roleContainer}>
-              {roles.map((role, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => {
-                    setSelectedRole(role.value);
-                    setIsRoleExpanded(false);
-                  }}
-                  style={styles.roleOption}
-                >
-                  <Text>{role.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-        {selectedRole === 'autre' && (
-          <View>
-            <TextInput
-              style={styles.input}
-              placeholder={t('placeholders.otherRole')}
-            />
-          </View>
-        )}
-
-        <View>
-          <Text style={styles.errorText}>{userError}</Text>
-        </View>
-
-        <View style={{
-          position: 'absolute',
-          bottom: 10,
-          left: 0,
-          right: 0,
-          backgroundColor: 'transparent',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          flexDirection: 'column',
-        }}>
+        <View style={styles.footer}>
           <TouchableOpacity style={styles.button} onPress={onHandleModification}>
             <Text style={styles.buttonText}>{t('validate')}</Text>
           </TouchableOpacity>
@@ -129,7 +99,9 @@ export default JoinBaby;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, padding: 10, backgroundColor: '#FDF1E7'
+    flex: 1,
+    padding: 10,
+    backgroundColor: '#FDF1E7',
   },
   button: {
     backgroundColor: '#C75B4A',
@@ -138,7 +110,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: 'center',
     marginBottom: 20,
-    width: 250
+    width: 250,
   },
   buttonText: {
     color: 'white',
@@ -153,23 +125,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 20,
-    backgroundColor: '',
   },
   errorText: {
     color: 'red',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  roleContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginTop: 10,
-    width: '100%',
-  },
-  roleOption: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+  footer: {
+    position: 'absolute',
+    bottom: 10,
+    left: 0,
+    right: 0,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    flexDirection: 'column',
   },
 });

@@ -2,12 +2,12 @@
   "expo": {
     "name": "tribubaby",
     "slug": "todolist",
-    "version": "1.0.0",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/baby.png",
       "resizeMode": "contain",
       "backgroundColor": "#C75B4A"
     },
@@ -16,14 +16,16 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tribubaby.tribubaby"
+      "bundleIdentifier": "com.tribubaby.tribubaby",
+      "buildNumber": "4"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/baby.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.tribubaby.tribubaby"
+      "package": "com.tribubaby.tribubaby",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -41,7 +43,8 @@
           "project": "tribubaby",
           "organization": "tribubaby"
         }
-      ]
+      ],
+      "@react-native-firebase/app"
     ]
   }
 }

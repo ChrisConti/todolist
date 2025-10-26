@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { db, userRef } from '../config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
@@ -8,11 +8,15 @@ import { useTranslation } from 'react-i18next';
 const ChangeName = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { user, userInfo, setUserInfo } = useContext(AuthentificationUserContext);
-  const [name, setName] = useState(userInfo.username);
+  const [name, setName] = useState(userInfo?.username || '');
   const [userError, setError] = useState('');
-  console.log(user);
 
   const queryResult = query(userRef, where('userId', '==', user.uid));
+
+  // Log screen view when the component is mounted
+  useEffect(() => {
+
+  }, []);
 
   const onHandleModification = async () => {
     if (!name) {
@@ -21,21 +25,30 @@ const ChangeName = ({ route, navigation }) => {
     }
     try {
       const querySnapshot = await getDocs(queryResult);
-      querySnapshot.forEach(async (document) => {
-        console.log(document);
+      if (querySnapshot.empty) {
+        setError(t('noUserFound'));
+        return;
+      }
+
+      for (const document of querySnapshot.docs) {
         await updateDoc(doc(db, 'Users', document.id), {
           username: name,
-        }).then(() => {
-          setUserInfo({ ...userInfo, username: name });
-          Alert.alert(t('nameChanged'));
-        }
-        );
-      });
-      
+        });
+      }
+
+      setUserInfo({ ...userInfo, username: name });
+      Alert.alert(t('nameChanged'));
+
+      // Log analytics event for successful name change
+
+
       navigation.goBack();
     } catch (error) {
       console.error('Error updating document:', error);
       setError(t('errorUpdatingName'));
+
+      // Log analytics event for error
+
     }
   };
 
@@ -45,29 +58,27 @@ const ChangeName = ({ route, navigation }) => {
         <TextInput
           style={styles.input}
           placeholder={t('name')}
-          keyboardType="email-address"
-          autoCapitalize="none"
+          keyboardType="default"
+          autoCapitalize="words"
           clearButtonMode="always"
           value={name}
           onChangeText={(text) => setName(text)}
         />
-        
 
-        <View style={{
-          position: 'absolute',
-          bottom: 10,
-          left: 0,
-          right: 0,
-          backgroundColor: 'transparent',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          flexDirection: 'column',
-        }}>
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 10,
+            left: 0,
+            right: 0,
+            backgroundColor: 'transparent',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            flexDirection: 'column',
+          }}
+        >
           <Text style={styles.errorText}>{userError}</Text>
           <TouchableOpacity style={styles.button} onPress={onHandleModification}>
-          
-          
-        
             <Text style={styles.buttonText}>{t('validate')}</Text>
           </TouchableOpacity>
         </View>
@@ -80,7 +91,9 @@ export default ChangeName;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, padding: 10, backgroundColor: '#FDF1E7'
+    flex: 1,
+    padding: 10,
+    backgroundColor: '#FDF1E7',
   },
   button: {
     backgroundColor: '#C75B4A',
@@ -89,7 +102,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: 'center',
     marginBottom: 20,
-    width: 250
+    width: 250,
   },
   buttonText: {
     color: 'white',

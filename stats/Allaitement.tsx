@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import moment from 'moment';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
-import { BarChart } from 'react-native-chart-kit';
 import Card from '../Card';
 import { useTranslation } from 'react-i18next';
 
@@ -15,9 +14,10 @@ const Allaitement = ({ navigation, tasks }) => {
   const [lastTask, setLastTask] = useState(null);
   const [selectedItem, setSelectedItem] = useState(0);
   const [data, setData] = useState({
-    boobLeft: { labels: [], datasets: [{ data: [] }] },
-    boobRight: { labels: [], datasets: [{ data: [] }] },
-    total: { labels: [], datasets: [{ data: [] }] },
+    labels: [],
+    boobLeft: [],
+    boobRight: [],
+    total: [],
   });
 
   useEffect(() => {
@@ -29,6 +29,12 @@ const Allaitement = ({ navigation, tasks }) => {
     }
     console.log('babyID:', babyID);
   }, [tasks]);
+
+  const boobSide = [
+    { id: 0, side: t('allaitement.left'), name: t('allaitement.left'), nameTrad: 0 },
+    { id: 1, side: t('allaitement.right'), name: t('allaitement.right'), nameTrad: 1 },
+    { id: 2, side: t('allaitement.both'), name: t('allaitement.both'), nameTrad: 2 },
+  ];
 
   const processTasks = () => {
     try {
@@ -92,18 +98,10 @@ const Allaitement = ({ navigation, tasks }) => {
       setLastSevenDaysSum(lastSevenDaysSum);
       setLastTask(mostRecentTask);
       setData({
-        boobLeft: {
-          labels: labels.map(label => moment(label).format('DD MMM')),
-          datasets: [{ data: lastSevenDaysData.boobLeft }],
-        },
-        boobRight: {
-          labels: labels.map(label => moment(label).format('DD MMM')),
-          datasets: [{ data: lastSevenDaysData.boobRight }],
-        },
-        total: {
-          labels: labels.map(label => moment(label).format('DD MMM')),
-          datasets: [{ data: lastSevenDaysData.total }],
-        },
+        labels: labels.map(label => moment(label).format('DD')),
+        boobLeft: lastSevenDaysData.boobLeft,
+        boobRight: lastSevenDaysData.boobRight,
+        total: lastSevenDaysData.total,
       });
 
       console.log('Processed tasks:', {
@@ -119,134 +117,67 @@ const Allaitement = ({ navigation, tasks }) => {
     }
   };
 
-  const chartConfig = {
-    backgroundColor: '#FDF1E7',
-    backgroundGradientFrom: '#FDF1E7',
-    backgroundGradientTo: '#FDF1E7',
-    decimalPlaces: 0,
-    color: (opacity = 1) => `rgba(199, 91, 74, ${opacity})`,
-    labelColor: (opacity = 1) => `rgba(199, 91, 74, ${opacity})`,
-    style: {
-      borderRadius: 16,
-    },
-    propsForDots: {
-      r: '6',
-      strokeWidth: '2',
-      stroke: '#C75B4A',
-    },
-  };
+  const renderBarChart = () => {
+    const maxValue = Math.max(...data.total);
+    const chartHeight = 220;
+    const barWidth = 20;
+    const barSpacing = 10;
 
-  const boobSide = [
-    { id: 0, side: 'left', name: t('diapers.dur'), nameTrad: 0 },
-    { id: 1, side: 'right', name: t('diapers.mou'), nameTrad: 1 },
-    { id: 2, side: 'both', name: t('diapers.liquide'), nameTrad: 2 },
-  ];
-
-  const handleSideBoob = (side) => {
-    if (side == 0) {
-      return (
-        <View>
-          <Text style={styles.titleParameter}>Quelques chiffres  </Text>
-          <View style={{ marginBottom: 20, flexDirection: 'row', justifyContent: 'space-around' }}>
-            <View style={{ }}>
-              <Text>Aujourd'hui : </Text>
-              <Text>Hier : </Text>
-              <Text>Les 7 derniers jours : </Text>
-            </View>
-            <View>
-              <Text>{todaySum.boobLeft.toFixed(2)} minutes</Text>
-              <Text>{yesterdaySum.boobLeft.toFixed(2)} minutes</Text>
-              <Text>{lastSevenDaysSum.boobLeft.toFixed(2)} minutes</Text>
-            </View>
-          </View>
-          <View>
-            <Text style={styles.titleParameter}>Evolution des Boob Left sur les 7 derniers jours </Text>
-            <BarChart
-              data={data.boobLeft}
-              width={Dimensions.get('window').width - 40}
-              height={220}
-              yAxisLabel=""
+    return (
+      <View style={styles.chartContainer}>
+        <View style={styles.yAxis}>
+          {[maxValue, maxValue / 2, 0].map((value, index) => (
+            <Text key={index} style={styles.yAxisLabel}>
+              {value > 60 ? `${(value / 60).toFixed(1)} h` : `${value.toFixed(0)} min`}
+            </Text>
+          ))}
+        </View>
+        <View style={styles.chartContent}>
+          {data.labels.map((label, index) => (
+            <View key={index} style={styles.chartColumn}>
+              <Text style={styles.totalText}>
+                {data.total[index] > 60
+                  ? `${(data.total[index] / 60).toFixed(1)} h`
+                  : `${data.total[index].toFixed(0)}`}
+              </Text>
+              <View style={styles.barContainer}>
+                
+                <View
+                  style={[
+                    styles.bar,
+                    {
+                      height: (data.boobLeft[index] / maxValue) * chartHeight,
+                      backgroundColor: '#1AAAAA',
+                      width: barWidth,
+                    },
+                  ]}
+                >
+                  <Text style={styles.barText}>{data.boobLeft[index].toFixed(0)}</Text>
+                  <Text style={styles.barText}>m</Text>
+                </View>
+                <View
+                  style={[
+                    styles.bar,
+                    {
+                      height: (data.boobRight[index] / maxValue) * chartHeight,
+                      backgroundColor: '#E29656',
+                      
+                      width: barWidth,
+                      //marginLeft: barSpacing,
+                    },
+                  ]}
+                >
+                  <Text style={styles.barText}>{data.boobRight[index].toFixed(0)}</Text>
+                  <Text style={styles.barText}>m</Text>
+                </View>
+              </View>
+              <Text style={styles.chartLabel}>{label}</Text>
               
-            yAxisSuffix=" min"
-              chartConfig={chartConfig}
-              style={{
-                marginVertical: 8,
-                borderRadius: 16,
-                backgroundColor: 'transparent',
-                marginHorizontal:0,
-              }}
-            />
-          </View>
+            </View>
+          ))}
         </View>
-      );
-    } else if (side == 1) {
-      return (
-        <View>
-          <Text style={styles.titleParameter}>Quelques chiffres  </Text>
-          <View style={{ marginBottom: 20, flexDirection: 'row', justifyContent: 'space-around' }}>
-            <View style={{ }}>
-              <Text>Aujourd'hui : </Text>
-              <Text>Hier : </Text>
-              <Text>Les 7 derniers jours : </Text>
-            </View>
-            <View>
-              <Text>{todaySum.boobRight.toFixed(2)} minutes</Text>
-              <Text>{yesterdaySum.boobRight.toFixed(2)} minutes</Text>
-              <Text>{lastSevenDaysSum.boobRight.toFixed(2)} minutes</Text>
-            </View>
-          </View>
-          <View>
-            <Text style={styles.titleParameter}>Evolution des Boob Right sur les 7 derniers jours </Text>
-            <BarChart
-              data={data.boobRight}
-              width={Dimensions.get('window').width - 40}
-              height={220}
-              yAxisLabel=""
-              chartConfig={chartConfig}
-              style={{
-                marginVertical: 8,
-                borderRadius: 16,
-                backgroundColor: 'transparent',
-              }}
-            />
-          </View>
-        </View>
-      );
-    } else {
-      return (
-        <View>
-          <Text style={styles.titleParameter}>Quelques chiffres  </Text>
-          <View style={{ marginBottom: 20, flexDirection: 'row', justifyContent: 'space-around' }}>
-            <View style={{ }}>
-              <Text>Aujourd'hui : </Text>
-              <Text>Hier : </Text>
-              <Text>Les 7 derniers jours : </Text>
-            </View>
-            <View>
-              <Text>{todaySum.total.toFixed(2)} minutes</Text>
-              <Text>{yesterdaySum.total.toFixed(2)} minutes</Text>
-              <Text>{lastSevenDaysSum.total.toFixed(2)} minutes</Text>
-            </View>
-          </View>
-          <View>
-            <Text style={styles.titleParameter}>Evolution du Total sur les 7 derniers jours </Text>
-            <BarChart
-              data={data.total}
-              width={Dimensions.get('window').width - 40}
-              height={220}
-              yAxisLabel=""
-              chartConfig={chartConfig}
-              style={{
-                marginVertical: 8,
-                borderRadius: 16,
-                backgroundColor: 'transparent',
-                marginHorizontal:0,
-              }}
-            />
-          </View>
-        </View>
-      );
-    }
+      </View>
+    );
   };
 
   return (
@@ -254,40 +185,39 @@ const Allaitement = ({ navigation, tasks }) => {
       {lastTask ? 
         <View>
           <View style={{ }}>
-            <Text style={styles.titleParameter}>Dernière tâche effectuée </Text>
-            <View>
+            <Text style={styles.titleParameter}>{t('allaitement.lastTask')}</Text>
+            <View style={{ marginTop: 20 }}>
               <Card key={lastTask.id} task={lastTask} navigation={navigation} editable={false} />
             </View>
           </View>
-          <View style={{ flexDirection: 'row', alignSelf: 'center', marginBottom: 20 }}>
-            {boobSide.map((image, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => {
-                  setSelectedItem(index);
-                }}
-                style={[selectedItem == image.id ? styles.imageSelected : styles.imageNonSelected]}
-              >
-                <Text>{image.side}</Text>
-              </TouchableOpacity>
-            ))}
+
+          <View style={{ marginTop : 20}}>
+            <Text style={styles.titleParameter}>{t('diapers.last7DaysStacked')}</Text>
+            {renderBarChart()}
           </View>
-          <View>
-            {handleSideBoob(selectedItem)}
-          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
+                     
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
+                          <View style={{ width: 10, height: 10, backgroundColor: '#1AAAAA', marginRight: 5 }} />
+                          <Text>{t('breast.left')}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
+                          <View style={{ width: 10, height: 10, backgroundColor: "#E29656", marginRight: 5 }} />
+                          <Text>{t('breast.right')}</Text>
+                        </View>
+                      
+                    </View>
         </View> 
       : 
-        <Text>No task found</Text>}      
+        <Text>{t('allaitement.noTaskFound')}</Text>}      
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    //flex: 1,
+    flex: 1,
     padding: 20,
-    //justifyContent: 'center',
-   // alignItems: 'center',
     backgroundColor: 'transparent',
   },
   titleParameter: {
@@ -296,6 +226,59 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 5,
     marginTop: 3,
+  },
+  chartContainer: {
+    flexDirection: 'row',
+    height: 220,
+    marginVertical: 28,
+    borderRadius: 16,
+    backgroundColor: '#FDF1E7',
+    alignItems: 'flex-end',
+    position: 'relative',
+  },
+  yAxis: {
+    justifyContent: 'space-between',
+    marginRight: 10,
+    position: 'relative',
+    height: '100%',
+  },
+  yAxisLabel: {
+    fontSize: 12,
+    color: '#7A8889',
+  },
+  chartContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'flex-end',
+    flex: 1,
+    position: 'relative',
+  },
+  chartColumn: {
+    alignItems: 'center',
+    flex: 1,
+    position: 'relative',
+  },
+  barContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-around',
+  },
+  bar: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  barText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  chartLabel: {
+    marginTop: 5,
+  },
+  totalText: {
+    marginTop: 5,
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   image: {
     width: 30,
@@ -306,7 +289,7 @@ const styles = StyleSheet.create({
     width: 55,
     height: 55,
     resizeMode: 'cover',
-    borderColor: '#C75B4A',
+    borderColor: '#1AAAAA',
     borderWidth: 5,
     borderRadius: 60,
     justifyContent: 'center',

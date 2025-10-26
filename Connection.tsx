@@ -40,7 +40,11 @@ const ConnectionScreen = ({ navigation }) => {
         .catch((error) => {
           if (error.code === 'auth/invalid-credential') {
             setError(t('error.invalidCredential'));
+          } else if (error.code === 'auth/wrong-password') {
+            console.log(error.message);
+            setError(t('error.test'));
           } else {
+            console.log(error.message);
             setError(t('error.general'));
           }
         });
@@ -149,7 +153,7 @@ const styles = StyleSheet.create({
     width: 200,
   },
   buttonText: {
-    color: 'black',
+    color: '#7A8889',
     fontSize: 16,
     fontWeight: 'bold',
     fontFamily: 'Pacifico'

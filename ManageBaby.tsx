@@ -1,9 +1,6 @@
 import { View, Text, TouchableOpacity, Modal, Pressable, StyleSheet, ScrollView, Image, SectionList } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
-import { addDoc, collection, doc, getDocs, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
-import { db, userRef, babiesRef } from './config';
-import moment from 'moment';
 import { useTranslation } from 'react-i18next';
 import BiberonComponent from './stats/Biberon';
 import DiaperComponent from './stats/Diaper';
@@ -18,11 +15,13 @@ import Sante from './assets/sante-color.svg';
 import Biberon from './assets/biberon-color.svg';
 
 const ManageBaby = ({ navigation, route }) => {
-  const { tasks } = route.params;
-  console.log('tasks', tasks);
+  const [tasks, setTasks] = useState(route.params.tasks);
+  //const { tasks } = ;
+  //console.log('tasks manage baby', route.params.tasks);
   const { t } = useTranslation();
   const { babyID, setBabyID, userInfo } = useContext(AuthentificationUserContext);
- const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedImage, setSelectedImage] = useState(0);
+  //console.log(route.params.getTasks());
  
   const images = [
     { id: 0, rq: require('./assets/biberon.png') },
@@ -42,12 +41,13 @@ const ManageBaby = ({ navigation, route }) => {
     };
 
   function handleStatsCategory(selectedImage: number) {
-    const filteredTasks = tasks.filter(task => task.id === selectedImage);
+    let filteredTasks = tasks.filter(task => task.id === selectedImage);
+    babyID ? '' : filteredTasks = []
     switch (selectedImage) {
       case 0:
-        return <BiberonComponent tasks={filteredTasks} />;
+        return <BiberonComponent tasks={filteredTasks} navigation={navigation} />;
       case 1:
-        return <DiaperComponent tasks={filteredTasks} />;
+        return <DiaperComponent tasks={filteredTasks} navigation={undefined} />;
       case 3:
         return <SommeilComponent tasks={filteredTasks} />;
       case 4:
@@ -61,10 +61,10 @@ const ManageBaby = ({ navigation, route }) => {
 
   return (
     <ScrollView style={{ padding: 10, backgroundColor: '#FDF1E7' }}>
-      <View style={{  backgroundColor: '#FDF1E7', alignItems: 'center',  }}>
+      <View style={{  backgroundColor: '#FDF1E7',   }}>
         
               {/* Image picker */}
-              <View style={{ flexDirection: 'row' }}>
+              <View style={{ flexDirection: 'row', alignSelf: 'center' }}>
                 {images.map((image, index) => (
                   <TouchableOpacity
                     key={index}

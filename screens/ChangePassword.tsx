@@ -1,7 +1,6 @@
-import { View, Text, Button, TouchableOpacity, Dimensions, TextInput, StyleSheet } from 'react-native';
+import { View, Text, Button, TouchableOpacity, Dimensions, TextInput, StyleSheet, Alert } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { addDoc, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
-import { db, userRef } from './config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { getAuth, sendPasswordResetEmail, updateEmail, updatePassword } from "firebase/auth";
 import { auth } from '../config.js';
@@ -15,6 +14,8 @@ const ChangeEmail = ({route, navigation}) => {
     sendPasswordResetEmail(auth, user.email)
   .then(() => {
     console.log('success');
+    Alert.alert(t('settings.resetPassordEmailSent'));
+    navigation.goBack();
   })
   .catch((error) => {
     const errorCode = error.code;

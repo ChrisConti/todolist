@@ -9,6 +9,7 @@ import { deleteUser, signOut } from 'firebase/auth';
 import { getDocs, query, where } from 'firebase/firestore';
 import WebView from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
+import analytics from './services/analytics';
 import Lolipop from './assets/lolipop.svg';
 
 const Settings = ({ navigation }) => {
@@ -16,6 +17,10 @@ const Settings = ({ navigation }) => {
   const [babyExist, setBabyExist] = useState(babyID ? true : false);
   const [modalVisible, setModalVisible] = useState(false);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    analytics.logScreenView('Settings');
+  }, []);
 
   const handleSignOut = () => {
     signOut(auth)
@@ -30,27 +35,27 @@ const Settings = ({ navigation }) => {
   };
 
   const handleContactUs = () => {
-    const email = 'your-email@example.com';
-    const subject = 'Contact Us';
+    const email = "tribubabytracker@gmail.com";
+    const subject = 'Contact Tribu baby';
     const body = 'Hi there, I would like to...';
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     Linking.openURL(url).catch((err) => console.error('Failed to open email:', err));
   };
 
   const handleOpenWebsite = () => {
-    const url = 'https://www.your-website.com';
+    const url = 'https://www.tribubaby.app';
     Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
   };
 
   const handleOpenWebsite2 = () => {
-    const url = 'https://www.your-website.com';
+    const url = 'https://www.tribubaby.app';
     Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
   };
 
   useEffect(() => {
     //GetUserInfo(queryResult);
 
-  }, []);
+  }, [babyExist]);
 
 
   return (
@@ -62,13 +67,16 @@ const Settings = ({ navigation }) => {
           </View>
           <View>
             {babyExist ? (
-              <TouchableOpacity onPress={() => navigation.navigate('BabyState')}>
-                <ItemParameter title={t('settings.myBaby')} icon="child" />
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity onPress={() => navigation.navigate('BabyState')}>
+                  <ItemParameter title={t('settings.myBaby')} icon="child" />
+                </TouchableOpacity>
+                
+              </>
             ) : (
               <View>
                 <TouchableOpacity onPress={() => navigation.navigate('Baby')}>
-                  <ItemParameter title={t('settings.createBaby')} icon="plus" />
+                  <ItemParameter title={t('title.addBaby')} icon="plus" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('JoinBaby')}>
                   <ItemParameter title={t('settings.joinBaby')} icon="share" />
@@ -91,43 +99,10 @@ const Settings = ({ navigation }) => {
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('ChangePassword')}>
               <ItemParameter title={t('settings.myPassword')} icon="lock" />
-              
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                Alert.alert(
-                  t('settings.deleteAccountTitle'),
-                  t('settings.deleteAccountMessage'),
-                  [
-                    {
-                      text: t('settings.cancel'),
-                      onPress: () => console.log('Cancel Pressed'),
-                      style: 'cancel',
-                    },
-                    {
-                      text: t('settings.confirm'),
-                      onPress: () => {
-                        deleteUser(auth.currentUser)
-                          .then(() => {
-                            console.log('User deleted');
-                            signOut(auth)
-                              .then(() => {
-                                setUser(null);
-                                setBabyID(null);
-                                setUserInfo(null);
-                                navigation.navigate('Connection');
-                              })
-                              .catch((error) => {
-                                Alert.alert(error.message);
-                              });
-                          })
-                          .catch((error) => {
-                            console.log(error);
-                          });
-                      },
-                    },
-                  ],
-                );
+                navigation.navigate('DeleteAccount');
               }}
             >
               <ItemParameter title={t('settings.deleteAccount')} icon="user" />
@@ -135,6 +110,9 @@ const Settings = ({ navigation }) => {
             <TouchableOpacity onPress={handleSignOut}>
               <ItemParameter title={t('settings.signOut')} icon="arrow-right" />
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('ExportTasks')}>
+                  <ItemParameter title="📊 Exporter les tâches" icon="download" />
+                </TouchableOpacity>
           </View>
         </View>
 
@@ -143,17 +121,18 @@ const Settings = ({ navigation }) => {
             <Text style={styles.titleParameter}>{t('settings.about')}</Text>
           </View>
           <View>
-            <TouchableOpacity onPress={handleOpenWebsite}>
+            <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
               <ItemParameter title={t('settings.privacyPolicy')} icon="arrow-circle-right" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleOpenWebsite2}>
+            <TouchableOpacity onPress={() => navigation.navigate('TermsOfUse')}>
               <ItemParameter title={t('settings.termsOfUse')} icon="arrow-circle-right" />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleContactUs}>
               <ItemParameter title={t('settings.contactUs')} icon="phone" />
             </TouchableOpacity>
+            
           </View>
-          <Button title='Try!' onPress={ () => { Sentry.captureException(new Error('First error')) }}/>
+         
         </View>
       </ScrollView>
       {/* Footer */}
@@ -168,15 +147,20 @@ const Settings = ({ navigation }) => {
               flexDirection: 'column',
               paddingBottom:10
             }}>
-              <Lolipop height={50} width={60} />
-              
-                  <Text style={styles.buttonText}>Version 1.0.0</Text>
-           
-              
+                         
             </View>
     </View>
   );
 }
+/*
+<TouchableOpacity onPress={() => navigation.navigate('AnalyticsTest')}>
+              <ItemParameter title="🔬 Test Analytics" icon="flask" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => navigation.navigate('ExportTasks')}>
+                  <ItemParameter title="📊 Exporter les tâches" icon="download" />
+                </TouchableOpacity>
+*/
 
 export default Settings;
 
@@ -229,3 +213,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+
+

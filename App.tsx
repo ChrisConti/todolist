@@ -11,24 +11,30 @@ import Connection from './Connection';
 import SignIn from './SignIn';
 import CreateTask from './screens/CreateTask';
 import TaskDetail from './TaskDetail';
+import UpdateTask from './screens/UpdateTask';
 import Settings from './Settings';
 import Baby from './Baby';
 import BabyState from './BabyState';
 import ChangeName from './screens/ChangeName';
 import ChangeEmail from './screens/ChangeEmail';
+import DeleteAccount from './screens/DeleteAccount';
 import ChangePassword from './screens/ChangePassword';
 import PasswordForgotten from './PasswordForgotten';
 import JoinBaby from './JoinBaby';
 import ManageBaby from './ManageBaby';
 import AuthentificationUserProvider, { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './config';
+import { auth, babiesRef } from './config';
 import { Pacifico_400Regular } from '@expo-google-fonts/pacifico';
 import * as Sentry from '@sentry/react-native';
+import PrivacyPolicy from './screens/PrivacyPolicy';
+import TermsOfUse from './screens/TermsOfUse';
+import AnalyticsTest from './screens/AnalyticsTest';
+import ExportTasks from './screens/ExportTasks';
+import { useTranslation } from 'react-i18next';
 
 Sentry.init({
   dsn: 'https://62aac55d9411b8b3dbfa940b450a1b52@o4508643850059776.ingest.de.sentry.io/4508643949805648',
-
   // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   // spotlight: __DEV__,
 });
@@ -38,10 +44,11 @@ const Stack = createStackNavigator();
 SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
-  const { user, setUser } = useContext(AuthentificationUserContext);
+  const { user, setUser, babyID, setBabyID } = useContext(AuthentificationUserContext);
   const [isLoading, setIsLoading] = useState(false);
   const [fontsLoaded, setFontsLoaded] = useState(false);
-
+  const { t } = useTranslation();
+  
   useEffect(() => {
     Sentry.captureException(new Error('First error'))
     async function loadResourcesAndDataAsync() {
@@ -54,9 +61,9 @@ function RootNavigator() {
         // Check authentication state
         setIsLoading(true);
         onAuthStateChanged(auth, (user) => {
-          
           if (user) {
             setUser(user);
+            //babyIDInfo()
           }
           setIsLoading(false);
         });
@@ -80,7 +87,7 @@ function RootNavigator() {
     <I18nextProvider i18n={i18n}>
       <NavigationContainer>
         {isLoading ? (
-          <AuthStack />
+          <AuthStack /> //loader a mettre
         ) : !user ? (
           <AuthStack />
         ) : (
@@ -92,6 +99,7 @@ function RootNavigator() {
 }
 
 function AuthStack() {
+  const { t } = useTranslation();
   return (
     <Stack.Navigator initialRouteName='Connection' id={undefined}>
       <Stack.Screen 
@@ -106,7 +114,7 @@ function AuthStack() {
           headerStyle: { backgroundColor: '#C75B4A',  },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22 },
-          headerTitle: "Inscription",
+          headerTitle: t('title.signup'),
           headerBackTitle: ''
         }}
       />
@@ -117,7 +125,29 @@ function AuthStack() {
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22 },
-          headerTitle: "Mot de passe oublié",
+          headerTitle: t('title.passwordForgotten'),
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen 
+        name="PrivacyPolicy" 
+        component={PrivacyPolicy}
+        options={{
+          headerStyle: { backgroundColor: '#C75B4A' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22 },
+          headerTitle: 'Politique de Confidentialité',
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen 
+        name="TermsOfUse" 
+        component={TermsOfUse}
+        options={{
+          headerStyle: { backgroundColor: '#C75B4A' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22 },
+          headerTitle: t('termsOfUse.title'),
           headerBackTitle: ''
         }}
       />
@@ -126,6 +156,7 @@ function AuthStack() {
 }
 
 function MainStack() {
+  const { t } = useTranslation();
   return (
     <Stack.Navigator initialRouteName='BabyList' id={undefined}>
       <Stack.Screen 
@@ -134,7 +165,8 @@ function MainStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerShown: false,
+          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7', paddingLeft: 20, paddingRight: 20 },
         }}
       />
       <Stack.Screen 
@@ -144,17 +176,18 @@ function MainStack() {
           headerStyle: styles.headerStyle,
           headerTintColor: '#fff',
           headerTitleStyle: styles.headerTitleStyle,
-          headerTitle: "Ajouter une activité"
+          headerTitle: t('title.addTask'),
+          headerBackTitle: ''
         }}
       />
       <Stack.Screen 
-        name="TaskDetail" 
-        component={TaskDetail} 
+        name="UpdateTask" 
+        component={UpdateTask} 
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
-          headerTitle: "Détails",
+          headerTitle: t('title.updateTask'),
           headerBackTitle: ''
         }}
       />
@@ -165,7 +198,7 @@ function MainStack() {
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
-          headerTitle: "Paramètres",
+          headerTitle: t('title.settings'),
           headerBackTitle: ''
         }}
       />
@@ -176,7 +209,7 @@ function MainStack() {
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
-          headerTitle: "Créer un bébé",
+          headerTitle: t('title.addBaby'),
           headerBackTitle: ''
         }}
       />
@@ -187,18 +220,7 @@ function MainStack() {
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
-          headerTitle: "Mon bébé",
-          headerBackTitle: ''
-        }}
-      />
-      <Stack.Screen 
-        name="JoinBaby" 
-        component={JoinBaby} 
-        options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
-          headerTitle: "Joindre un bébé",
+          headerTitle: t('title.myBaby'),
           headerBackTitle: ''
         }}
       />
@@ -209,7 +231,7 @@ function MainStack() {
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
-          headerTitle: "Mon nom",
+          headerTitle: t('title.changeName'),
           headerBackTitle: ''
         }}
       />
@@ -220,7 +242,29 @@ function MainStack() {
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
-          headerTitle: "Mon email",
+          headerTitle: t('title.changeEmail'),
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen 
+        name="AnalyticsTest" 
+        component={AnalyticsTest}
+        options={{
+          headerStyle: { backgroundColor: '#C75B4A' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold', fontSize:22, color:'#FDF1E7' },
+          headerTitle: 'Analytics Test',
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen 
+        name="DeleteAccount" 
+        component={DeleteAccount}
+        options={{
+          headerStyle: { backgroundColor: '#C75B4A' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitle: t('title.deleteAccount'),
           headerBackTitle: ''
         }}
       />
@@ -231,11 +275,32 @@ function MainStack() {
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
-          headerTitle: "Mon mot de passe",
+          headerTitle: t('title.changePassword'),
           headerBackTitle: ''
         }}
       />
-      
+      <Stack.Screen 
+        name="ExportTasks" 
+        component={ExportTasks} 
+        options={{
+          headerStyle: { backgroundColor: '#C75B4A' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitle: 'Exporter les tâches',
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen 
+        name="JoinBaby" 
+        component={JoinBaby} 
+        options={{
+          headerStyle: { backgroundColor: '#C75B4A' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitle: t('title.joinBaby'),
+          headerBackTitle: ''
+        }}
+      />
       <Stack.Screen 
         name="ManageBaby" 
         component={ManageBaby} 
@@ -243,7 +308,29 @@ function MainStack() {
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
-          headerTitle: "Statistiques",
+          headerTitle: t('title.babyStats'),
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen 
+        name="PrivacyPolicy" 
+        component={PrivacyPolicy}
+        options={{
+          headerStyle: { backgroundColor: '#C75B4A' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22 },
+          headerTitle: 'Politique de Confidentialité',
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen 
+        name="TermsOfUse" 
+        component={TermsOfUse}
+        options={{
+          headerStyle: { backgroundColor: '#C75B4A' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22 },
+          headerTitle: t('termsOfUse.title'),
           headerBackTitle: ''
         }}
       />
