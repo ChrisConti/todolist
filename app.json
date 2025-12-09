@@ -2,7 +2,7 @@
   "expo": {
     "name": "tribubaby",
     "slug": "todolist",
-    "version": "1.0.4",
+    "version": "1.0.10",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -17,7 +17,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tribubaby.tribubaby",
-      "buildNumber": "4"
+      "buildNumber": "14"
     },
     "android": {
       "adaptiveIcon": {
