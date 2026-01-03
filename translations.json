@@ -263,6 +263,17 @@
     },
     "validateOnly": "Validate",
     "Par":"Made by"
+        ,
+        "success": {
+          "copied": "Code copied!"
+        }
+    ,
+    "review": {
+      "title": "Thanks for using the app!",
+      "text": "Do you like the app? Rate us on the store!",
+      "later": "Later",
+      "rate": "Rate"
+    }
 
   
   },
@@ -532,6 +543,17 @@
     },
     "validateOnly": "Valider",
     "Par":"Fait par"
+        ,
+        "success": {
+          "copied": "Code copié !"
+        }
+    ,
+    "review": {
+      "title": "Merci d’utiliser l’app !",
+      "text": "Tu aimes l’application ? Note-nous sur le store !",
+      "later": "Plus tard",
+      "rate": "Noter"
+    }
 
   },
     "es": {
@@ -793,6 +815,17 @@
         },
         "validateOnly": "Validar",
         "Par":"Hecho por"
+              ,
+              "success": {
+                "copied": "¡Código copiado!"
+              }
+          ,
+          "review": {
+            "title": "¡Gracias por usar la app!",
+            "text": "¿Te gusta la aplicación? ¡Valóranos en la tienda!",
+            "later": "Más tarde",
+            "rate": "Valorar"
+          }
       
     }
   }

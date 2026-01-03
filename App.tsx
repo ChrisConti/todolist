@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { I18nextProvider } from 'react-i18next';
 import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import i18n from './i18n';
+import ErrorBoundary from './components/ErrorBoundary';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import BabyList from './screens/Home';
@@ -26,18 +27,13 @@ import AuthentificationUserProvider, { AuthentificationUserContext } from './Con
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, babiesRef } from './config';
 import { Pacifico_400Regular } from '@expo-google-fonts/pacifico';
-import * as Sentry from '@sentry/react-native';
 import PrivacyPolicy from './screens/PrivacyPolicy';
 import TermsOfUse from './screens/TermsOfUse';
 import AnalyticsTest from './screens/AnalyticsTest';
 import ExportTasks from './screens/ExportTasks';
 import { useTranslation } from 'react-i18next';
-
-Sentry.init({
-  dsn: 'https://62aac55d9411b8b3dbfa940b450a1b52@o4508643850059776.ingest.de.sentry.io/4508643949805648',
-  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-  // spotlight: __DEV__,
-});
+import { log } from './utils/logger';
+import { APP_INIT_TIMEOUT } from './utils/constants';
 
 const Stack = createStackNavigator();
 
@@ -50,29 +46,49 @@ function RootNavigator() {
   const { t } = useTranslation();
   
   useEffect(() => {
-    Sentry.captureException(new Error('First error'))
     async function loadResourcesAndDataAsync() {
+      const timeoutId = setTimeout(() => {
+        log.error('App initialization timeout', 'App.tsx');
+        alert('Timeout: App is taking too long to load. Check console for errors.');
+        setFontsLoaded(true);
+        setIsLoading(false);
+      }, APP_INIT_TIMEOUT);
+
       try {
+        log.info('Starting initialization...', 'App.tsx');
+        
         // Load fonts
-        Sentry.captureException(new Error('Second error'))
+        log.debug('Loading fonts...', 'App.tsx');
         await Font.loadAsync({ Pacifico: Pacifico_400Regular });
+        log.debug('Fonts loaded successfully', 'App.tsx');
         setFontsLoaded(true);
 
         // Check authentication state
+        log.debug('Checking authentication state...', 'App.tsx');
         setIsLoading(true);
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            setUser(user);
+        onAuthStateChanged(auth, (firebaseUser) => {
+          if (firebaseUser) {
+            log.info(`User authenticated: ${firebaseUser.uid}`, 'App.tsx');
+            setUser(firebaseUser);
             //babyIDInfo()
+          } else {
+            log.info('No user authenticated', 'App.tsx');
+            setUser(null);
           }
           setIsLoading(false);
         });
       } catch (e) {
-        console.warn(e);
+        log.error('Error during app initialization', 'App.tsx', e);
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        alert(`Error during initialization: ${errorMessage}`);
+        // Continue anyway with fallback
+        setFontsLoaded(true);
+        setIsLoading(false);
       } finally {
-        // Hide the splash screen
-        Sentry.captureException(new Error('hide error'))
+        clearTimeout(timeoutId);
+        log.debug('Hiding splash screen...', 'App.tsx');
         await SplashScreen.hideAsync();
+        log.info('Splash screen hidden - App should be visible now', 'App.tsx');
       }
     }
 
@@ -344,9 +360,11 @@ function MainStack() {
 
 export default function App() {
   return (
-    <AuthentificationUserProvider>
-      <RootNavigator />
-    </AuthentificationUserProvider>
+    <ErrorBoundary>
+      <AuthentificationUserProvider>
+        <RootNavigator />
+      </AuthentificationUserProvider>
+    </ErrorBoundary>
   );
 }
 

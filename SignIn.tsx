@@ -5,6 +5,7 @@ import { auth, db } from './config';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { addDoc, collection } from 'firebase/firestore';
 import analytics from './services/analytics';
+import * as Localization from 'expo-localization';
 
 const SignIn = ({ navigation }) => {
   const { t } = useTranslation();
@@ -38,17 +39,22 @@ const SignIn = ({ navigation }) => {
     // add a setInfo
     createUserWithEmailAndPassword(auth, email, password)
       .then(async (res) => {
+        // Récupérer le pays de l'utilisateur
+        const userCountry = Localization.region || 'Unknown';
+        
         await addDoc(collection(db, "Users"), {
           userId: res.user.uid,
           email: res.user.email,
           username: name,
           BabyID: '',
+          country: userCountry,
           creationDate: new Date(),
         });
         
         analytics.logEvent('user_signup', {
           userId: res.user.uid,
-          method: 'email'
+          method: 'email',
+          country: userCountry
         });
       })
       .catch((error) => {

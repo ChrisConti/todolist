@@ -1,4 +1,5 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Clipboard } from 'react-native';
+import { Analytics } from './services/analytics';
 import React, { useContext, useEffect, useState } from 'react';
 import { babiesRef, db, userRef } from './config';
 import { arrayRemove, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
@@ -67,7 +68,12 @@ const Baby = ({ navigation }) => {
 
       await Promise.all(updatePromises);
       setBabyID(null);
-      console.log('User successfully removed from all babies.');
+      // Clean activity review prompt counters
+      if (typeof AsyncStorage !== 'undefined') {
+        await AsyncStorage.removeItem('task_created_count');
+        await AsyncStorage.removeItem('has_prompted_for_review');
+      }
+      console.log('User successfully removed from all babies and counters cleaned.');
     } catch (error) {
       console.error('Error removing user from baby:', error.message);
     }
@@ -96,6 +102,7 @@ const Baby = ({ navigation }) => {
 
   const copyToClipboard = (text) => {
     Clipboard.setString(text);
+    Analytics.logEvent('copy_code_clicked');
     Alert.alert(t('success.copied'));
   };
 
@@ -126,7 +133,7 @@ const Baby = ({ navigation }) => {
           </View>
         ))}
         <Text style={styles.titleParameter}>{t('Partager le bébé')}</Text>
-        <TouchableOpacity style={{}} onPress={()=> Clipboard.setString(babyID)}>
+        <TouchableOpacity style={{}} onPress={()=> copyToClipboard(babyID)}>
         <View style={{flexDirection:'row',alignContent:'center', justifyContent:'space-around', width:180 ,  backgroundColor:'#C75B4A', borderRadius:6,height:50, alignSelf:'center'}}>
                     
                     <Text style={{color:'white', paddingRight:5, alignSelf:'center'}}>

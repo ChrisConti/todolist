@@ -25,7 +25,7 @@ const UpdateTask = ({ route, navigation }) => {
 
   const [task, setTask] = useState(route.params.task);
   const [selectedImage, setSelectedImage] = useState(task ? task.id : 0);
-  const [time, setTime] = useState(moment().format('YYYY-MM-DD HH:mm:ss'));
+  const [time, setTime] = useState(moment(route.params.task.date).format('YYYY-MM-DD HH:mm:ss'));
   const [label, setLabel] = useState(task.label || '');
   const [note, setNote] = useState(task.comment || '');
   const [selectedDate, setSelectedDate] = useState(task.date ? new Date(task.date) : new Date());

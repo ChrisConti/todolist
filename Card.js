@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import React from 'react';
 import * as Localization from 'expo-localization';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import Allaitement from './assets/allaitement-clair.svg';
 import Thermo from './assets/thermo-clair.svg';
 import Dodo from './assets/dodo-clair.svg';
@@ -121,6 +122,9 @@ const Card = ({ task, navigation, editable }) => {
       }}>
       <View style={{ flexDirection: "row", alignItems: "center", }}>
         {handleImageType()}
+        {task.comment && task.comment.trim() !== '' && (
+          <Ionicons name="chatbubble-ellipses" size={20} color="#F6F0EB" style={{ marginLeft: 8 }} />
+        )}
       </View>
       <View style={{ flexDirection: 'row' }}>
         <Text style={{ color: '#F6F0EB', fontSize: 25, marginRight: 8, alignSelf: 'flex-end' }}>

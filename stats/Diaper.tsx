@@ -174,19 +174,7 @@ const Diaper = ({ navigation, tasks }) => {
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', alignSelf: 'center', marginBottom: 20 }}>
-          {imagesDiapers.map((image, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => {
-                setSelectedItem(index);
-              }}
-              style={[selectedItem == image.id ? styles.imageSelected : styles.imageNonSelected]}
-            >
-              <Text>{image.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        
 
         <View>
           {handleCategoryCaca(selectedItem)}

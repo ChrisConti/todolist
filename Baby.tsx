@@ -10,6 +10,8 @@ import { useTranslation } from 'react-i18next';
 import analytics from './services/analytics';
 import Boy from './assets/garcon.svg';
 import Girl from './assets/fille.svg';
+import { validateBabyName, validateBirthdate, formatBirthdateInput } from './utils/validation';
+import { BABY_TYPES, COLLECTIONS } from './utils/constants';
 
 
 const Baby = ({ navigation }) => {
@@ -35,18 +37,21 @@ const Baby = ({ navigation }) => {
     }, []);
 
     const handleCreateBaby = async () => {
-        if (name.length < 2) {
-            setError(t('errors.name'));
+        const nameValidation = validateBabyName(name);
+        if (!nameValidation.isValid) {
+            setError(nameValidation.error || t('errors.name'));
             return;
         }
-        if (birthdate.length < 8) {
-            setError(t('errors.birthdate'));
+        
+        const birthdateValidation = validateBirthdate(birthdate);
+        if (!birthdateValidation.isValid) {
+            setError(birthdateValidation.error || t('errors.birthdate'));
             return;
         }
 
         try {
             const uniqueId = uuid.v4();
-            const docRef = await addDoc(collection(db, "Baby"), {
+            const docRef = await addDoc(collection(db, COLLECTIONS.BABY), {
                 id: uniqueId,
                 type: images[selectedImage].type,
                 name: name,
@@ -60,7 +65,13 @@ const Baby = ({ navigation }) => {
             });
             setBabyID(uniqueId);
 
+
             analytics.logEvent('baby_created', {
+                babyType: images[selectedImage].type,
+                babyId: uniqueId,
+                userId: user.uid
+            });
+            console.log('📊 baby_created event sent', {
                 babyType: images[selectedImage].type,
                 babyId: uniqueId,
                 userId: user.uid
@@ -79,15 +90,8 @@ const Baby = ({ navigation }) => {
         }
     };
 
-    const handleChange = (text) => {
-        const cleaned = text.replace(/[^0-9]/g, '');
-        let formatted = cleaned;
-        if (cleaned.length > 2) {
-            formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
-        }
-        if (cleaned.length > 4) {
-            formatted = formatted.slice(0, 5) + '/' + cleaned.slice(4);
-        }
+    const handleChange = (text: string) => {
+        const formatted = formatBirthdateInput(text);
         setBirthdate(formatted);
     };
 

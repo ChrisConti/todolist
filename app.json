@@ -2,7 +2,7 @@
   "expo": {
     "name": "tribubaby",
     "slug": "todolist",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -14,10 +14,15 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "updates": {
+      "enabled": false,
+      "fallbackToCacheTimeout": 0
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tribubaby.tribubaby",
-      "buildNumber": "14"
+      "buildNumber": "15",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
@@ -36,14 +41,6 @@
       }
     },
     "plugins": [
-      [
-        "@sentry/react-native/expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "tribubaby",
-          "organization": "tribubaby"
-        }
-      ],
       "@react-native-firebase/app"
     ]
   }

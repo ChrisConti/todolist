@@ -1,9 +1,10 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, Keyboard, ScrollView, FlatList, TouchableWithoutFeedback, Button } from 'react-native';
-import s from "../Style.js";
+import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, Keyboard, ScrollView, FlatList, TouchableWithoutFeedback, Button, AppState } from 'react-native';
+import s = require("../Style.js");
 import { auth, db, babiesRef, userRef } from '../config.js';
 import { addDoc, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import moment from 'moment';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import DateTimePicker from "react-native-modal-datetime-picker";
 
@@ -19,9 +20,15 @@ import Sante from '../assets/sante-color.svg';
 import Biberon from '../assets/biberon-color.svg';
 import analytics from '../services/analytics';
 
-const CreateTask = ({ route, navigation }) => {
+
+interface CreateTaskProps {
+  route: any;
+  navigation: any;
+}
+const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
+  const handleTaskCreated = route.params?.handleTaskCreated;
   const { t } = useTranslation();
-  const { task } = '';
+  const task = undefined;
   //const { babyID } = route.params;
   
   const { user, setUser, babyID, setBabyID, userInfo } = useContext(AuthentificationUserContext);
@@ -38,23 +45,91 @@ const CreateTask = ({ route, navigation }) => {
   const [isRunning1, setIsRunning1] = useState(false);
   const [isRunning2, setIsRunning2] = useState(false);
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
+  const [startTime1, setStartTime1] = useState(null);
+  const [startTime2, setStartTime2] = useState(null);
   const interval1 = useRef(null);
   const interval2 = useRef(null);
+  const appState = useRef(AppState.currentState);
 
   const queryResult = query(userRef, where('userId', '==', user.uid));
 
+  // Charger les timers sauvegardés au démarrage
   useEffect(() => {
-    // Track screen view
     analytics.logScreenView('CreateTask');
-    //DocFinder(queryResult);
+    loadTimers();
+    
+    // Écouter les changements d'état de l'app (background/foreground)
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    
+    return () => {
+      subscription?.remove();
+      clearInterval(interval1.current);
+      clearInterval(interval2.current);
+    };
   }, []);
+
+  const handleAppStateChange = async (nextAppState: any) => {
+    if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+      // L'app revient au premier plan, recalculer les timers
+      await loadTimers();
+    }
+    appState.current = nextAppState;
+  };
+
+  const loadTimers = async () => {
+    try {
+      const timer1Data = await AsyncStorage.getItem('timer1_createtask');
+      const timer2Data = await AsyncStorage.getItem('timer2_createtask');
+      
+      if (timer1Data) {
+        const { elapsed, startTime, isRunning } = JSON.parse(timer1Data);
+        if (isRunning && startTime) {
+          const now = Date.now();
+          const additionalTime = Math.floor((now - startTime) / 1000);
+          setTimer1(elapsed + additionalTime);
+          setStartTime1(startTime);
+          setIsRunning1(true);
+          startTimerInterval(setTimer1, interval1, startTime, elapsed);
+        } else {
+          setTimer1(elapsed);
+        }
+      }
+      
+      if (timer2Data) {
+        const { elapsed, startTime, isRunning } = JSON.parse(timer2Data);
+        if (isRunning && startTime) {
+          const now = Date.now();
+          const additionalTime = Math.floor((now - startTime) / 1000);
+          setTimer2(elapsed + additionalTime);
+          setStartTime2(startTime);
+          setIsRunning2(true);
+          startTimerInterval(setTimer2, interval2, startTime, elapsed);
+        } else {
+          setTimer2(elapsed);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading timers:', error);
+    }
+  };
+
+  const saveTimer = async (timerKey: string, elapsed: any, startTime: any, isRunning: any) => {
+    try {
+      await AsyncStorage.setItem(
+        timerKey,
+        JSON.stringify({ elapsed, startTime, isRunning })
+      );
+    } catch (error) {
+      console.error('Error saving timer:', error);
+    }
+  };
 
   // date picker
   const showDateTimePicker = () => {
     setIsDateTimePickerVisible(true);
   };
 
-  const handleImageType = (id) => {
+  const handleImageType = (id: number) => {
     if (id == 0) return <Biberon height={45} width={45} />;
     if (id == 1) return <Couche height={35} width={35} />;
     if (id == 2) return <Sante height={35} width={35} />;
@@ -77,7 +152,7 @@ const CreateTask = ({ route, navigation }) => {
     { id: 1, name: t('diapers.mou'), nameTrad:'mou' },
     { id: 2, name: t('diapers.liquide'), nameTrad:'liquide' },
   ];
-  const returnLabel = (id) => {
+  const returnLabel = (id: number) => {
     if (id == 0) return 'biberon';
     if (id == 1) return 'couche';
     if (id == 2) return 'Sante';
@@ -107,7 +182,7 @@ const CreateTask = ({ route, navigation }) => {
               user: user.uid, 
               createdBy: userInfo?.username || 'Unknown', 
               comment: note }],
-        }).then(() => {
+        }).then(async () => {
           console.log('success');
           // Track task creation
           analytics.logEvent('task_created', {
@@ -117,6 +192,12 @@ const CreateTask = ({ route, navigation }) => {
             hasNote: !!note,
             userId: user.uid
           });
+          // Incrémente le compteur et affiche la pop-up si besoin
+          handleTaskCreated();
+          
+          // Nettoyer les timers sauvegardés
+          await AsyncStorage.removeItem('timer1_createtask');
+          await AsyncStorage.removeItem('timer2_createtask');
         });
       });
 
@@ -134,7 +215,7 @@ const CreateTask = ({ route, navigation }) => {
     }
   };
 
-  const handleDateChange = (date) => {
+  const handleDateChange = (date: any) => {
     if (date) {
       setSelectedDate(date);
       setTime(moment(date).format('YYYY-MM-DD HH:mm:ss'));
@@ -142,7 +223,7 @@ const CreateTask = ({ route, navigation }) => {
     }
   };
 
-  const handleCategorie = (id) => {
+  const handleCategorie = (id: number) => {
     if (id == 0) {
       return (
         <TextInput
@@ -226,13 +307,13 @@ const CreateTask = ({ route, navigation }) => {
           <View style={styles.timerContainer}>
         <Text>{t('breast.left')} {formatTime(timer1)}</Text>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={() => startTimer(setTimer1, setIsRunning1, interval1)} disabled={isRunning1}>
+          <TouchableOpacity onPress={() => startTimer(setTimer1, setIsRunning1, interval1, 1)} disabled={isRunning1}>
             <Ionicons name="play" size={24} color={isRunning1 ? "#C75B4A" : "black"} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => pauseTimer(setIsRunning1, interval1)} disabled={!isRunning1}>
+          <TouchableOpacity onPress={() => pauseTimer(setIsRunning1, interval1, 1)} disabled={!isRunning1}>
             <Ionicons name="pause" size={24} color={!isRunning1 ? "#C75B4A" : "black"} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => stopTimer(setTimer1, setIsRunning1, interval1)}>
+          <TouchableOpacity onPress={() => stopTimer(setTimer1, setIsRunning1, interval1, 1)}>
             <Ionicons name="close-circle" size={24} color="black" />
           </TouchableOpacity>
         </View>
@@ -240,13 +321,13 @@ const CreateTask = ({ route, navigation }) => {
       <View style={styles.timerContainer}>
         <Text>{t('breast.right')} {formatTime(timer2)}</Text>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={() => startTimer(setTimer2, setIsRunning2, interval2)} disabled={isRunning2}>
+          <TouchableOpacity onPress={() => startTimer(setTimer2, setIsRunning2, interval2, 2)} disabled={isRunning2}>
             <Ionicons name="play" size={24} color={isRunning2 ? "#C75B4A" : "black"} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => pauseTimer(setIsRunning2, interval2)} disabled={!isRunning2}>
+          <TouchableOpacity onPress={() => pauseTimer(setIsRunning2, interval2, 2)} disabled={!isRunning2}>
             <Ionicons name="pause" size={24} color={!isRunning2 ? "#C75B4A" : "black"} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => stopTimer(setTimer2, setIsRunning2, interval2)}>
+          <TouchableOpacity onPress={() => stopTimer(setTimer2, setIsRunning2, interval2, 2)}>
             <Ionicons name="close-circle" size={24} color="black" />
           </TouchableOpacity>
         </View>
@@ -256,25 +337,62 @@ const CreateTask = ({ route, navigation }) => {
     }
   }
 
-  const startTimer = (setTimer, setIsRunning, interval) => {
-    setIsRunning(true);
+  const startTimerInterval = (setTimer: any, interval: any, startTime: any, initialElapsed: any) => {
+    clearInterval(interval.current);
     interval.current = setInterval(() => {
-      setTimer(prev => prev + 1);
+      const now = Date.now();
+      const elapsed = Math.floor((now - startTime) / 1000) + initialElapsed;
+      setTimer(elapsed);
     }, 1000);
   };
 
-  const pauseTimer = (setIsRunning, interval) => {
-    setIsRunning(false);
-    clearInterval(interval.current);
+  const startTimer = (setTimer: any, setIsRunning: any, interval: any, timerNum: any) => {
+    const now = Date.now();
+    const currentElapsed = timerNum === 1 ? timer1 : timer2;
+    
+    if (timerNum === 1) {
+      setStartTime1(now);
+      saveTimer('timer1_createtask', currentElapsed, now, true);
+    } else {
+      setStartTime2(now);
+      saveTimer('timer2_createtask', currentElapsed, now, true);
+    }
+    
+    setIsRunning(true);
+    startTimerInterval(setTimer, interval, now, currentElapsed);
   };
 
-  const stopTimer = (setTimer, setIsRunning, interval) => {
+  const pauseTimer = (setIsRunning: any, interval: any, timerNum: any) => {
+    setIsRunning(false);
+    clearInterval(interval.current);
+    
+    const currentElapsed = timerNum === 1 ? timer1 : timer2;
+    const timerKey = timerNum === 1 ? 'timer1_createtask' : 'timer2_createtask';
+    saveTimer(timerKey, currentElapsed, null, false);
+    
+    if (timerNum === 1) {
+      setStartTime1(null);
+    } else {
+      setStartTime2(null);
+    }
+  };
+
+  const stopTimer = (setTimer: any, setIsRunning: any, interval: any, timerNum: any) => {
     setIsRunning(false);
     clearInterval(interval.current);
     setTimer(0);
+    
+    const timerKey = timerNum === 1 ? 'timer1_createtask' : 'timer2_createtask';
+    saveTimer(timerKey, 0, null, false);
+    
+    if (timerNum === 1) {
+      setStartTime1(null);
+    } else {
+      setStartTime2(null);
+    }
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
@@ -282,91 +400,92 @@ const CreateTask = ({ route, navigation }) => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{ flex: 1, backgroundColor: '#FDF1E7', alignItems: 'center', paddingTop: 10, }}>
-        <ScrollView>
-          {/* Image picker */}
-          <View style={{ flexDirection: 'row' }}>
-            {images.map((image, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => {
-                  setSelectedImage(image.id);
-                  image.id == 1 ? setLabel(imagesDiapers[0].id.toString()) : setLabel('');
-                  setSelectedItem(0);
-                }}
-                style={[selectedImage == image.id ? styles.imageSelected : styles.imageNonSelected]}
-              >
-                {handleImageType(image.id)}
-                
+    <>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1, backgroundColor: '#FDF1E7', alignItems: 'center', paddingTop: 10, }}>
+          <ScrollView>
+            {/* Image picker */}
+            <View style={{ flexDirection: 'row' }}>
+              {images.map((image, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => {
+                    setSelectedImage(image.id);
+                    image.id == 1 ? setLabel(imagesDiapers[0].id.toString()) : setLabel('');
+                    setSelectedItem(0);
+                  }}
+                  style={[selectedImage == image.id ? styles.imageSelected : styles.imageNonSelected]}
+                >
+                  {handleImageType(image.id)}
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Label */}
+            <View style={{ paddingTop: 20, alignContent: 'center' }}>
+              {handleCategorie(selectedImage)}
+            </View>
+
+            {/* Time */}
+              <View style={{ paddingTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+              <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                {t('task.whenTask')}
+              </Text> 
+              <TouchableOpacity onPress={() => {isDateTimePickerVisible ? setIsDateTimePickerVisible(false) : setIsDateTimePickerVisible(true)}} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#C75B4A', borderRadius: 8, padding: 10, width: 120 }}>
+                <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text> 
               </TouchableOpacity>
-            ))}
-          </View>
 
-          {/* Label */}
-          <View style={{ paddingTop: 20, alignContent: 'center' }}>
-            {handleCategorie(selectedImage)}
-          </View>
+              <DateTimePicker
+                isVisible={isDateTimePickerVisible}
+                onConfirm={(date) => handleDateChange(date)}
+                onCancel={()=> {
+                setIsDateTimePickerVisible(false);
+                setSelectedDate(new Date());
+                }}
+                minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}
+                maximumDate={new Date()}
+                mode="datetime"
+                is24Hour={true}
+                cancelTextIOS={t(`settings.cancel`)}
+                confirmTextIOS={t(`validateOnly`)}
+              />
+              </View>
 
-          {/* Time */}
-            <View style={{ paddingTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-            <Text style={{ color: 'gray', paddingBottom: 12 }}>
-              {t('task.whenTask')}
-            </Text> 
-            <TouchableOpacity onPress={() => {isDateTimePickerVisible ? setIsDateTimePickerVisible(false) : setIsDateTimePickerVisible(true)}} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#C75B4A', borderRadius: 8, padding: 10, width: 120 }}>
-              <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text> 
+            {/* Notes */}
+            <View style={{ paddingTop: 40, alignSelf: 'center' }}>
+              <TextInput
+                style={styles.inputComment}
+                multiline
+                numberOfLines={3}
+                value={note}
+                placeholder={t('placeholder.comment')}
+                onChangeText={(inputText) => setNote(inputText)}
+                maxLength={60}
+                onSubmitEditing={Keyboard.dismiss}
+              />
+            </View>
+          </ScrollView>
+
+          {/* Footer */}
+          <View style={{
+            position: 'absolute',
+            bottom: 10,
+            left: 0,
+            right: 0,
+            backgroundColor: 'transparent', // Set to 'transparent' to cover the entire bottom
+            alignItems: 'center',
+            justifyContent: 'flex-end', // Pushes the button to the bottom
+            flexDirection: 'column',
+          }}>
+            <TouchableOpacity onPress={updateBabyTasks}>
+              <View style={styles.button}>
+                <Text style={styles.buttonText}>{t('button.validate')}</Text>
+              </View>
             </TouchableOpacity>
-
-            <DateTimePicker
-              isVisible={isDateTimePickerVisible}
-              onConfirm={(date) => handleDateChange(date)}
-              onCancel={()=> {
-              setIsDateTimePickerVisible(false);
-              setSelectedDate(new Date());
-              }}
-              minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}
-              maximumDate={new Date()}
-              mode="datetime"
-              is24Hour={true}
-              cancelTextIOS={t(`settings.cancel`)}
-              confirmTextIOS={t(`validateOnly`)}
-            />
-            </View>
-
-          {/* Notes */}
-          <View style={{ paddingTop: 40, alignSelf: 'center' }}>
-            <TextInput
-              style={styles.inputComment}
-              multiline
-              numberOfLines={3}
-              value={note}
-              placeholder={t('placeholder.comment')}
-              onChangeText={(inputText) => setNote(inputText)}
-              maxLength={60}
-              onSubmitEditing={Keyboard.dismiss}
-            />
           </View>
-        </ScrollView>
-
-        {/* Footer */}
-        <View style={{
-          position: 'absolute',
-          bottom: 10,
-          left: 0,
-          right: 0,
-          backgroundColor: 'transparent', // Set to 'transparent' to cover the entire bottom
-          alignItems: 'center',
-          justifyContent: 'flex-end', // Pushes the button to the bottom
-          flexDirection: 'column',
-        }}>
-          <TouchableOpacity onPress={updateBabyTasks}>
-            <View style={styles.button}>
-              <Text style={styles.buttonText}>{t('button.validate')}</Text>
-            </View>
-          </TouchableOpacity>
         </View>
-      </View>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
+    </>
   );
 }
 

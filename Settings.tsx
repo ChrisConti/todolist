@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Modal, Linking, Button } from 'react-native';
-import * as Sentry from '@sentry/react-native';
+// import * as Sentry from '@sentry/react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scrollview';
 import React, { useContext, useEffect, useState } from 'react';
 import ItemParameter from './ItemParameter.js';
@@ -110,9 +110,6 @@ const Settings = ({ navigation }) => {
             <TouchableOpacity onPress={handleSignOut}>
               <ItemParameter title={t('settings.signOut')} icon="arrow-right" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('ExportTasks')}>
-                  <ItemParameter title="📊 Exporter les tâches" icon="download" />
-                </TouchableOpacity>
           </View>
         </View>
 

@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, GestureResponderEv
 import Logo from './assets/logo.svg';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './config';
-import * as Sentry from '@sentry/react-native';
+// import * as Sentry from '@sentry/react-native';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
 
@@ -15,7 +15,7 @@ const ConnectionScreen = ({ navigation }) => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    Sentry.captureException(new Error('Connection'))
+    // Sentry.captureException(new Error('Connection'))
     if (user) {
       navigation.navigate('Home');
     }
