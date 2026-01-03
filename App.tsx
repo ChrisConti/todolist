@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { I18nextProvider } from 'react-i18next';
-import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import i18n from './i18n';
 import ErrorBoundary from './components/ErrorBoundary';
 import { NavigationContainer } from '@react-navigation/native';
@@ -11,7 +11,6 @@ import BabyList from './screens/Home';
 import Connection from './Connection';
 import SignIn from './SignIn';
 import CreateTask from './screens/CreateTask';
-import TaskDetail from './TaskDetail';
 import UpdateTask from './screens/UpdateTask';
 import Settings from './Settings';
 import Baby from './Baby';
@@ -25,7 +24,7 @@ import JoinBaby from './JoinBaby';
 import ManageBaby from './ManageBaby';
 import AuthentificationUserProvider, { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, babiesRef } from './config';
+import { auth } from './config';
 import { Pacifico_400Regular } from '@expo-google-fonts/pacifico';
 import PrivacyPolicy from './screens/PrivacyPolicy';
 import TermsOfUse from './screens/TermsOfUse';
@@ -40,10 +39,9 @@ const Stack = createStackNavigator();
 SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
-  const { user, setUser, babyID, setBabyID } = useContext(AuthentificationUserContext);
+  const { user, setUser } = useContext(AuthentificationUserContext);
   const [isLoading, setIsLoading] = useState(false);
   const [fontsLoaded, setFontsLoaded] = useState(false);
-  const { t } = useTranslation();
   
   useEffect(() => {
     async function loadResourcesAndDataAsync() {
