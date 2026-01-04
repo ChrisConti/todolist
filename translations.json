@@ -28,9 +28,14 @@
     },
     "error": {
       "invalidEmail": "Please enter a valid email.",
-      "shortPassword": "Password too short, minimum 5 characters.",
+      "shortPassword": "Password too short, minimum 6 characters.",
+      "passwordNeedsNumber": "Password must contain at least one number.",
       "shortName": "Name should have at least 2 characters.",
       "emailInUse": "Email already used. Please sign up.",
+      "emailAlreadyRegistered": "This email is already registered.",
+      "networkError": "Network error. Please check your connection.",
+      "databaseError": "Database error. Please try again later.",
+      "criticalAccountError": "Critical error occurred. Please contact support.",
       "general": "An error occurred. Please try again.",
       "name": "Please enter a name (min 2 characters).",
       "birthdate": "Please enter a valid birthdate.",
@@ -38,7 +43,21 @@
       "validCode": "Please enter a valid code.",
       "notAuthenticated": "You must be logged in to perform this action.",
       "accountCreationFailed": "Unable to create account. Please try again.",
+      "babyCreationFailed": "Unable to create baby. Please try again.",
+      "taskCreationFailed": "Unable to create task. Please try again.",
+      "taskUpdateFailed": "Unable to update task. Please try again.",
+      "taskDeleteFailed": "Unable to delete task. Please try again.",
+      "babyNotFound": "Baby not found.",
+      "permissionDenied": "Permission denied. Please check your account.",
       "title": "Error"
+    },
+    "success": {
+      "title": "Success",
+      "accountCreated": "Account created successfully!",
+      "babyCreated": "Baby created successfully!",
+      "taskCreated": "Task created successfully!",
+      "taskUpdated": "Task updated successfully!",
+      "taskDeleted": "Task deleted successfully!"
     },
     "header": {
       "suivi": "Tracking"
@@ -60,7 +79,9 @@
       "createdBy": "Created by",
       "date": "On date",
       "whenTask": "When?",
-      "addTask": "Add an activity"
+      "addTask": "Add an activity",
+      "deleteTitle": "Delete Task",
+      "deleteMessage": "Are you sure you want to delete this task?"
     },
     "diapers": {
       "dur": "Normal",
@@ -87,11 +108,12 @@
       "deleteAccountTitle": "Delete Account",
       "deleteBabyMessage": "Are you sure you want to leave the baby ?",
       "deleteBabyTitle": "Leave the baby",
-      "deleteAccountMessage": "Are you sure you want to delete your account? Your data will be permanently removed.",
+      "deleteAccountMessage": "Are you sure you want to delete your account?\n\nYour personal data will be permanently removed in compliance with GDPR. Your tasks will remain in the baby's history but will be anonymized (displayed as 'Deleted User').",
       "cancel": "Cancel",
       "confirm": "Confirm",
       "signOut": "Sign Out",
       "about": "About",
+      "rateApp": "Rate the App",
       "privacyPolicy": "Privacy Policy",
       "termsOfUse": "Terms of Use",
       "contactUs": "Contact Us",
@@ -124,6 +146,8 @@
     "enterValidPassword": "Please enter a password",
     "emailUpdatedSuccess": "Email updated successfully.", 
     "incorrectPassword": "The password is incorrect. Please try again.", 
+    "deletedUser": "Deleted User",
+    "accountDeletionFailed": "Account deletion failed. Please try again.",
     "reauthenticationError": "Error during reauthentication: {{message}}", 
     "email": "Email", 
     "password": "Password",
@@ -269,13 +293,13 @@
         ,
         "success": {
           "copied": "Code copied!"
-        }
-    ,
+        },
     "review": {
-      "title": "Thanks for using the app!",
-      "text": "Do you like the app? Rate us on the store!",
+      "title": "Do you love the app?",
+      "message": "Your feedback helps us improve and helps other parents discover Tribubaby!",
+      "commentCTA": "💬 Share your experience with a comment to help other families",
       "later": "Later",
-      "rate": "Rate"
+      "writeReview": "Write a Review"
     }
 
   
@@ -309,9 +333,14 @@
     },
     "error": {
       "invalidEmail": "Veuillez entrer un email valide.",
-      "shortPassword": "Mot de passe trop court, minimum 5 caractères.",
+      "shortPassword": "Mot de passe trop court, minimum 6 caractères.",
+      "passwordNeedsNumber": "Le mot de passe doit contenir au moins un chiffre.",
       "shortName": "Le nom doit comporter au moins 2 caractères.",
       "emailInUse": "Email déjà utilisé. Veuillez vous inscrire.",
+      "emailAlreadyRegistered": "Cet email est déjà enregistré.",
+      "networkError": "Erreur réseau. Vérifiez votre connexion.",
+      "databaseError": "Erreur de base de données. Réessayez plus tard.",
+      "criticalAccountError": "Erreur critique. Veuillez contacter le support.",
       "general": "Une erreur s'est produite. Veuillez réessayer.",
       "name": "Merci de remplir le nom (min 2 caractères).",
       "birthdate": "Merci de remplir la date correctement.",
@@ -319,7 +348,21 @@
       "validCode": "Veuillez entrer un code valide.",
       "notAuthenticated": "Vous devez être connecté pour effectuer cette action.",
       "accountCreationFailed": "Impossible de créer le compte. Veuillez réessayer.",
+      "babyCreationFailed": "Impossible de créer le bébé. Veuillez réessayer.",
+      "taskCreationFailed": "Impossible de créer la tâche. Veuillez réessayer.",
+      "taskUpdateFailed": "Impossible de modifier la tâche. Veuillez réessayer.",
+      "taskDeleteFailed": "Impossible de supprimer la tâche. Veuillez réessayer.",
+      "babyNotFound": "Bébé introuvable.",
+      "permissionDenied": "Permission refusée. Vérifiez votre compte.",
       "title": "Erreur"
+    },
+    "success": {
+      "title": "Succès",
+      "accountCreated": "Compte créé avec succès !",
+      "babyCreated": "Bébé créé avec succès !",
+      "taskCreated": "Tâche créée avec succès !",
+      "taskUpdated": "Tâche modifiée avec succès !",
+      "taskDeleted": "Tâche supprimée avec succès !"
     },
     "header": {
       "suivi": "Suivi"
@@ -341,7 +384,9 @@
       "createdBy": "Créé par",
       "date": "En date du", 
       "whenTask": "Quand ?",
-      "addTask": "Ajouter une activité"
+      "addTask": "Ajouter une activité",
+      "deleteTitle": "Supprimer la tâche",
+      "deleteMessage": "Êtes-vous sûr de vouloir supprimer cette tâche ?"
     },
     "diapers": {
       "dur": "Normal",
@@ -369,11 +414,12 @@
       "deleteBabyTitle": "Quitter le bébé",
       "deleteBabyMessage": "Êtes-vous sûr de vouloir quitter le bébé ?",
       "deleteAccountTitle": "Suppression de compte",
-      "deleteAccountMessage": "Êtes-vous sûr de vouloir supprimer votre compte? Vos données seront définitivement supprimées.",
+      "deleteAccountMessage": "Êtes-vous sûr de vouloir supprimer votre compte ?\n\nVos données personnelles seront définitivement supprimées conformément au RGPD. Vos tâches resteront dans l'historique du bébé mais seront anonymisées (affichées comme 'Utilisateur supprimé').",
       "cancel": "Annuler",
       "confirm": "Valider",
       "signOut": "Me déconnecter",
       "about": "À propos",
+      "rateApp": "Noter l'application",
       "privacyPolicy": "Politique de confidentialité",
       "termsOfUse": "Conditions générales d'utilisation",
       "contactUs": "Nous contacter",
@@ -390,6 +436,8 @@
     "enterValidPassword": "Veuillez entrer un mot de passe",
     "emailUpdatedSuccess": "Email mis à jour avec succès.", 
     "incorrectPassword": "Le mot de passe est incorrect. Veuillez réessayer.", 
+    "deletedUser": "Utilisateur supprimé",
+    "accountDeletionFailed": "La suppression du compte a échoué. Veuillez réessayer.",
     "reauthenticationError": "Erreur lors de la réauthentification : {{message}}", 
     "email": "Email", 
     "password": "Mot de passe",
@@ -555,10 +603,11 @@
         }
     ,
     "review": {
-      "title": "Merci d’utiliser l’app !",
-      "text": "Tu aimes l’application ? Note-nous sur le store !",
+      "title": "Tu adores l'app ?",
+      "message": "Ton avis nous aide à améliorer l'app et aide d'autres parents à découvrir notre travail.",
+      "commentCTA": "💬 Partage ton expérience avec un commentaire - c'est ce qui aide le plus les futurs utilisateurs !",
       "later": "Plus tard",
-      "rate": "Noter"
+      "writeReview": "Écrire un Avis"
     }
 
   },
@@ -591,14 +640,35 @@
       },
       "error": {
         "invalidEmail": "Por favor, introduce un correo electrónico válido.",
-        "shortPassword": "Contraseña demasiado corta, mínimo 5 caracteres.",
+        "shortPassword": "Contraseña demasiado corta, mínimo 6 caracteres.",
+        "passwordNeedsNumber": "La contraseña debe contener al menos un número.",
         "shortName": "El nombre debe tener al menos 2 caracteres.",
         "emailInUse": "El correo ya está en uso. Por favor, regístrate.",
+        "emailAlreadyRegistered": "Este correo ya está registrado.",
+        "networkError": "Error de red. Verifica tu conexión.",
+        "databaseError": "Error de base de datos. Inténtalo más tarde.",
+        "criticalAccountError": "Error crítico. Por favor, contacta con soporte.",
         "general": "Ocurrió un error. Por favor, inténtalo de nuevo.",
         "name": "Por favor, ingrese un nombre (mínimo 2 caracteres).",
         "birthdate": "Por favor, ingrese una fecha de nacimiento válida.",
         "enterCode": "Por favor, introduce el código.",
-        "validCode": "Por favor, introduce un código válido."
+        "validCode": "Por favor, introduce un código válido.",
+        "notAuthenticated": "Debes iniciar sesión para realizar esta acción.",
+        "babyCreationFailed": "No se pudo crear el bebé. Inténtalo de nuevo.",
+        "taskCreationFailed": "No se pudo crear la tarea. Inténtalo de nuevo.",
+        "taskUpdateFailed": "No se pudo actualizar la tarea. Inténtalo de nuevo.",
+        "taskDeleteFailed": "No se pudo eliminar la tarea. Inténtalo de nuevo.",
+        "babyNotFound": "Bebé no encontrado.",
+        "permissionDenied": "Permiso denegado. Verifica tu cuenta.",
+        "title": "Error"
+      },
+      "success": {
+        "title": "Éxito",
+        "accountCreated": "¡Cuenta creada con éxito!",
+        "babyCreated": "¡Bebé creado con éxito!",
+        "taskCreated": "¡Tarea creada con éxito!",
+        "taskUpdated": "¡Tarea actualizada con éxito!",
+        "taskDeleted": "¡Tarea eliminada con éxito!"
       },
       "header": {
         "suivi": "Seguimiento"
@@ -620,7 +690,9 @@
         "createdBy": "Creado por",
         "date": "En la fecha de",
         "whenTask": "¿Cuándo?",
-        "addTask": "Añadir una actividad"
+        "addTask": "Agregar una actividad",
+        "deleteTitle": "Eliminar tarea",
+        "deleteMessage": "¿Estás seguro de que quieres eliminar esta tarea?"
       },
       "diapers": {
       "dur": "Normal",
@@ -647,11 +719,12 @@
         "deleteBabyTitle": "Dejar el bebé",
         "deleteBabyMessage": "¿Estás seguro de que quieres dejar el bebé?",
         "deleteAccountTitle": "Eliminar cuenta",
-        "deleteAccountMessage": "¿Estás seguro de que quieres eliminar tu cuenta? Tus datos serán eliminados permanentemente.",
+        "deleteAccountMessage": "¿Estás seguro de que quieres eliminar tu cuenta?\n\nTus datos personales serán eliminados permanentemente en cumplimiento con RGPD. Tus tareas permanecerán en el historial del bebé pero serán anonimizadas (mostradas como 'Usuario eliminado').",
         "cancel": "Cancelar",
         "confirm": "Confirmar",
         "signOut": "Cerrar sesión",
         "about": "Acerca de",
+        "rateApp": "Calificar la aplicación",
         "privacyPolicy": "Política de privacidad",
         "termsOfUse": "Términos de uso",
         "contactUs": "Contáctenos",
@@ -663,6 +736,9 @@
       "enterValidName": "Por favor, introduce un nombre válido", 
       "enterValidEmail": "Por favor, introduce un correo válido", 
       "enterValidPassword": "Por favor, introduce un codigo",
+      "incorrectPassword": "La contraseña es incorrecta. Por favor, inténtalo de nuevo.",
+      "deletedUser": "Usuario eliminado",
+      "accountDeletionFailed": "Error al eliminar la cuenta. Por favor, inténtalo de nuevo.",
       "modification": "Modificación", 
       "nameChangedSuccess": "Tu nombre ha sido actualizado con éxito.", 
       "validate": "Validar", 
@@ -827,10 +903,11 @@
               }
           ,
           "review": {
-            "title": "¡Gracias por usar la app!",
-            "text": "¿Te gusta la aplicación? ¡Valóranos en la tienda!",
+            "title": "¿Te encanta la app?",
+            "message": "Tus comentarios nos ayudan a mejorar la app y ayudan a otros padres a descubrir nuestro trabajo.",
+            "commentCTA": "💬 Comparte tu experiencia con un comentario - ¡es lo que más ayuda a futuros usuarios!",
             "later": "Más tarde",
-            "rate": "Valorar"
+            "writeReview": "Escribir una Reseña"
           }
       
     }

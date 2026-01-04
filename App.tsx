@@ -23,6 +23,7 @@ import PasswordForgotten from './PasswordForgotten';
 import JoinBaby from './JoinBaby';
 import ManageBaby from './ManageBaby';
 import AuthentificationUserProvider, { AuthentificationUserContext } from './Context/AuthentificationContext';
+import { ReviewPromptProvider } from './Context/ReviewPromptContext';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './config';
 import { Pacifico_400Regular } from '@expo-google-fonts/pacifico';
@@ -385,7 +386,9 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthentificationUserProvider>
-        <RootNavigator />
+        <ReviewPromptProvider>
+          <RootNavigator />
+        </ReviewPromptProvider>
       </AuthentificationUserProvider>
     </ErrorBoundary>
   );

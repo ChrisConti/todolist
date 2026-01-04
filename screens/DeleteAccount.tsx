@@ -1,72 +1,144 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import React, { useContext, useState } from 'react';
-import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
-import { db, userRef } from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { doc, getDocs, query, where, arrayRemove, updateDoc, deleteDoc } from 'firebase/firestore';
+import { babiesRef, userRef } from '../config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
-import { getAuth, updateEmail, reauthenticateWithCredential, EmailAuthProvider, deleteUser, signOut } from 'firebase/auth';
+import { getAuth, reauthenticateWithCredential, EmailAuthProvider, deleteUser, signOut } from 'firebase/auth';
 
 const DeleteAccount = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { user, setUser, babyID, setBabyID, setUserInfo } = useContext(AuthentificationUserContext);
   const [password, setPassword] = useState('');
   const [userError, setError] = useState('');
-  console.log(user);
 
-  function updateUserEmail() { 
-
-
+  const deleteAccount = async () => {
     if (!password) {
       setError(t('enterValidPassword'));
       return;
     }
 
-      onHandleModification();
+    setError(''); // Clear previous errors
+    await handleAccountDeletion();
+  };
 
-  }
-
-  const onHandleModification = async () => {
+  const handleAccountDeletion = async () => {
     const auth = getAuth();
-    const user = auth.currentUser;
-    const credential = EmailAuthProvider.credential(user.email, password);
+    const currentUser = auth.currentUser;
+    
+    if (!currentUser || !user) {
+      Alert.alert(t('error.title'), t('error.notAuthenticated'));
+      return;
+    }
 
-    await reauthenticateWithCredential(user, credential);
+    // Réauthentifier l'utilisateur
+    try {
+      const credential = EmailAuthProvider.credential(currentUser.email, password);
+      await reauthenticateWithCredential(currentUser, credential);
+    } catch (error) {
+      console.error('Reauthentication failed:', error);
+      setError(t('incorrectPassword') || 'Incorrect password');
+      return;
+    }
 
+    // Confirmation de suppression
     Alert.alert(
-        t('settings.deleteAccountTitle'),
-        t('settings.deleteAccountMessage'),
-        [
-          {
-            text: t('settings.cancel'),
-            onPress: () => console.log('Cancel Pressed'),
-            style: 'cancel',
-          },
-          {
-            text: t('settings.confirm'),
-            onPress: () => {
-              deleteUser(auth.currentUser)
-                .then(() => {
-                  console.log('User deleted');
-                  signOut(auth)
-                    .then(() => {
-                      setUser(null);
-                      setBabyID(null);
-                      setUserInfo(null);
-                     // navigation.navigate('Connection');
-                    })
-                    .catch((error) => {
-                      Alert.alert(error.message);
-                    });
-                })
-                .catch((error) => {
-                  console.log(error);
+      t('settings.deleteAccountTitle'),
+      t('settings.deleteAccountMessage'),
+      [
+        {
+          text: t('settings.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('settings.confirm'),
+          style: 'destructive',
+          onPress: async () => {
+            const userId = currentUser.uid;
+            
+            try {
+              console.log('🗑️ Starting account deletion for user:', userId);
+              
+              // 1. Anonymiser les tâches dans tous les bébés
+              const babiesWithUser = query(babiesRef, where('user', 'array-contains', userId));
+              const babySnapshot = await getDocs(babiesWithUser);
+              
+              for (const babyDoc of babySnapshot.docs) {
+                const babyData = babyDoc.data();
+                const tasks = babyData.tasks || [];
+                
+                // Anonymiser les tâches créées par cet utilisateur
+                const anonymizedTasks = tasks.map(task => {
+                  if (task.user === userId) {
+                    return {
+                      ...task,
+                      user: 'deleted_user',
+                      createdBy: t('deletedUser') || 'Deleted User'
+                    };
+                  }
+                  return task;
                 });
-            },
+                
+                // Retirer l'userId de l'array user[] et mettre à jour les tâches
+                await updateDoc(babyDoc.ref, {
+                  user: arrayRemove(userId),
+                  tasks: anonymizedTasks
+                });
+              }
+              
+              console.log('✅ Tasks anonymized in all babies');
+              
+              // 2. Supprimer le document User de Firestore
+              const userQuery = query(userRef, where('userId', '==', userId));
+              const userSnapshot = await getDocs(userQuery);
+              
+              const deleteUserPromises = userSnapshot.docs.map(doc => deleteDoc(doc.ref));
+              await Promise.all(deleteUserPromises);
+              
+              console.log('✅ User document deleted from Firestore');
+              
+              // 3. Nettoyer AsyncStorage (toutes les données utilisateur)
+              await AsyncStorage.removeItem(`task_created_count_${userId}`);
+              await AsyncStorage.removeItem(`has_reviewed_app_${userId}`);
+              await AsyncStorage.removeItem(`last_review_prompt_at_count_${userId}`);
+              await AsyncStorage.removeItem(`review_prompt_count_${userId}`);
+              await AsyncStorage.removeItem('babyID'); // Important !
+              
+              // Anciennes clés globales pour compatibilité
+              await AsyncStorage.removeItem('task_created_count');
+              await AsyncStorage.removeItem('has_reviewed_app');
+              await AsyncStorage.removeItem('last_review_prompt_at_count');
+              await AsyncStorage.removeItem('has_prompted_for_review');
+              
+              console.log('✅ AsyncStorage cleaned');
+              
+              // 4. Supprimer le compte Firebase Auth
+              await deleteUser(currentUser);
+              console.log('✅ Firebase Auth user deleted');
+              
+              // 5. SignOut et reset Context
+              await signOut(auth);
+              setUser(null);
+              setBabyID(null);
+              setUserInfo(null);
+              
+              console.log('✅ User account fully deleted and anonymized');
+              
+              // 6. Navigation vers l'écran de connexion
+              navigation.navigate('Connection');
+              
+            } catch (error) {
+              console.error('❌ Error deleting account:', error);
+              Alert.alert(
+                t('error.title'),
+                t('accountDeletionFailed') || 'Account deletion failed. Please try again.'
+              );
+            }
           },
-        ],
-      );
-
-
+        },
+      ]
+    );
   };
 
   return (
@@ -95,7 +167,7 @@ const DeleteAccount = ({ route, navigation }) => {
           flexDirection: 'column',
         }}>
           <Text style={styles.errorText}>{userError}</Text>
-          <TouchableOpacity style={styles.button} onPress={updateUserEmail}>
+          <TouchableOpacity style={styles.button} onPress={deleteAccount}>
             <Text style={styles.buttonText}>{t('validate')}</Text>
           </TouchableOpacity>
         </View>

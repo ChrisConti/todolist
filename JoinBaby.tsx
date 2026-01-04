@@ -43,6 +43,7 @@ const JoinBaby = ({ navigation }) => {
       }
 
       querySnapshot.forEach(async (document) => {
+        const babyData = document.data();
         await updateDoc(doc(db, 'Baby', document.id), {
           user: arrayUnion(user.uid),
         });
@@ -51,7 +52,10 @@ const JoinBaby = ({ navigation }) => {
 
         analytics.logEvent('baby_joined', {
           babyId: trimmedBabyID,
-          userId: user.uid
+          babyName: babyData.name,
+          babyType: babyData.type,
+          userId: user.uid,
+          timestamp: Date.now()
         });
       });
 

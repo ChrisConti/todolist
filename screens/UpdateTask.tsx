@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Keyboard, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Keyboard, ScrollView, TouchableWithoutFeedback, ActivityIndicator, Alert, AppState } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { babiesRef, userRef, db } from '../config.js';
 import { query, getDocs, updateDoc, where, doc } from 'firebase/firestore';
 import moment from 'moment';
@@ -21,6 +22,16 @@ const UpdateTask = ({ route, navigation }) => {
 
   useEffect(() => {
     analytics.logScreenView('UpdateTask');
+    loadTimers();
+    
+    // Écouter les changements d'état de l'app
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    
+    return () => {
+      subscription?.remove();
+      clearInterval(interval1.current);
+      clearInterval(interval2.current);
+    };
   }, []);
 
   const [task, setTask] = useState(route.params.task);
@@ -36,8 +47,79 @@ const UpdateTask = ({ route, navigation }) => {
   const [timer2, setTimer2] = useState(task.boobRight || 0);
   const [isRunning1, setIsRunning1] = useState(false);
   const [isRunning2, setIsRunning2] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [startTime1, setStartTime1] = useState(null);
+  const [startTime2, setStartTime2] = useState(null);
   const interval1 = useRef(null);
   const interval2 = useRef(null);
+  const appState = useRef(AppState.currentState);
+
+  const handleAppStateChange = async (nextAppState: any) => {
+    if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+      await loadTimers();
+    }
+    appState.current = nextAppState;
+  };
+
+  const loadTimers = async () => {
+    try {
+      const timer1Data = await AsyncStorage.getItem(`timer1_updatetask_${task.uid}`);
+      const timer2Data = await AsyncStorage.getItem(`timer2_updatetask_${task.uid}`);
+      
+      if (timer1Data) {
+        const { elapsed, startTime, isRunning } = JSON.parse(timer1Data);
+        if (isRunning && startTime) {
+          // Recalculer le temps écoulé pendant que l'app était en background
+          const now = Date.now();
+          const additionalTime = Math.floor((now - startTime) / 1000);
+          const newElapsed = elapsed + additionalTime;
+          setTimer1(newElapsed);
+          setStartTime1(startTime);
+          setIsRunning1(true);
+          // Relancer l'interval
+          startTimerInterval(setTimer1, interval1, startTime, elapsed);
+        } else {
+          setTimer1(elapsed);
+        }
+      }
+      
+      if (timer2Data) {
+        const { elapsed, startTime, isRunning } = JSON.parse(timer2Data);
+        if (isRunning && startTime) {
+          // Recalculer le temps écoulé pendant que l'app était en background
+          const now = Date.now();
+          const additionalTime = Math.floor((now - startTime) / 1000);
+          const newElapsed = elapsed + additionalTime;
+          setTimer2(newElapsed);
+          setStartTime2(startTime);
+          setIsRunning2(true);
+          // Relancer l'interval
+          startTimerInterval(setTimer2, interval2, startTime, elapsed);
+        } else {
+          setTimer2(elapsed);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading timers:', error);
+    }
+  };
+
+  const saveTimer = async (timerKey: string, elapsed: any, startTime: any, isRunning: any) => {
+    try {
+      await AsyncStorage.setItem(timerKey, JSON.stringify({ elapsed, startTime, isRunning }));
+    } catch (error) {
+      console.error('Error saving timer:', error);
+    }
+  };
+
+  const startTimerInterval = (setTimer: any, interval: any, startTime: any, initialElapsed: any) => {
+    clearInterval(interval.current);
+    interval.current = setInterval(() => {
+      const now = Date.now();
+      const elapsed = Math.floor((now - startTime) / 1000) + initialElapsed;
+      setTimer(elapsed);
+    }, 1000);
+  };
 
   const handleDateChange = (date) => {
     if (date) {
@@ -54,9 +136,20 @@ const UpdateTask = ({ route, navigation }) => {
   ];
 
   const updateBabyTasks = async () => {
+    if (loading) return;
+    
+    setLoading(true);
+    
     const queryResult = query(babiesRef, where('id', '==', babyID));
     try {
       const querySnapshot = await getDocs(queryResult);
+      
+      if (querySnapshot.empty) {
+        setLoading(false);
+        Alert.alert(t('error.title'), t('error.babyNotFound') || 'Baby not found');
+        return;
+      }
+      
       querySnapshot.forEach(async (document) => {
         const data = document.data();
         const tasks = data.tasks.map(t => {
@@ -69,8 +162,7 @@ const UpdateTask = ({ route, navigation }) => {
               idCaca: label,
               boobLeft: timer1,
               boobRight: timer2,
-              user: user.uid,
-              createdBy: userInfo?.username || 'Unknown',
+              // NE PAS MODIFIER user et createdBy - garder les valeurs originales
               comment: note,
             };
           }
@@ -79,6 +171,7 @@ const UpdateTask = ({ route, navigation }) => {
 
         await updateDoc(doc(db, 'Baby', document.id), { tasks });
       });
+      
       console.log('Task updated successfully');
       
       analytics.logEvent('task_updated', {
@@ -87,32 +180,83 @@ const UpdateTask = ({ route, navigation }) => {
         userId: user.uid
       });
       
+      // Nettoyer les timers sauvegardés
+      await AsyncStorage.removeItem(`timer1_updatetask_${task.uid}`);
+      await AsyncStorage.removeItem(`timer2_updatetask_${task.uid}`);
+      
+      setLoading(false);
       navigation.goBack();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating task:', error);
+      setLoading(false);
+      
+      Alert.alert(
+        t('error.title'),
+        t('error.taskUpdateFailed') || 'Unable to update task. Please try again.'
+      );
+      
+      analytics.logEvent('task_update_failed', {
+        taskId: selectedImage,
+        userId: user.uid,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   };
 
   const removeTaskFromBabyTasks = async () => {
-    try {
-      const queryResult = query(babiesRef, where('id', '==', babyID));
-      const querySnapshot = await getDocs(queryResult);
-      const updatePromises = querySnapshot.docs.map(async (document) => {
-        const currentTasks = document.data().tasks;
-        const updatedTasks = currentTasks.filter(task2 => task2.uid !== task.uid);
-        await updateDoc(doc(db, 'Baby', document.id), { tasks: updatedTasks });
-      });
-      await Promise.all(updatePromises);
-      
-      analytics.logEvent('task_deleted', {
-        taskId: task.id,
-        userId: user.uid
-      });
-      
-      navigation.navigate('BabyList');
-    } catch (error) {
-      console.error('Error removing task:', error);
-    }
+    Alert.alert(
+      t('task.deleteTitle') || 'Delete Task',
+      t('task.deleteMessage') || 'Are you sure you want to delete this task?',
+      [
+        { text: t('settings.cancel'), style: 'cancel' },
+        {
+          text: t('button.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            if (loading) return;
+            
+            setLoading(true);
+            
+            try {
+              const queryResult = query(babiesRef, where('id', '==', babyID));
+              const querySnapshot = await getDocs(queryResult);
+              const updatePromises = querySnapshot.docs.map(async (document) => {
+                const currentTasks = document.data().tasks;
+                const updatedTasks = currentTasks.filter(task2 => task2.uid !== task.uid);
+                await updateDoc(doc(db, 'Baby', document.id), { tasks: updatedTasks });
+              });
+              await Promise.all(updatePromises);
+              
+              analytics.logEvent('task_deleted', {
+                taskId: task.id,
+                userId: user.uid
+              });
+              
+              // Nettoyer les timers sauvegardés
+              await AsyncStorage.removeItem(`timer1_updatetask_${task.uid}`);
+              await AsyncStorage.removeItem(`timer2_updatetask_${task.uid}`);
+              
+              setLoading(false);
+              navigation.navigate('BabyList');
+            } catch (error: any) {
+              console.error('Error removing task:', error);
+              setLoading(false);
+              
+              Alert.alert(
+                t('error.title'),
+                t('error.taskDeleteFailed') || 'Unable to delete task. Please try again.'
+              );
+              
+              analytics.logEvent('task_delete_failed', {
+                taskId: task.id,
+                userId: user.uid,
+                error: error instanceof Error ? error.message : 'Unknown error'
+              });
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleImageType = (id) => {
@@ -127,22 +271,54 @@ const UpdateTask = ({ route, navigation }) => {
     }
   };
 
-  const startTimer = (setTimer, setIsRunning, interval) => {
+  const startTimer = (setTimer, setIsRunning, interval, timerNum) => {
+    const now = Date.now();
+    const currentElapsed = timerNum === 1 ? timer1 : timer2;
+    const timerKey = timerNum === 1 ? `timer1_updatetask_${task.uid}` : `timer2_updatetask_${task.uid}`;
+    
+    if (timerNum === 1) {
+      setStartTime1(now);
+    } else {
+      setStartTime2(now);
+    }
+    
+    // Sauvegarder seulement au démarrage (pas à chaque seconde)
+    saveTimer(timerKey, currentElapsed, now, true);
+    
     setIsRunning(true);
-    interval.current = setInterval(() => {
-      setTimer(prev => prev + 1);
-    }, 1000);
+    startTimerInterval(setTimer, interval, now, currentElapsed);
   };
 
-  const pauseTimer = (setIsRunning, interval) => {
+  const pauseTimer = (setIsRunning, interval, timerNum) => {
     setIsRunning(false);
     clearInterval(interval.current);
+    
+    const currentElapsed = timerNum === 1 ? timer1 : timer2;
+    const timerKey = timerNum === 1 ? `timer1_updatetask_${task.uid}` : `timer2_updatetask_${task.uid}`;
+    
+    // Sauvegarder sans startTime (timer en pause)
+    saveTimer(timerKey, currentElapsed, null, false);
+    
+    if (timerNum === 1) {
+      setStartTime1(null);
+    } else {
+      setStartTime2(null);
+    }
   };
 
-  const stopTimer = (setTimer, setIsRunning, interval) => {
+  const stopTimer = (setTimer, setIsRunning, interval, timerNum) => {
     setIsRunning(false);
     clearInterval(interval.current);
     setTimer(0);
+    
+    const timerKey = timerNum === 1 ? `timer1_updatetask_${task.uid}` : `timer2_updatetask_${task.uid}`;
+    saveTimer(timerKey, 0, null, false);
+    
+    if (timerNum === 1) {
+      setStartTime1(null);
+    } else {
+      setStartTime2(null);
+    }
   };
 
   const formatTime = (seconds) => {
@@ -236,13 +412,13 @@ const UpdateTask = ({ route, navigation }) => {
             <View style={styles.timerContainer}>
           <Text>{t('breast.left')} {formatTime(timer1)}</Text>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={() => startTimer(setTimer1, setIsRunning1, interval1)} disabled={isRunning1}>
+            <TouchableOpacity onPress={() => startTimer(setTimer1, setIsRunning1, interval1, 1)} disabled={isRunning1}>
               <Ionicons name="play" size={24} color={isRunning1 ? "#C75B4A" : "black"} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => pauseTimer(setIsRunning1, interval1)} disabled={!isRunning1}>
+            <TouchableOpacity onPress={() => pauseTimer(setIsRunning1, interval1, 1)} disabled={!isRunning1}>
               <Ionicons name="pause" size={24} color={!isRunning1 ? "#C75B4A" : "black"} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => stopTimer(setTimer1, setIsRunning1, interval1)}>
+            <TouchableOpacity onPress={() => stopTimer(setTimer1, setIsRunning1, interval1, 1)}>
               <Ionicons name="close-circle" size={24} color="black" />
             </TouchableOpacity>
           </View>
@@ -250,13 +426,13 @@ const UpdateTask = ({ route, navigation }) => {
         <View style={styles.timerContainer}>
           <Text>{t('breast.right')} {formatTime(timer2)}</Text>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={() => startTimer(setTimer2, setIsRunning2, interval2)} disabled={isRunning2}>
+            <TouchableOpacity onPress={() => startTimer(setTimer2, setIsRunning2, interval2, 2)} disabled={isRunning2}>
               <Ionicons name="play" size={24} color={isRunning2 ? "#C75B4A" : "black"} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => pauseTimer(setIsRunning2, interval2)} disabled={!isRunning2}>
+            <TouchableOpacity onPress={() => pauseTimer(setIsRunning2, interval2, 2)} disabled={!isRunning2}>
               <Ionicons name="pause" size={24} color={!isRunning2 ? "#C75B4A" : "black"} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => stopTimer(setTimer2, setIsRunning2, interval2)}>
+            <TouchableOpacity onPress={() => stopTimer(setTimer2, setIsRunning2, interval2, 2)}>
               <Ionicons name="close-circle" size={24} color="black" />
             </TouchableOpacity>
           </View>
@@ -322,14 +498,22 @@ const UpdateTask = ({ route, navigation }) => {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <TouchableOpacity onPress={updateBabyTasks}>
-            <View style={styles.button}>
-              <Text style={styles.buttonText}>{t('button.validate')}</Text>
+          <TouchableOpacity onPress={updateBabyTasks} disabled={loading}>
+            <View style={[styles.button, loading && styles.buttonDisabled]}>
+              {loading ? (
+                <ActivityIndicator color="#F6F0EB" />
+              ) : (
+                <Text style={styles.buttonText}>{t('button.validate')}</Text>
+              )}
             </View>
           </TouchableOpacity>
-          <TouchableOpacity onPress={removeTaskFromBabyTasks}>
-            <View style={styles.button}>
-              <Text style={styles.buttonText}>{t('button.delete')}</Text>
+          <TouchableOpacity onPress={removeTaskFromBabyTasks} disabled={loading}>
+            <View style={[styles.button, loading && styles.buttonDisabled]}>
+              {loading ? (
+                <ActivityIndicator color="#F6F0EB" />
+              ) : (
+                <Text style={styles.buttonText}>{t('button.delete')}</Text>
+              )}
             </View>
           </TouchableOpacity>
         </View>
@@ -418,6 +602,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     width: 300,
+  },
+  buttonDisabled: {
+    backgroundColor: '#D8ABA0',
+    opacity: 0.7,
   },
   buttonText: {
     color: 'white',

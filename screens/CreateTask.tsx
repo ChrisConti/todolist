@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, Keyboard, ScrollView, FlatList, TouchableWithoutFeedback, Button, AppState } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, Keyboard, ScrollView, FlatList, TouchableWithoutFeedback, Button, AppState, ActivityIndicator, Alert } from 'react-native';
 import s = require("../Style.js");
 import { auth, db, babiesRef, userRef } from '../config.js';
 import { addDoc, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { useReviewPrompt } from '../Context/ReviewPromptContext';
 import moment from 'moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -26,7 +27,7 @@ interface CreateTaskProps {
   navigation: any;
 }
 const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
-  const handleTaskCreated = route.params?.handleTaskCreated;
+  const { handleTaskCreated } = useReviewPrompt();
   const { t } = useTranslation();
   const task = undefined;
   //const { babyID } = route.params;
@@ -44,6 +45,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const [timer2, setTimer2] = useState(0);
   const [isRunning1, setIsRunning1] = useState(false);
   const [isRunning2, setIsRunning2] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
   const [startTime1, setStartTime1] = useState(null);
   const [startTime2, setStartTime2] = useState(null);
@@ -162,58 +164,84 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   }
 
   const updateBabyTasks = async () => {
+    if (loading) return; // Prévenir double-soumission
+    
     if (!user || !user.uid) {
       console.error('Cannot update tasks: user not authenticated');
-      alert(t('error.notAuthenticated'));
+      Alert.alert(t('error.title'), t('error.notAuthenticated'));
       return;
     }
+
+    setLoading(true);
 
     const queryResult = query(babiesRef, where('id', '==', babySelected));
     try {
       const querySnapshot = await getDocs(queryResult);
-      querySnapshot.forEach(async (document) => {
-        //console.log('Document data:', document.data());
-        await updateDoc(doc(db, 'Baby', document.id), {
-          tasks: [...document.data().tasks, 
-            { uid: uniqueId, 
-              id: selectedImage, 
-              labelTask: returnLabel(selectedImage),
-              date: time, 
-              label: label ? label : 0, 
-              idCaca:label,
-              boobLeft: timer1,
-              boobRight: timer2,
-              user: user.uid, 
-              createdBy: userInfo?.username || 'Unknown', 
-              comment: note }],
-        }).then(async () => {
-          console.log('success');
-          // Track task creation
-          analytics.logEvent('task_created', {
-            taskType: returnLabel(selectedImage),
-            taskId: selectedImage,
-            hasLabel: !!label,
-            hasNote: !!note,
-            userId: user.uid
-          });
-          // Incrémente le compteur et affiche la pop-up si besoin
-          handleTaskCreated();
-          
-          // Nettoyer les timers sauvegardés
-          await AsyncStorage.removeItem('timer1_createtask');
-          await AsyncStorage.removeItem('timer2_createtask');
-        });
+      
+      if (querySnapshot.empty) {
+        console.error('No baby found with this ID');
+        setLoading(false);
+        Alert.alert(t('error.title'), t('error.babyNotFound') || 'Baby not found');
+        return;
+      }
+      
+      // Ne prendre que le premier document trouvé
+      const document = querySnapshot.docs[0];
+      
+      await updateDoc(doc(db, 'Baby', document.id), {
+        tasks: [...document.data().tasks, 
+          { uid: uniqueId, 
+            id: selectedImage, 
+            labelTask: returnLabel(selectedImage),
+            date: time, 
+            label: label ? label : 0, 
+            idCaca:label,
+            boobLeft: timer1,
+            boobRight: timer2,
+            user: user.uid, 
+            createdBy: userInfo?.username || 'Unknown', 
+            comment: note }],
       });
+      
+      console.log('Task created successfully');
+      
+      // Track task creation
+      analytics.logEvent('task_created', {
+        taskType: returnLabel(selectedImage),
+        taskId: selectedImage,
+        hasLabel: !!label,
+        hasNote: !!note,
+        userId: user.uid
+      });
+      
+      // Incrémente le compteur et affiche la modal si besoin
+      await handleTaskCreated();
+      
+      // Nettoyer les timers sauvegardés
+      await AsyncStorage.removeItem('timer1_createtask');
+      await AsyncStorage.removeItem('timer2_createtask');
 
+      setLoading(false);
       navigation.goBack();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating document:', error);
+      setLoading(false);
+      
+      let errorMessage = t('error.taskCreationFailed') || 'Unable to create task. Please try again.';
+      if (error.code === 'permission-denied') {
+        errorMessage = t('error.permissionDenied') || 'Permission denied';
+      } else if (error.code === 'unavailable') {
+        errorMessage = t('error.networkError') || 'Network error. Check your connection.';
+      }
+      
+      Alert.alert(t('error.title'), errorMessage);
       
       analytics.logEvent('task_creation_failed', {
         taskType: returnLabel(selectedImage),
         taskId: selectedImage,
         userId: user.uid,
+        errorCode: error.code || 'unknown',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -481,9 +509,13 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
             justifyContent: 'flex-end', // Pushes the button to the bottom
             flexDirection: 'column',
           }}>
-            <TouchableOpacity onPress={updateBabyTasks}>
-              <View style={styles.button}>
-                <Text style={styles.buttonText}>{t('button.validate')}</Text>
+            <TouchableOpacity onPress={updateBabyTasks} disabled={loading}>
+              <View style={[styles.button, loading && styles.buttonDisabled]}>
+                {loading ? (
+                  <ActivityIndicator color="#F6F0EB" />
+                ) : (
+                  <Text style={styles.buttonText}>{t('button.validate')}</Text>
+                )}
               </View>
             </TouchableOpacity>
           </View>
@@ -558,6 +590,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     width: 300,
+  },
+  buttonDisabled: {
+    backgroundColor: '#D8ABA0',
+    opacity: 0.7,
   },
   buttonText: {
     color: 'white',

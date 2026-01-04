@@ -10,10 +10,12 @@ import { getDocs, query, where } from 'firebase/firestore';
 import WebView from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
 import analytics from './services/analytics';
+import { useReviewPrompt } from './Context/ReviewPromptContext';
 import Lolipop from './assets/lolipop.svg';
 
 const Settings = ({ navigation }) => {
   const { user, setUser, babyID, setBabyID, setUserInfo } = useContext(AuthentificationUserContext);
+  const { showReviewModalManually, hasReviewed } = useReviewPrompt();
   const [babyExist, setBabyExist] = useState(babyID ? true : false);
   const [modalVisible, setModalVisible] = useState(false);
   const { t } = useTranslation();
@@ -118,6 +120,11 @@ const Settings = ({ navigation }) => {
             <Text style={styles.titleParameter}>{t('settings.about')}</Text>
           </View>
           <View>
+            {!hasReviewed && (
+              <TouchableOpacity onPress={showReviewModalManually}>
+                <ItemParameter title={t('settings.rateApp')} icon="star" />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
               <ItemParameter title={t('settings.privacyPolicy')} icon="arrow-circle-right" />
             </TouchableOpacity>

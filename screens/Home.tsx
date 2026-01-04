@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { useReviewPrompt } from '../hooks/useReviewPrompt';
+import { useReviewPrompt } from '../Context/ReviewPromptContext';
 import { View, Text, TouchableOpacity, StyleSheet, SectionList, ActivityIndicator } from 'react-native';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { onSnapshot, query, where, getDocs } from 'firebase/firestore';
@@ -13,7 +13,7 @@ import Graph from '../assets/graph.svg';
 import analytics from '../services/analytics';
 
 const BabyList = ({ navigation }) => {
-  const { handleTaskCreated, ReviewModal } = useReviewPrompt();
+  const { ReviewModal } = useReviewPrompt();
   const { user, babyID, setBabyID, userInfo, setUserInfo, setUsersList } = useContext(AuthentificationUserContext);
   const snapshotListener = useRef<(() => void) | null>(null);
   const [tasks, setTasks] = useState([]);
@@ -212,13 +212,12 @@ const BabyList = ({ navigation }) => {
 
       {babyExist && (
         <View style={styles.footer}>
-          <TouchableOpacity onPress={() => navigation.navigate('CreateTask', { babyID, handleTaskCreated })} style={styles.floatingButton}>
+          <TouchableOpacity onPress={() => navigation.navigate('CreateTask', { babyID })} style={styles.floatingButton}>
             <Text style={styles.floatingButtonText}>+</Text>
           </TouchableOpacity>
         </View>
       )}
-    {ReviewModal}
-    {ReviewModal}
+      {ReviewModal}
     </View>
   );
 };

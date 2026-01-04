@@ -1,6 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Clipboard } from 'react-native';
-import { Analytics } from './services/analytics';
+import analytics from './services/analytics';
 import React, { useContext, useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { babiesRef, db, userRef } from './config';
 import { arrayRemove, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
@@ -89,12 +90,32 @@ const Baby = ({ navigation }) => {
 
       await Promise.all(updatePromises);
       setBabyID(null);
-      // Clean activity review prompt counters
-      if (typeof AsyncStorage !== 'undefined') {
+      
+      // Log analytics event for leaving baby
+      analytics.logEvent('baby_left', {
+        babyId: babyID,
+        userId: user.uid,
+        timestamp: Date.now()
+      });
+      
+      // Clean activity review prompt counters for this user
+      try {
+        await AsyncStorage.removeItem(`task_created_count_${user.uid}`);
+        await AsyncStorage.removeItem(`has_reviewed_app_${user.uid}`);
+        await AsyncStorage.removeItem(`last_review_prompt_at_count_${user.uid}`);
+        await AsyncStorage.removeItem(`review_prompt_count_${user.uid}`);
+        // Anciennes clés globales pour compatibilité
         await AsyncStorage.removeItem('task_created_count');
+        await AsyncStorage.removeItem('has_reviewed_app');
+        await AsyncStorage.removeItem('last_review_prompt_at_count');
         await AsyncStorage.removeItem('has_prompted_for_review');
+        console.log('✅ Review counters cleaned for user:', user.uid);
+      } catch (storageError) {
+        console.warn('⚠️ Failed to clean review counters:', storageError);
+        // Ne pas bloquer la suppression du bébé si le nettoyage échoue
       }
-      console.log('User successfully removed from all babies and counters cleaned.');
+      
+      console.log('User successfully removed from all babies.');
     } catch (error) {
       console.error('Error removing user from baby:', error.message);
     }
@@ -123,7 +144,10 @@ const Baby = ({ navigation }) => {
 
   const copyToClipboard = (text) => {
     Clipboard.setString(text);
-    Analytics.logEvent('copy_code_clicked');
+    analytics.logEvent('baby_code_copied', {
+      babyId: babyID,
+      userId: user.uid
+    });
     Alert.alert(t('success.copied'));
   };
 
