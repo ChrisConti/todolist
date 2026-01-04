@@ -49,7 +49,16 @@
       "taskDeleteFailed": "Unable to delete task. Please try again.",
       "babyNotFound": "Baby not found.",
       "permissionDenied": "Permission denied. Please check your account.",
-      "title": "Error"
+      "title": "Error",
+      "userNotAuthenticated": "User not authenticated",
+      "noTasksToExport": "No tasks to export",
+      "exportFailed": "An error occurred during export",
+      "birthdateRequired": "Birthdate is required",
+      "birthdateInvalidFormat": "Birthdate must be in DD/MM/YYYY format",
+      "birthdateInvalidDate": "Invalid date",
+      "birthdateTooOld": "Birthdate cannot be more than 3 years ago",
+      "birthdateTooFuture": "Birthdate cannot be more than 3 months in the future",
+      "nameMinLength": "Name must be at least 2 characters"
     },
     "success": {
       "title": "Success",
@@ -57,7 +66,9 @@
       "babyCreated": "Baby created successfully!",
       "taskCreated": "Task created successfully!",
       "taskUpdated": "Task updated successfully!",
-      "taskDeleted": "Task deleted successfully!"
+      "taskDeleted": "Task deleted successfully!",
+      "tasksExported": "Tasks exported successfully!",
+      "emailChanged": "Email updated successfully."
     },
     "header": {
       "suivi": "Tracking"
@@ -114,6 +125,7 @@
       "signOut": "Sign Out",
       "about": "About",
       "rateApp": "Rate the App",
+      "feedback": "Improve us!",
       "privacyPolicy": "Privacy Policy",
       "termsOfUse": "Terms of Use",
       "contactUs": "Contact Us",
@@ -172,6 +184,7 @@
     "breast.left": "Breast Left",
     "breast.right": "Breast Right",
     "nameChanged": "Your name has been successfully updated.",
+    "copied": "Code copied!",
     "allaitement":{
       "left": "Left",
       "right": "Right",
@@ -289,11 +302,7 @@
       "applicableLawText": "These Terms are subject to French law. In case of dispute, an amicable solution will be preferred before any legal action. You can contact us at: tribubabytracker@gmail.com."
     },
     "validateOnly": "Validate",
-    "Par":"Made by"
-        ,
-        "success": {
-          "copied": "Code copied!"
-        },
+    "Par":"Made by",
     "review": {
       "title": "Do you love the app?",
       "message": "Your feedback helps us improve and helps other parents discover Tribubaby!",
@@ -354,7 +363,16 @@
       "taskDeleteFailed": "Impossible de supprimer la tâche. Veuillez réessayer.",
       "babyNotFound": "Bébé introuvable.",
       "permissionDenied": "Permission refusée. Vérifiez votre compte.",
-      "title": "Erreur"
+      "title": "Erreur",
+      "userNotAuthenticated": "Utilisateur non authentifié",
+      "noTasksToExport": "Aucune tâche à exporter",
+      "exportFailed": "Une erreur s'est produite lors de l'export",
+      "birthdateRequired": "La date de naissance est requise",
+      "birthdateInvalidFormat": "La date de naissance doit être au format JJ/MM/AAAA",
+      "birthdateInvalidDate": "Date invalide",
+      "birthdateTooOld": "La date de naissance ne peut pas être il y a plus de 3 ans",
+      "birthdateTooFuture": "La date de naissance ne peut pas être dans plus de 3 mois",
+      "nameMinLength": "Le nom doit contenir au moins 2 caractères"
     },
     "success": {
       "title": "Succès",
@@ -362,7 +380,9 @@
       "babyCreated": "Bébé créé avec succès !",
       "taskCreated": "Tâche créée avec succès !",
       "taskUpdated": "Tâche modifiée avec succès !",
-      "taskDeleted": "Tâche supprimée avec succès !"
+      "taskDeleted": "Tâche supprimée avec succès !",
+      "tasksExported": "Les tâches ont été exportées avec succès !",
+      "emailChanged": "Email mis à jour avec succès."
     },
     "header": {
       "suivi": "Suivi"
@@ -420,6 +440,7 @@
       "signOut": "Me déconnecter",
       "about": "À propos",
       "rateApp": "Noter l'application",
+      "feedback": "Améliorez nous !",
       "privacyPolicy": "Politique de confidentialité",
       "termsOfUse": "Conditions générales d'utilisation",
       "contactUs": "Nous contacter",
@@ -660,7 +681,16 @@
         "taskDeleteFailed": "No se pudo eliminar la tarea. Inténtalo de nuevo.",
         "babyNotFound": "Bebé no encontrado.",
         "permissionDenied": "Permiso denegado. Verifica tu cuenta.",
-        "title": "Error"
+        "title": "Error",
+        "userNotAuthenticated": "Usuario no autenticado",
+        "noTasksToExport": "No hay tareas para exportar",
+        "exportFailed": "Ocurrió un error durante la exportación",
+        "birthdateRequired": "Se requiere la fecha de nacimiento",
+        "birthdateInvalidFormat": "La fecha de nacimiento debe estar en formato DD/MM/AAAA",
+        "birthdateInvalidDate": "Fecha inválida",
+        "birthdateTooOld": "La fecha de nacimiento no puede ser hace más de 3 años",
+        "birthdateTooFuture": "La fecha de nacimiento no puede ser en más de 3 meses",
+        "nameMinLength": "El nombre debe tener al menos 2 caracteres"
       },
       "success": {
         "title": "Éxito",
@@ -668,7 +698,9 @@
         "babyCreated": "¡Bebé creado con éxito!",
         "taskCreated": "¡Tarea creada con éxito!",
         "taskUpdated": "¡Tarea actualizada con éxito!",
-        "taskDeleted": "¡Tarea eliminada con éxito!"
+        "taskDeleted": "¡Tarea eliminada con éxito!",
+        "tasksExported": "¡Tareas exportadas con éxito!",
+        "emailChanged": "Correo actualizado con éxito."
       },
       "header": {
         "suivi": "Seguimiento"
@@ -725,6 +757,7 @@
         "signOut": "Cerrar sesión",
         "about": "Acerca de",
         "rateApp": "Calificar la aplicación",
+        "feedback": "¡Mejóranos!",
         "privacyPolicy": "Política de privacidad",
         "termsOfUse": "Términos de uso",
         "contactUs": "Contáctenos",
@@ -777,8 +810,7 @@
       },
       "breast.left": "Pecho Izquierdo",
       "breast.right": "Pecho Derecho",
-      "nameChanged": "Tu nombre ha sido actualizado con éxito.",
-      "allaitement":{
+      "nameChanged": "Tu nombre ha sido actualizado con éxito.",      "copied": "¡Código copiado!",      "allaitement":{
         "left": "Izquierda",
         "right": "Derecha",
         "both": "Ambos",

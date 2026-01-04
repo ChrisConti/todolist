@@ -44,6 +44,14 @@ const Settings = ({ navigation }) => {
     Linking.openURL(url).catch((err) => console.error('Failed to open email:', err));
   };
 
+  const handleFeedback = () => {
+    const email = "tribubabytracker@gmail.com";
+    const subject = 'Feedback';
+    const body = 'Hi, I would like to suggest...';
+    const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    Linking.openURL(url).catch((err) => console.error('Failed to open email:', err));
+  };
+
   const handleOpenWebsite = () => {
     const url = 'https://www.tribubaby.app';
     Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
@@ -122,9 +130,24 @@ const Settings = ({ navigation }) => {
           <View>
             {!hasReviewed && (
               <TouchableOpacity onPress={showReviewModalManually}>
-                <ItemParameter title={t('settings.rateApp')} icon="star" />
+                <ItemParameter 
+                  title={t('settings.rateApp')} 
+                  icon="star" 
+                  backgroundColor="#C75B4A"
+                  iconColor="#FFD700"
+                  textColor="white"
+                />
               </TouchableOpacity>
             )}
+            <TouchableOpacity onPress={handleFeedback}>
+              <ItemParameter 
+                title={t('settings.feedback')} 
+                icon="lightbulb-o"
+                backgroundColor="#C75B4A"
+                iconColor="#FFD700"
+                textColor="white"
+              />
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
               <ItemParameter title={t('settings.privacyPolicy')} icon="arrow-circle-right" />
             </TouchableOpacity>

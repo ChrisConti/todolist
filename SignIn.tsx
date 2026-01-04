@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { auth, db } from './config';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -125,19 +125,25 @@ const SignIn = ({ navigation }) => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
-        <View>
-          <TextInput
-            ref={emailInputRef}
-            style={styles.input}
-            placeholder={t('placeholder.email')}
-            keyboardType="email-address"
-            textContentType="emailAddress"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
+          <View>
+            <TextInput
+              ref={emailInputRef}
+              style={styles.input}
+              placeholder={t('placeholder.email')}
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              autoComplete="email"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
           <TextInput
             style={styles.input}
             placeholder={t('placeholder.password')}
@@ -145,6 +151,7 @@ const SignIn = ({ navigation }) => {
             autoCorrect={false}
             autoCapitalize="none"
             textContentType="password"
+            autoComplete="password-new"
             value={password}
             onChangeText={setPassword}
           />
@@ -189,6 +196,7 @@ const SignIn = ({ navigation }) => {
         </View>
       </View>
     </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 

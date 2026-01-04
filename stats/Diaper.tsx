@@ -153,7 +153,9 @@ const Diaper = ({ navigation, tasks }) => {
             <View key={index} style={styles.chartColumn}>
               <Text style={styles.totalLabel}>{dayTotal ? dayTotal : ''}</Text>
               {stackedData.data[index].map((value, idx) => (
-                renderBar(value, maxValue, stackedData.barColors[idx])
+                <View key={idx}>
+                  {renderBar(value, maxValue, stackedData.barColors[idx])}
+                </View>
               ))}
               <Text style={styles.chartLabel}>{label}</Text>
             </View>

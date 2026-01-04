@@ -1,4 +1,4 @@
-import { View, Text, Button, TouchableOpacity, Dimensions, TextInput, StyleSheet, Alert } from 'react-native';
+import { View, Text, Button, TouchableOpacity, Dimensions, TextInput, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { addDoc, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
@@ -24,26 +24,32 @@ const ChangeEmail = ({route, navigation}) => {
   }
 
   return (
-    <View style={{flex:1, padding:10, backgroundColor:'#FDF1E7'}}>
-      <Text>
-        {t('settings.resetPasswordInstructions')}
-      </Text>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <View style={{flex:1, padding:10, backgroundColor:'#FDF1E7'}}>
+        <Text>
+          {t('settings.resetPasswordInstructions')}
+        </Text>
 
-      <View style={{
-        position: 'absolute',
-        bottom: 10,
-        left: 0,
-        right: 0,
-        backgroundColor: 'transparent',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        flexDirection:'column',
-      }}>
-        <TouchableOpacity style={styles.button} onPress={onHandleForgetPassword}>
-          <Text style={styles.buttonText}>{t('settings.sendEmail')}</Text>
-        </TouchableOpacity>
+        <View style={{
+          position: 'absolute',
+          bottom: 10,
+          left: 0,
+          right: 0,
+          backgroundColor: 'transparent',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          flexDirection:'column',
+        }}>
+          <TouchableOpacity style={styles.button} onPress={onHandleForgetPassword}>
+            <Text style={styles.buttonText}>{t('settings.sendEmail')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

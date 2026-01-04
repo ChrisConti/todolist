@@ -3,13 +3,14 @@ import { VALIDATION } from './constants';
 /**
  * Validates a baby's name
  * @param name - The name to validate
+ * @param t - Translation function (optional, falls back to English)
  * @returns Object with isValid boolean and optional error message
  */
-export const validateBabyName = (name: string): { isValid: boolean; error?: string } => {
+export const validateBabyName = (name: string, t?: (key: string) => string): { isValid: boolean; error?: string } => {
   if (!name || name.trim().length < VALIDATION.MIN_NAME_LENGTH) {
     return {
       isValid: false,
-      error: `Name must be at least ${VALIDATION.MIN_NAME_LENGTH} characters`,
+      error: t ? t('error.nameMinLength') : `Name must be at least ${VALIDATION.MIN_NAME_LENGTH} characters`,
     };
   }
   return { isValid: true };
@@ -18,20 +19,21 @@ export const validateBabyName = (name: string): { isValid: boolean; error?: stri
 /**
  * Validates a birthdate in DD/MM/YYYY format
  * @param birthdate - The birthdate string to validate
+ * @param t - Translation function (optional, falls back to English)
  * @returns Object with isValid boolean and optional error message
  */
-export const validateBirthdate = (birthdate: string): { isValid: boolean; error?: string } => {
+export const validateBirthdate = (birthdate: string, t?: (key: string) => string): { isValid: boolean; error?: string } => {
   if (!birthdate || birthdate.length < VALIDATION.MIN_BIRTHDATE_LENGTH) {
     return {
       isValid: false,
-      error: 'Birthdate is required',
+      error: t ? t('error.birthdateRequired') : 'Birthdate is required',
     };
   }
 
   if (!VALIDATION.BIRTHDATE_REGEX.test(birthdate)) {
     return {
       isValid: false,
-      error: `Birthdate must be in ${VALIDATION.BIRTHDATE_FORMAT} format`,
+      error: t ? t('error.birthdateInvalidFormat') : `Birthdate must be in ${VALIDATION.BIRTHDATE_FORMAT} format`,
     };
   }
 
@@ -46,7 +48,7 @@ export const validateBirthdate = (birthdate: string): { isValid: boolean; error?
   ) {
     return {
       isValid: false,
-      error: 'Invalid date',
+      error: t ? t('error.birthdateInvalidDate') : 'Invalid date',
     };
   }
 
@@ -57,7 +59,7 @@ export const validateBirthdate = (birthdate: string): { isValid: boolean; error?
   if (date < threeYearsAgo) {
     return {
       isValid: false,
-      error: 'Birthdate cannot be more than 3 years ago',
+      error: t ? t('error.birthdateTooOld') : 'Birthdate cannot be more than 3 years ago',
     };
   }
 
@@ -68,7 +70,7 @@ export const validateBirthdate = (birthdate: string): { isValid: boolean; error?
   if (date > threeMonthsFromNow) {
     return {
       isValid: false,
-      error: 'Birthdate cannot be more than 3 months in the future',
+      error: t ? t('error.birthdateTooFuture') : 'Birthdate cannot be more than 3 months in the future',
     };
   }
 

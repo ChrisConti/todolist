@@ -41,14 +41,14 @@ const ExportTasks = ({ navigation }) => {
   const handleExport = async () => {
     if (!user || !user.uid) {
       console.error('Cannot export: user not authenticated');
-      Alert.alert(t('error.title') || 'Erreur', 'Utilisateur non authentifié');
+      Alert.alert(t('error.title'), t('error.userNotAuthenticated'));
       return;
     }
 
     if (!babyData || !babyData.tasks) {
       Alert.alert(
-        t('error.title') || 'Erreur',
-        'Aucune tâche à exporter'
+        t('error.title'),
+        t('error.noTasksToExport')
       );
       return;
     }
@@ -73,14 +73,14 @@ const ExportTasks = ({ navigation }) => {
       });
 
       Alert.alert(
-        'Succès',
-        'Les tâches ont été exportées avec succès !'
+        t('success.title'),
+        t('success.tasksExported')
       );
     } catch (error) {
       console.error('Export error:', error);
       Alert.alert(
-        t('error.title') || 'Erreur',
-        "Une erreur s'est produite lors de l'export"
+        t('error.title'),
+        t('error.exportFailed')
       );
       
       analytics.logEvent('export_failed', {

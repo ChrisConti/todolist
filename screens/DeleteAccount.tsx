@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import React, { useContext, useState } from 'react';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDocs, query, where, arrayRemove, updateDoc, deleteDoc } from 'firebase/firestore';
 import { babiesRef, userRef } from '../config';
@@ -12,6 +12,11 @@ const DeleteAccount = ({ route, navigation }) => {
   const { user, setUser, babyID, setBabyID, setUserInfo } = useContext(AuthentificationUserContext);
   const [password, setPassword] = useState('');
   const [userError, setError] = useState('');
+  const inputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    setTimeout(() => inputRef.current?.focus(), 100);
+  }, []);
 
   const deleteAccount = async () => {
     if (!password) {
@@ -142,37 +147,45 @@ const DeleteAccount = ({ route, navigation }) => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
-        <Text>
-            {t('settings.deleteAccount')}
-        </Text>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
+          <Text>
+              {t('settings.deleteAccount')}
+          </Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder={t('password')}
-          secureTextEntry
-          value={password}
-          onChangeText={(text) => setPassword(text)}
-        />
+          <TextInput
+            ref={inputRef}
+            style={styles.input}
+            placeholder={t('password')}
+            secureTextEntry
+            autoComplete="current-password"
+            value={password}
+            onChangeText={(text) => setPassword(text)}
+          />
 
-        <View style={{
-          position: 'absolute',
-          bottom: 10,
-          left: 0,
-          right: 0,
-          backgroundColor: 'transparent',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          flexDirection: 'column',
-        }}>
-          <Text style={styles.errorText}>{userError}</Text>
-          <TouchableOpacity style={styles.button} onPress={deleteAccount}>
-            <Text style={styles.buttonText}>{t('validate')}</Text>
-          </TouchableOpacity>
+          <View style={{
+            position: 'absolute',
+            bottom: 10,
+            left: 0,
+            right: 0,
+            backgroundColor: 'transparent',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            flexDirection: 'column',
+          }}>
+            <Text style={styles.errorText}>{userError}</Text>
+            <TouchableOpacity style={styles.button} onPress={deleteAccount}>
+              <Text style={styles.buttonText}>{t('validate')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 

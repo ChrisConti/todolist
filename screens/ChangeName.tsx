@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import React, { useContext, useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { db, userRef } from '../config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
@@ -10,12 +10,13 @@ const ChangeName = ({ route, navigation }) => {
   const { user, userInfo, setUserInfo } = useContext(AuthentificationUserContext);
   const [name, setName] = useState(userInfo?.username || '');
   const [userError, setError] = useState('');
+  const inputRef = useRef<TextInput>(null);
 
   const queryResult = query(userRef, where('userId', '==', user.uid));
 
   // Log screen view when the component is mounted
   useEffect(() => {
-
+    setTimeout(() => inputRef.current?.focus(), 100);
   }, []);
 
   const onHandleModification = async () => {
@@ -53,37 +54,44 @@ const ChangeName = ({ route, navigation }) => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
-        <TextInput
-          style={styles.input}
-          placeholder={t('name')}
-          keyboardType="default"
-          autoCapitalize="words"
-          clearButtonMode="always"
-          value={name}
-          onChangeText={(text) => setName(text)}
-        />
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
+          <TextInput
+            ref={inputRef}
+            style={styles.input}
+            placeholder={t('name')}
+            keyboardType="default"
+            autoCapitalize="words"
+            clearButtonMode="always"
+            value={name}
+            onChangeText={(text) => setName(text)}
+          />
 
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 10,
-            left: 0,
-            right: 0,
-            backgroundColor: 'transparent',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            flexDirection: 'column',
-          }}
-        >
-          <Text style={styles.errorText}>{userError}</Text>
-          <TouchableOpacity style={styles.button} onPress={onHandleModification}>
-            <Text style={styles.buttonText}>{t('validate')}</Text>
-          </TouchableOpacity>
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 10,
+              left: 0,
+              right: 0,
+              backgroundColor: 'transparent',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              flexDirection: 'column',
+            }}
+          >
+            <Text style={styles.errorText}>{userError}</Text>
+            <TouchableOpacity style={styles.button} onPress={onHandleModification}>
+              <Text style={styles.buttonText}>{t('validate')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 

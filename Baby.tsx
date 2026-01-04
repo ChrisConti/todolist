@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, TouchableWithoutFeedback, Keyboard, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, TouchableWithoutFeedback, Keyboard, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useContext, useEffect, useState, useRef } from 'react';
 
 import { auth, db } from './config';
@@ -12,6 +12,7 @@ import Boy from './assets/garcon.svg';
 import Girl from './assets/fille.svg';
 import { validateBabyName, validateBirthdate, formatBirthdateInput } from './utils/validation';
 import { BABY_TYPES, COLLECTIONS } from './utils/constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const Baby = ({ navigation }) => {
@@ -44,13 +45,13 @@ const Baby = ({ navigation }) => {
         
         // Trim le nom avant validation
         const trimmedName = name.trim();
-        const nameValidation = validateBabyName(trimmedName);
+        const nameValidation = validateBabyName(trimmedName, t);
         if (!nameValidation.isValid) {
             setError(nameValidation.error || t('error.name'));
             return;
         }
         
-        const birthdateValidation = validateBirthdate(birthdate);
+        const birthdateValidation = validateBirthdate(birthdate, t);
         if (!birthdateValidation.isValid) {
             setError(birthdateValidation.error || t('error.birthdate'));
             return;
@@ -80,6 +81,22 @@ const Baby = ({ navigation }) => {
                 tasks: [],
             });
             setBabyID(uniqueId);
+
+            // Clean review counters when creating a new baby
+            // But keep has_reviewed_app if user already reviewed
+            try {
+                const hasReviewed = await AsyncStorage.getItem(`has_reviewed_app_${user.uid}`);
+                await AsyncStorage.removeItem(`task_created_count_${user.uid}`);
+                await AsyncStorage.removeItem(`last_review_prompt_at_count_${user.uid}`);
+                await AsyncStorage.removeItem(`review_prompt_count_${user.uid}`);
+                // Only remove has_reviewed if user hasn't reviewed yet
+                if (hasReviewed !== 'true') {
+                    await AsyncStorage.removeItem(`has_reviewed_app_${user.uid}`);
+                }
+                console.log('✅ Review counters cleaned when creating baby:', uniqueId, 'preserved has_reviewed:', hasReviewed === 'true');
+            } catch (storageError) {
+                console.warn('⚠️ Failed to clean review counters:', storageError);
+            }
 
             analytics.logEvent('baby_created', {
                 babyType: images[selectedImage].type,
@@ -128,34 +145,39 @@ const Baby = ({ navigation }) => {
     };
 
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
-                <ScrollView>
-                    <View style={{ justifyContent: 'center' }}>
-                        <View style={{ flexDirection: "row", justifyContent: 'center' }}>
-                            <TouchableOpacity
-                                onPress={() => handleImageSelection(0)}
-                                style={[selectedImage == 0 ? styles.imageSelected : styles.imageNonSelected]}
-                            >
-                                <Boy height={90} width={90} />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={() => handleImageSelection(1)}
-                                style={[selectedImage == 1 ? styles.imageSelected : styles.imageNonSelected]}
-                            >
-                                <Girl height={90} width={90} />
-                            </TouchableOpacity>
-                        </View>
-                        <View>
-                            <TextInput
-                                ref={nameInputRef}
-                                style={styles.input}
-                                placeholder={t('placeholders.name')}
-                                autoCapitalize="words"
-                                value={name}
-                                onChangeText={(text) => setName(text)}
-                            />
-                        </View>
+        <KeyboardAvoidingView 
+            style={{ flex: 1 }} 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
+                    <ScrollView>
+                        <View style={{ justifyContent: 'center' }}>
+                            <View style={{ flexDirection: "row", justifyContent: 'center' }}>
+                                <TouchableOpacity
+                                    onPress={() => handleImageSelection(0)}
+                                    style={[selectedImage == 0 ? styles.imageSelected : styles.imageNonSelected]}
+                                >
+                                    <Boy height={90} width={90} />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => handleImageSelection(1)}
+                                    style={[selectedImage == 1 ? styles.imageSelected : styles.imageNonSelected]}
+                                >
+                                    <Girl height={90} width={90} />
+                                </TouchableOpacity>
+                            </View>
+                            <View>
+                                <TextInput
+                                    ref={nameInputRef}
+                                    style={styles.input}
+                                    placeholder={t('placeholders.name')}
+                                    autoCapitalize="words"
+                                    value={name}
+                                    onChangeText={(text) => setName(text)}
+                                />
+                            </View>
 
                         <View style={styles.container}>
                             <TextInput
@@ -196,6 +218,7 @@ const Baby = ({ navigation }) => {
                 </View>
             </View>
         </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
     );
 };
 

@@ -99,17 +99,25 @@ const Baby = ({ navigation }) => {
       });
       
       // Clean activity review prompt counters for this user
+      // But keep has_reviewed_app if user already reviewed
       try {
+        const hasReviewed = await AsyncStorage.getItem(`has_reviewed_app_${user.uid}`);
         await AsyncStorage.removeItem(`task_created_count_${user.uid}`);
-        await AsyncStorage.removeItem(`has_reviewed_app_${user.uid}`);
         await AsyncStorage.removeItem(`last_review_prompt_at_count_${user.uid}`);
         await AsyncStorage.removeItem(`review_prompt_count_${user.uid}`);
-        // Anciennes clés globales pour compatibilité
+        // Only remove has_reviewed if user hasn't reviewed yet
+        if (hasReviewed !== 'true') {
+          await AsyncStorage.removeItem(`has_reviewed_app_${user.uid}`);
+        }
+        // Anciennes clés globales pour compatibilité (but preserve has_reviewed_app)
         await AsyncStorage.removeItem('task_created_count');
-        await AsyncStorage.removeItem('has_reviewed_app');
         await AsyncStorage.removeItem('last_review_prompt_at_count');
         await AsyncStorage.removeItem('has_prompted_for_review');
-        console.log('✅ Review counters cleaned for user:', user.uid);
+        const oldHasReviewed = await AsyncStorage.getItem('has_reviewed_app');
+        if (oldHasReviewed !== 'true') {
+          await AsyncStorage.removeItem('has_reviewed_app');
+        }
+        console.log('✅ Review counters cleaned for user:', user.uid, 'preserved has_reviewed:', hasReviewed === 'true');
       } catch (storageError) {
         console.warn('⚠️ Failed to clean review counters:', storageError);
         // Ne pas bloquer la suppression du bébé si le nettoyage échoue

@@ -46,13 +46,13 @@ const ConnectionScreen = ({ navigation }) => {
             const userSnapshot = await getDocs(userQuery);
             
             if (userSnapshot.empty) {
-              // Document User manquant - le créer maintenant
+              // Document User manquant - le créer maintenant avec un nom par défaut localisé
               console.warn('⚠️ User document missing for:', user.uid, '- creating now');
               
               await addDoc(collection(db, "Users"), {
                 userId: user.uid,
                 email: user.email,
-                username: user.displayName || 'User',
+                username: user.displayName || user.email?.split('@')[0] || 'Utilisateur',
                 BabyID: '',
                 creationDate: new Date(),
               });
@@ -106,6 +106,7 @@ const ConnectionScreen = ({ navigation }) => {
           style={styles.input}
           placeholder={t('placeholder.email')}
           keyboardType="email-address"
+          autoComplete="email"
           autoCapitalize="none"
           value={email}
           onChangeText={setEmail}
@@ -115,6 +116,7 @@ const ConnectionScreen = ({ navigation }) => {
           style={styles.input}
           placeholder={t('placeholder.password')}
           secureTextEntry
+          autoComplete="current-password"
           value={password}
           onChangeText={setPassword}
         />

@@ -5,6 +5,7 @@ import { babiesRef, db } from './config';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
 import analytics from './services/analytics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const JoinBaby = ({ navigation }) => {
@@ -49,6 +50,22 @@ const JoinBaby = ({ navigation }) => {
         });
         console.log('success');
         setBabyID(trimmedBabyID);
+
+        // Clean review counters when joining a new baby
+        // But keep has_reviewed_app if user already reviewed
+        try {
+          const hasReviewed = await AsyncStorage.getItem(`has_reviewed_app_${user.uid}`);
+          await AsyncStorage.removeItem(`task_created_count_${user.uid}`);
+          await AsyncStorage.removeItem(`last_review_prompt_at_count_${user.uid}`);
+          await AsyncStorage.removeItem(`review_prompt_count_${user.uid}`);
+          // Only remove has_reviewed if user hasn't reviewed yet
+          if (hasReviewed !== 'true') {
+            await AsyncStorage.removeItem(`has_reviewed_app_${user.uid}`);
+          }
+          console.log('✅ Review counters cleaned when joining baby:', trimmedBabyID, 'preserved has_reviewed:', hasReviewed === 'true');
+        } catch (storageError) {
+          console.warn('⚠️ Failed to clean review counters:', storageError);
+        }
 
         analytics.logEvent('baby_joined', {
           babyId: trimmedBabyID,

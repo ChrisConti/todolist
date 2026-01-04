@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, Keyboard, ScrollView, FlatList, TouchableWithoutFeedback, Button, AppState, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, Keyboard, ScrollView, FlatList, TouchableWithoutFeedback, Button, AppState, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import s = require("../Style.js");
 import { auth, db, babiesRef, userRef } from '../config.js';
 import { addDoc, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
@@ -34,7 +34,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   
   const { user, setUser, babyID, setBabyID, userInfo } = useContext(AuthentificationUserContext);
   const [babySelected, setBabySelected] = useState(babyID);
-  const [selectedImage, setSelectedImage] = task ? task.id : useState(0);
+  const [selectedImage, setSelectedImage] = useState(task ? task.id : 0);
   const [time, setTime] = useState(moment().format('YYYY-MM-DD HH:mm:ss'));
   const [label, setLabel] = useState('');
   const [note, setNote] = useState('');
@@ -268,6 +268,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
           onSubmitEditing={Keyboard.dismiss}
           maxLength={10}
           placeholder={t('placeholder.millilitres')}
+          inputAccessoryViewID="none"
         />
       );
     } else if (id == 1) {
@@ -300,6 +301,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
           onSubmitEditing={Keyboard.dismiss}
           maxLength={20}
           placeholder={t('placeholder.medicaments')}
+          inputAccessoryViewID="none"
         />
       );
 
@@ -315,6 +317,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
           onSubmitEditing={Keyboard.dismiss}
           maxLength={10}
           placeholder={t('placeholder.sleepTime')}
+          inputAccessoryViewID="none"
         />
       );
 
@@ -330,6 +333,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
           onSubmitEditing={Keyboard.dismiss}
           maxLength={10}
           placeholder={t('placeholder.temperature')}
+          inputAccessoryViewID="none"
         />
       );
 
@@ -433,15 +437,20 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
 
   return (
     <>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
         <View style={{ flex: 1, backgroundColor: '#FDF1E7', alignItems: 'center', paddingTop: 10, }}>
-          <ScrollView>
+          <ScrollView keyboardShouldPersistTaps="handled">
             {/* Image picker */}
             <View style={{ flexDirection: 'row' }}>
               {images.map((image, index) => (
                 <TouchableOpacity
                   key={index}
                   onPress={() => {
+                    Keyboard.dismiss();
                     setSelectedImage(image.id);
                     image.id == 1 ? setLabel(imagesDiapers[0].id.toString()) : setLabel('');
                     setSelectedItem(0);
@@ -449,54 +458,55 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                   style={[selectedImage == image.id ? styles.imageSelected : styles.imageNonSelected]}
                 >
                   {handleImageType(image.id)}
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Label */}
-            <View style={{ paddingTop: 20, alignContent: 'center' }}>
-              {handleCategorie(selectedImage)}
-            </View>
-
-            {/* Time */}
-              <View style={{ paddingTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-              <Text style={{ color: 'gray', paddingBottom: 12 }}>
-                {t('task.whenTask')}
-              </Text> 
-              <TouchableOpacity onPress={() => {isDateTimePickerVisible ? setIsDateTimePickerVisible(false) : setIsDateTimePickerVisible(true)}} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#C75B4A', borderRadius: 8, padding: 10, width: 120 }}>
-                <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text> 
-              </TouchableOpacity>
-
-              <DateTimePicker
-                isVisible={isDateTimePickerVisible}
-                onConfirm={(date) => handleDateChange(date)}
-                onCancel={()=> {
-                setIsDateTimePickerVisible(false);
-                setSelectedDate(new Date());
-                }}
-                minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}
-                maximumDate={new Date()}
-                mode="datetime"
-                is24Hour={true}
-                cancelTextIOS={t(`settings.cancel`)}
-                confirmTextIOS={t(`validateOnly`)}
-              />
+                  </TouchableOpacity>
+                ))}
               </View>
 
-            {/* Notes */}
-            <View style={{ paddingTop: 40, alignSelf: 'center' }}>
-              <TextInput
-                style={styles.inputComment}
-                multiline
-                numberOfLines={3}
-                value={note}
-                placeholder={t('placeholder.comment')}
-                onChangeText={(inputText) => setNote(inputText)}
-                maxLength={60}
-                onSubmitEditing={Keyboard.dismiss}
-              />
-            </View>
-          </ScrollView>
+              {/* Label */}
+              <View style={{ paddingTop: 20, alignContent: 'center' }}>
+                {handleCategorie(selectedImage)}
+              </View>
+
+              {/* Time */}
+                <View style={{ paddingTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+                <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                  {t('task.whenTask')}
+                </Text> 
+                <TouchableOpacity onPress={() => {isDateTimePickerVisible ? setIsDateTimePickerVisible(false) : setIsDateTimePickerVisible(true)}} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#C75B4A', borderRadius: 8, padding: 10, width: 120 }}>
+                  <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text> 
+                </TouchableOpacity>
+
+                <DateTimePicker
+                  isVisible={isDateTimePickerVisible}
+                  onConfirm={(date) => handleDateChange(date)}
+                  onCancel={()=> {
+                  setIsDateTimePickerVisible(false);
+                  setSelectedDate(new Date());
+                  }}
+                  minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}
+                  maximumDate={new Date()}
+                  mode="datetime"
+                  is24Hour={true}
+                  cancelTextIOS={t(`settings.cancel`)}
+                  confirmTextIOS={t(`validateOnly`)}
+                />
+                </View>
+
+              {/* Notes */}
+              <View style={{ paddingTop: 40, alignSelf: 'center' }}>
+                <TextInput
+                  style={styles.inputComment}
+                  multiline
+                  numberOfLines={3}
+                  value={note}
+                  placeholder={t('placeholder.comment')}
+                  onChangeText={(inputText) => setNote(inputText)}
+                  maxLength={60}
+                  onSubmitEditing={Keyboard.dismiss}
+                  inputAccessoryViewID="none"
+                />
+              </View>
+            </ScrollView>
 
           {/* Footer */}
           <View style={{
@@ -504,9 +514,9 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
             bottom: 10,
             left: 0,
             right: 0,
-            backgroundColor: 'transparent', // Set to 'transparent' to cover the entire bottom
+            backgroundColor: 'transparent',
             alignItems: 'center',
-            justifyContent: 'flex-end', // Pushes the button to the bottom
+            justifyContent: 'flex-end',
             flexDirection: 'column',
           }}>
             <TouchableOpacity onPress={updateBabyTasks} disabled={loading}>
@@ -520,7 +530,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
             </TouchableOpacity>
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </>
   );
 }
