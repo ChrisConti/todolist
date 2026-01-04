@@ -2,7 +2,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, GestureResponderEvent, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import Logo from './assets/logo.svg';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './config';
+import { auth, db } from './config';
+import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 // import * as Sentry from '@sentry/react-native';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
@@ -33,8 +34,38 @@ const ConnectionScreen = ({ navigation }) => {
   function handleConnection(event: GestureResponderEvent): void {
     if (email !== '' && password !== '') {
       signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
+        .then(async (userCredential) => {
           const user = userCredential.user;
+          
+          // Vérifier si le document User existe dans Firestore
+          try {
+            const userQuery = query(
+              collection(db, "Users"), 
+              where('userId', '==', user.uid)
+            );
+            const userSnapshot = await getDocs(userQuery);
+            
+            if (userSnapshot.empty) {
+              // Document User manquant - le créer maintenant
+              console.warn('⚠️ User document missing for:', user.uid, '- creating now');
+              
+              await addDoc(collection(db, "Users"), {
+                userId: user.uid,
+                email: user.email,
+                username: user.displayName || 'User',
+                BabyID: '',
+                creationDate: new Date(),
+              });
+              
+              console.log('✅ User document created on login');
+            } else {
+              console.log('✅ User document exists');
+            }
+          } catch (firestoreError) {
+            console.error('❌ Error checking/creating User document:', firestoreError);
+            // Continue anyway - don't block login
+          }
+          
           setUser(user);
         })
         .catch((error) => {

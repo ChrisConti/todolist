@@ -50,11 +50,25 @@ export const validateBirthdate = (birthdate: string): { isValid: boolean; error?
     };
   }
 
-  // Check that date is not in the future
-  if (date > new Date()) {
+  // Check that date is not more than 3 years in the past
+  const threeYearsAgo = new Date();
+  threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+  
+  if (date < threeYearsAgo) {
     return {
       isValid: false,
-      error: 'Birthdate cannot be in the future',
+      error: 'Birthdate cannot be more than 3 years ago',
+    };
+  }
+
+  // Check that date is not more than 3 months in the future
+  const threeMonthsFromNow = new Date();
+  threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+  
+  if (date > threeMonthsFromNow) {
+    return {
+      isValid: false,
+      error: 'Birthdate cannot be more than 3 months in the future',
     };
   }
 

@@ -49,6 +49,12 @@ const Baby = ({ navigation }) => {
             return;
         }
 
+        if (!user || !user.uid) {
+            console.error('Cannot create baby: user not authenticated');
+            setError(t('error.notAuthenticated'));
+            return;
+        }
+
         try {
             const uniqueId = uuid.v4();
             const docRef = await addDoc(collection(db, COLLECTIONS.BABY), {

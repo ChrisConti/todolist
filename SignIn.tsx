@@ -36,28 +36,55 @@ const SignIn = ({ navigation }) => {
       setError(t('error.shortName'));
       return;
     }
-    // add a setInfo
+    
+    // Créer l'utilisateur dans Firebase Auth et Firestore de manière atomique
     createUserWithEmailAndPassword(auth, email, password)
       .then(async (res) => {
-        // Récupérer le pays de l'utilisateur
-        const userCountry = Localization.region || 'Unknown';
-        
-        await addDoc(collection(db, "Users"), {
-          userId: res.user.uid,
-          email: res.user.email,
-          username: name,
-          BabyID: '',
-          country: userCountry,
-          creationDate: new Date(),
-        });
-        
-        analytics.logEvent('user_signup', {
-          userId: res.user.uid,
-          method: 'email',
-          country: userCountry
-        });
+        try {
+          // Récupérer le pays de l'utilisateur
+          const userCountry = Localization.region || 'Unknown';
+          
+          // CRITIQUE : Créer le document User dans Firestore
+          const userDocRef = await addDoc(collection(db, "Users"), {
+            userId: res.user.uid,
+            email: res.user.email,
+            username: name,
+            BabyID: '',
+            country: userCountry,
+            creationDate: new Date(),
+          });
+          
+          console.log('✅ User document created successfully:', userDocRef.id);
+          
+          analytics.logEvent('user_signup', {
+            userId: res.user.uid,
+            method: 'email',
+            country: userCountry
+          });
+          
+          // Success - user peut maintenant naviguer
+        } catch (firestoreError) {
+          // ROLLBACK : Si Firestore échoue, supprimer l'utilisateur Auth
+          console.error('❌ Failed to create User document, rolling back auth user', firestoreError);
+          
+          try {
+            await res.user.delete();
+            console.log('🔄 Auth user deleted after Firestore failure');
+          } catch (deleteError) {
+            console.error('❌ Failed to delete auth user during rollback', deleteError);
+          }
+          
+          setError(t('error.accountCreationFailed'));
+          
+          analytics.logEvent('signup_error', {
+            errorCode: 'firestore_creation_failed',
+            errorType: 'firestore_error'
+          });
+        }
       })
       .catch((error) => {
+        console.error('❌ Auth account creation failed:', error);
+        
         if (error.code === "auth/email-already-in-use") {
           setError(t('error.emailInUse'));
         } else {

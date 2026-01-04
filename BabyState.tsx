@@ -18,21 +18,37 @@ const Baby = ({ navigation }) => {
   const [userListDisplay, setUserListDisplay] = useState([]);
 
   useEffect(() => {
-    if (!user) return;
-    getUserInfo();
-    getBabyInfo();
+    if (!user || !babyID) return;
+    loadBabyAndUsers();
   }, []);
 
-  const getUserInfo = async () => {
-    if (!usersList.length) return;
-
-    const queryResult = query(userRef, where('userId', 'in', usersList));
+  const loadBabyAndUsers = async () => {
+    console.log('🔍 Loading baby and users, babyID:', babyID);
+    const queryResult = query(babiesRef, where('id', '==', babyID));
     try {
       const querySnapshot = await getDocs(queryResult);
-      const users = querySnapshot.docs.map((doc) => doc.data());
-      setUserListDisplay(users);
+      
+      if (!querySnapshot.empty) {
+        const babyData = querySnapshot.docs[0].data();
+        setName(babyData.name);
+        setType(babyData.type === 'Boy' ? 0 : 1);
+        
+        // Load users directly
+        if (babyData.user && babyData.user.length > 0) {
+          const usersQuery = query(userRef, where('userId', 'in', babyData.user));
+          const usersSnapshot = await getDocs(usersQuery);
+          
+          const users = usersSnapshot.docs.map((doc) => doc.data());
+          setUserListDisplay(users);
+          
+          if (users.length === 0) {
+            console.warn('⚠️ No User documents found for IDs:', babyData.user);
+            console.warn('This should have been created during signup/login');
+          }
+        }
+      }
     } catch (error) {
-      console.error('Error fetching user info:', error);
+      console.error('❌ Error loading baby and users:', error);
     }
   };
 
@@ -43,7 +59,7 @@ const Baby = ({ navigation }) => {
       querySnapshot.forEach((doc) => {
         const babyData = doc.data();
         setName(babyData.name);
-        setType(babyData.type);
+        setType(babyData.type === 'Boy' ? 0 : 1);
       });
     } catch (error) {
       console.error('Error fetching baby info:', error);
@@ -51,6 +67,11 @@ const Baby = ({ navigation }) => {
   };
 
   const removeUserFromBaby = async () => {
+    if (!user || !user.uid) {
+      console.error('Cannot remove user: user not authenticated');
+      return;
+    }
+    
     try {
       const queryResult = query(babiesRef, where('user', 'array-contains', user.uid));
       const querySnapshot = await getDocs(queryResult);

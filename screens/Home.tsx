@@ -45,7 +45,7 @@ const BabyList = ({ navigation }) => {
     return () => {
       if (snapshotListener.current) snapshotListener.current(); // Cleanup listener
     };
-  }, [babyID]);
+  }, [babyID, user]);
 
   const fetchBabyData = () => {
     const babyQuery = query(babiesRef, where('user', 'array-contains', user.uid));

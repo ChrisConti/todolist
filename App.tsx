@@ -40,7 +40,7 @@ SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
   const { user, setUser } = useContext(AuthentificationUserContext);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [fontsLoaded, setFontsLoaded] = useState(false);
   
   useEffect(() => {
@@ -61,20 +61,45 @@ function RootNavigator() {
         log.debug('Fonts loaded successfully', 'App.tsx');
         setFontsLoaded(true);
 
-        // Check authentication state
-        log.debug('Checking authentication state...', 'App.tsx');
-        setIsLoading(true);
-        onAuthStateChanged(auth, (firebaseUser) => {
-          if (firebaseUser) {
-            log.info(`User authenticated: ${firebaseUser.uid}`, 'App.tsx');
-            setUser(firebaseUser);
-            //babyIDInfo()
-          } else {
-            log.info('No user authenticated', 'App.tsx');
+        // Check authentication state with improved handling
+        log.debug('Setting up authentication listener...', 'App.tsx');
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+          try {
+            if (firebaseUser) {
+              log.info(`User authenticated: ${firebaseUser.uid}`, 'App.tsx');
+              
+              // Verify token is still valid
+              try {
+                await firebaseUser.getIdToken(true); // Force refresh
+                log.debug('Token refreshed successfully', 'App.tsx');
+              } catch (tokenError) {
+                log.error('Token refresh failed, signing out', 'App.tsx', tokenError);
+                await auth.signOut();
+                setUser(null);
+                setIsLoading(false);
+                return;
+              }
+              
+              setUser(firebaseUser);
+            } else {
+              log.info('No user authenticated', 'App.tsx');
+              setUser(null);
+            }
+          } catch (error) {
+            log.error('Error in auth state change handler', 'App.tsx', error);
             setUser(null);
+          } finally {
+            setIsLoading(false);
           }
+        }, (error) => {
+          log.error('Auth state listener error', 'App.tsx', error);
           setIsLoading(false);
         });
+
+        // Cleanup function
+        return () => {
+          unsubscribe();
+        };
       } catch (e) {
         log.error('Error during app initialization', 'App.tsx', e);
         const errorMessage = e instanceof Error ? e.message : String(e);

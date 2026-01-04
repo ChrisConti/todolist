@@ -51,8 +51,6 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const interval2 = useRef(null);
   const appState = useRef(AppState.currentState);
 
-  const queryResult = query(userRef, where('userId', '==', user.uid));
-
   // Charger les timers sauvegardés au démarrage
   useEffect(() => {
     analytics.logScreenView('CreateTask');
@@ -164,6 +162,12 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   }
 
   const updateBabyTasks = async () => {
+    if (!user || !user.uid) {
+      console.error('Cannot update tasks: user not authenticated');
+      alert(t('error.notAuthenticated'));
+      return;
+    }
+
     const queryResult = query(babiesRef, where('id', '==', babySelected));
     try {
       const querySnapshot = await getDocs(queryResult);

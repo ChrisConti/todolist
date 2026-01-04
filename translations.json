@@ -35,7 +35,10 @@
       "name": "Please enter a name (min 2 characters).",
       "birthdate": "Please enter a valid birthdate.",
       "enterCode": "Please enter the code.",
-      "validCode": "Please enter a valid code."
+      "validCode": "Please enter a valid code.",
+      "notAuthenticated": "You must be logged in to perform this action.",
+      "accountCreationFailed": "Unable to create account. Please try again.",
+      "title": "Error"
     },
     "header": {
       "suivi": "Tracking"
@@ -313,7 +316,10 @@
       "name": "Merci de remplir le nom (min 2 caractères).",
       "birthdate": "Merci de remplir la date correctement.",
       "enterCode": "Veuillez entrer le code.",
-      "validCode": "Veuillez entrer un code valide."
+      "validCode": "Veuillez entrer un code valide.",
+      "notAuthenticated": "Vous devez être connecté pour effectuer cette action.",
+      "accountCreationFailed": "Impossible de créer le compte. Veuillez réessayer.",
+      "title": "Erreur"
     },
     "header": {
       "suivi": "Suivi"

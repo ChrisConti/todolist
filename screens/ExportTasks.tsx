@@ -39,6 +39,12 @@ const ExportTasks = ({ navigation }) => {
   };
 
   const handleExport = async () => {
+    if (!user || !user.uid) {
+      console.error('Cannot export: user not authenticated');
+      Alert.alert(t('error.title') || 'Erreur', 'Utilisateur non authentifié');
+      return;
+    }
+
     if (!babyData || !babyData.tasks) {
       Alert.alert(
         t('error.title') || 'Erreur',
