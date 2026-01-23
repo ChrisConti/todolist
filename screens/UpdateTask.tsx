@@ -659,7 +659,7 @@ const UpdateTask = ({ route, navigation }) => {
                     styles.milkTypeText,
                     diaperContent === 0 && styles.milkTypeTextSelected
                   ]}>
-                    💧 {t('diapers.pee')}
+                    💦 {t('diapers.pee')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -687,7 +687,7 @@ const UpdateTask = ({ route, navigation }) => {
                     styles.milkTypeText,
                     diaperContent === 2 && styles.milkTypeTextSelected
                   ]}>
-                    💧💩 {t('diapers.both')}
+                    💦💩 {t('diapers.both')}
                   </Text>
                 </TouchableOpacity>
               </View>

@@ -69,7 +69,7 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
             <Text>{t('diapers.last7Days')}</Text>
           </View>
           <View style={{ alignItems: 'center' }}>
-            <Text style={styles.contentLabel}>💧</Text>
+            <Text style={styles.contentLabel}>💦</Text>
             <Text style={{ marginBottom: 5 }}>{peeToday}</Text>
             <Text style={{ marginBottom: 5 }}>{peeYesterday}</Text>
             <Text>{peeLast7}</Text>
@@ -81,7 +81,7 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
             <Text>{poopLast7}</Text>
           </View>
           <View style={{ alignItems: 'center' }}>
-            <Text style={styles.contentLabel}>💧💩</Text>
+            <Text style={styles.contentLabel}>💦💩</Text>
             <Text style={{ marginBottom: 5 }}>{bothToday}</Text>
             <Text style={{ marginBottom: 5 }}>{bothYesterday}</Text>
             <Text>{bothLast7}</Text>
@@ -208,7 +208,7 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
           <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
               <View style={{ width: 10, height: 10, backgroundColor: (contentChartData as any).barColors[0], marginRight: 5 }} />
-              <Text>💧 {t('diapers.pee')}</Text>
+              <Text>💦 {t('diapers.pee')}</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
               <View style={{ width: 10, height: 10, backgroundColor: (contentChartData as any).barColors[1], marginRight: 5 }} />
@@ -216,7 +216,7 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
               <View style={{ width: 10, height: 10, backgroundColor: (contentChartData as any).barColors[2], marginRight: 5 }} />
-              <Text>💧💩 {t('diapers.both')}</Text>
+              <Text>💦💩 {t('diapers.both')}</Text>
             </View>
           </View>
         </View>

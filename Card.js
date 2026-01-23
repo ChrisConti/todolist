@@ -77,6 +77,16 @@ const Card = ({ task, navigation, editable }) => {
 
   const formattedTimes = formatTimeBasedOnLocale(task.date);
 
+  const getDiaperContentIcon = () => {
+    if (task.id !== 1) return null;
+
+    const diaperContent = task.diaperContent;
+    if (diaperContent === 0) return '💦'; // Pee (multiple drops)
+    if (diaperContent === 1) return '💩'; // Poop
+    if (diaperContent === 2) return '💦💩'; // Both
+    return null;
+  };
+
   const handleCategoryLabel = () => {
     if (task.id == 5) {
       if (task.boobLeft && task.boobRight) {
@@ -94,41 +104,11 @@ const Card = ({ task, navigation, editable }) => {
     }
     // Support both new diaperType and legacy idCaca for backward compatibility
     if (task.id == 1) {
-      const diaperContent = task.diaperContent;
-
-      // Display diaper content with icon and text
-      if (diaperContent === 0) {
-        return (
-          <Text style={{ color: '#F6F0EB', fontSize: 20 }}>
-            💧 {t('diapers.pee')}
-          </Text>
-        );
-      } else if (diaperContent === 1) {
-        return (
-          <Text style={{ color: '#F6F0EB', fontSize: 20 }}>
-            💩 {t('diapers.poop')}
-          </Text>
-        );
-      } else if (diaperContent === 2) {
-        return (
-          <Text style={{ color: '#F6F0EB', fontSize: 20 }}>
-            💧💩 {t('diapers.both')}
-          </Text>
-        );
-      }
-
-      // Fallback to diaperType if no diaperContent
       const diaperType = task.diaperType ?? task.idCaca;
       if (diaperType !== undefined && diaperType !== null) {
-        return (
-          <Text style={{ color: '#F6F0EB', fontSize: 15 }}>
-            {imagesDiapers[diaperType].name}
-          </Text>
-        );
+        return <Text>{imagesDiapers[diaperType].name}</Text>;
       }
-
-      // If neither diaperContent nor diaperType is set, show nothing
-      return <Text style={{ color: '#F6F0EB', fontSize: 15 }}>-</Text>;
+      return <Text>-</Text>;
     }
     return <Text>{task.label}</Text>;
   };
@@ -166,6 +146,9 @@ const Card = ({ task, navigation, editable }) => {
         {handleImageType()}
         {task.comment && task.comment.trim() !== '' && (
           <Ionicons name="chatbubble-ellipses" size={20} color="#F6F0EB" style={{ marginLeft: 8 }} />
+        )}
+        {getDiaperContentIcon() && (
+          <Text style={{ fontSize: 20, marginLeft: 8 }}>{getDiaperContentIcon()}</Text>
         )}
       </View>
       <View style={{ flexDirection: 'row' }}>
