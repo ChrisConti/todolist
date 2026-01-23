@@ -219,11 +219,22 @@ export const useDiaperStats = (tasks: Task[], t: (key: string) => string) => {
           yesterday: { 0: 0, 1: 0, 2: 0 },
           lastPeriod: { 0: 0, 1: 0, 2: 0 }
         },
+        dailyContentStats: {
+          today: { 0: 0, 1: 0, 2: 0 },
+          yesterday: { 0: 0, 1: 0, 2: 0 },
+          lastPeriod: { 0: 0, 1: 0, 2: 0 }
+        },
         chartData: {
           labels: [],
           legend: [t('diapers.dur'), t('diapers.mou'), t('diapers.liquide')],
           data: [],
           barColors: ["#A8A8A8", "#C75B4A", "#E29656"]
+        } as StackedChartData,
+        contentChartData: {
+          labels: [],
+          legend: [t('diapers.pee'), t('diapers.poop'), t('diapers.both')],
+          data: [],
+          barColors: ["#34777B", "#C75B4A", "#E29656"]
         } as StackedChartData,
         separateCharts: {
           0: { labels: [], datasets: [{ data: [] }] },
@@ -239,8 +250,19 @@ export const useDiaperStats = (tasks: Task[], t: (key: string) => string) => {
     let todaySum = { 0: 0, 1: 0, 2: 0 };
     let yesterdaySum = { 0: 0, 1: 0, 2: 0 };
     let lastSevenDaysSum = { 0: 0, 1: 0, 2: 0 };
+
+    // Stats for diaperContent (pee=0, poop=1, both=2)
+    let todayContentSum = { 0: 0, 1: 0, 2: 0 };
+    let yesterdayContentSum = { 0: 0, 1: 0, 2: 0 };
+    let lastSevenDaysContentSum = { 0: 0, 1: 0, 2: 0 };
+
     let mostRecentTask: Task | null = null;
     let lastSevenDaysData = {
+      0: Array(7).fill(0),
+      1: Array(7).fill(0),
+      2: Array(7).fill(0),
+    };
+    let lastSevenDaysContentData = {
       0: Array(7).fill(0),
       1: Array(7).fill(0),
       2: Array(7).fill(0),
@@ -269,6 +291,20 @@ export const useDiaperStats = (tasks: Task[], t: (key: string) => string) => {
         }
       }
 
+      // Track diaperContent stats
+      const diaperContent = task.diaperContent;
+      if (diaperContent !== undefined && diaperContent >= 0 && diaperContent <= 2) {
+        if (isToday(task.date)) todayContentSum[diaperContent] += 1;
+        if (isYesterday(task.date)) yesterdayContentSum[diaperContent] += 1;
+        if (isInLastNDays(task.date, 7)) lastSevenDaysContentSum[diaperContent] += 1;
+
+        for (let i = 0; i < 7; i++) {
+          if (taskDate.isSame(moment().subtract(i, 'days'), 'day')) {
+            lastSevenDaysContentData[diaperContent][6 - i] += 1;
+          }
+        }
+      }
+
       if (!mostRecentTask || taskDate.isAfter(moment(mostRecentTask.date, 'YYYY-MM-DD HH:mm:ss'))) {
         mostRecentTask = task;
       }
@@ -280,6 +316,11 @@ export const useDiaperStats = (tasks: Task[], t: (key: string) => string) => {
         yesterday: yesterdaySum,
         lastPeriod: lastSevenDaysSum
       },
+      dailyContentStats: {
+        today: todayContentSum,
+        yesterday: yesterdayContentSum,
+        lastPeriod: lastSevenDaysContentSum
+      },
       chartData: {
         labels: labels.map(label => moment(label).format('DD')),
         legend: [t('diapers.dur'), t('diapers.mou'), t('diapers.liquide')],
@@ -289,6 +330,16 @@ export const useDiaperStats = (tasks: Task[], t: (key: string) => string) => {
           lastSevenDaysData[2][index] > 0 ? lastSevenDaysData[2][index] : '',
         ]),
         barColors: ["#A8A8A8", "#C75B4A", "#E29656"]
+      } as StackedChartData,
+      contentChartData: {
+        labels: labels.map(label => moment(label).format('DD')),
+        legend: [t('diapers.pee'), t('diapers.poop'), t('diapers.both')],
+        data: labels.map((label, index) => [
+          lastSevenDaysContentData[0][index] > 0 ? lastSevenDaysContentData[0][index] : '',
+          lastSevenDaysContentData[1][index] > 0 ? lastSevenDaysContentData[1][index] : '',
+          lastSevenDaysContentData[2][index] > 0 ? lastSevenDaysContentData[2][index] : '',
+        ]),
+        barColors: ["#34777B", "#C75B4A", "#E29656"]
       } as StackedChartData,
       separateCharts: {
         0: {
