@@ -565,76 +565,53 @@ const UpdateTask = ({ route, navigation }) => {
             {handleCategorie(selectedImage)}
           </View>
 
-          {/* Time Picker */}
-          <View style={styles.timePickerContainer}>
-            <Text style={styles.timePickerLabel}>{t('task.whenTask')}</Text>
-            <TouchableOpacity
-              onPress={() => setIsDateTimePickerVisible(true)}
-              style={styles.timePickerButton}
-            >
-              <Text style={styles.timePickerText}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
-            </TouchableOpacity>
-            <DateTimePicker
-              isVisible={isDateTimePickerVisible}
-              onConfirm={(date) => handleDateChange(date)}
-              onCancel={() => setIsDateTimePickerVisible(false)}
-              minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}
-              maximumDate={new Date()}
-              mode="datetime"
-              is24Hour={true}
-              cancelTextIOS={t('settings.cancel')}
-              confirmTextIOS={t('validateOnly')}
-              date={selectedDate}
-            />
-          </View>
-
-          {/* Milk Type - Only for bottle (id === 0) */}
-          {selectedImage === 0 && (
+          {/* Diaper Type (consistency) - Only for diaper (id === 1) */}
+          {selectedImage === 1 && (
             <View style={{ paddingTop: 30, alignSelf: 'center' }}>
               <Text style={{ color: 'gray', paddingBottom: 12 }}>
-                {t('milkType.title')}
+                {t('diapers.type')}
               </Text>
               <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 5 }}>
                 <TouchableOpacity
-                  onPress={() => setMilkType(milkType === 'artificial' ? null : 'artificial')}
+                  onPress={() => setDiaperType(diaperType === 0 ? null : 0)}
                   style={[
                     styles.milkTypeButton,
-                    milkType === 'artificial' && styles.milkTypeButtonSelected
+                    diaperType === 0 && styles.milkTypeButtonSelected
                   ]}
                 >
                   <Text style={[
                     styles.milkTypeText,
-                    milkType === 'artificial' && styles.milkTypeTextSelected
+                    diaperType === 0 && styles.milkTypeTextSelected
                   ]}>
-                    {t('milkType.artificial')}
+                    {t('diapers.dur')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => setMilkType(milkType === 'maternal' ? null : 'maternal')}
+                  onPress={() => setDiaperType(diaperType === 1 ? null : 1)}
                   style={[
                     styles.milkTypeButton,
-                    milkType === 'maternal' && styles.milkTypeButtonSelected
+                    diaperType === 1 && styles.milkTypeButtonSelected
                   ]}
                 >
                   <Text style={[
                     styles.milkTypeText,
-                    milkType === 'maternal' && styles.milkTypeTextSelected
+                    diaperType === 1 && styles.milkTypeTextSelected
                   ]}>
-                    {t('milkType.maternal')}
+                    {t('diapers.mou')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => setMilkType(milkType === 'other' ? null : 'other')}
+                  onPress={() => setDiaperType(diaperType === 2 ? null : 2)}
                   style={[
                     styles.milkTypeButton,
-                    milkType === 'other' && styles.milkTypeButtonSelected
+                    diaperType === 2 && styles.milkTypeButtonSelected
                   ]}
                 >
                   <Text style={[
                     styles.milkTypeText,
-                    milkType === 'other' && styles.milkTypeTextSelected
+                    diaperType === 2 && styles.milkTypeTextSelected
                   ]}>
-                    {t('milkType.other')}
+                    {t('diapers.liquide')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -694,53 +671,103 @@ const UpdateTask = ({ route, navigation }) => {
             </View>
           )}
 
-          {/* Diaper Type (consistency) */}
+          {/* Time Picker - Show for diaper (id === 1) */}
           {selectedImage === 1 && (
-            <View style={{ paddingTop: 20 }}>
+            <View style={{ paddingTop: 30, alignSelf: 'center' }}>
+              <Text style={{ color: 'gray', paddingBottom: 12 }}>{t('task.whenTask')}</Text>
+              <TouchableOpacity
+                onPress={() => setIsDateTimePickerVisible(true)}
+                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#C75B4A', borderRadius: 8, padding: 10, width: 250 }}
+              >
+                <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
+              </TouchableOpacity>
+              <DateTimePicker
+                isVisible={isDateTimePickerVisible}
+                onConfirm={(date) => handleDateChange(date)}
+                onCancel={() => setIsDateTimePickerVisible(false)}
+                minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}
+                maximumDate={new Date()}
+                mode="datetime"
+                is24Hour={true}
+                cancelTextIOS={t('settings.cancel')}
+                confirmTextIOS={t('validateOnly')}
+                date={selectedDate}
+              />
+            </View>
+          )}
+
+          {/* Time Picker - Show for non-diaper tasks */}
+          {selectedImage !== 1 && (
+            <View style={styles.timePickerContainer}>
+              <Text style={styles.timePickerLabel}>{t('task.whenTask')}</Text>
+              <TouchableOpacity
+                onPress={() => setIsDateTimePickerVisible(true)}
+                style={styles.timePickerButton}
+              >
+                <Text style={styles.timePickerText}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
+              </TouchableOpacity>
+              <DateTimePicker
+                isVisible={isDateTimePickerVisible}
+                onConfirm={(date) => handleDateChange(date)}
+                onCancel={() => setIsDateTimePickerVisible(false)}
+                minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}
+                maximumDate={new Date()}
+                mode="datetime"
+                is24Hour={true}
+                cancelTextIOS={t('settings.cancel')}
+                confirmTextIOS={t('validateOnly')}
+                date={selectedDate}
+              />
+            </View>
+          )}
+
+          {/* Milk Type - Only for bottle (id === 0) */}
+          {selectedImage === 0 && (
+            <View style={{ paddingTop: 30, alignSelf: 'center' }}>
               <Text style={{ color: 'gray', paddingBottom: 12 }}>
-                {t('diapers.type')}
+                {t('milkType.title')}
               </Text>
               <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 5 }}>
                 <TouchableOpacity
-                  onPress={() => setDiaperType(diaperType === 0 ? null : 0)}
+                  onPress={() => setMilkType(milkType === 'artificial' ? null : 'artificial')}
                   style={[
                     styles.milkTypeButton,
-                    diaperType === 0 && styles.milkTypeButtonSelected
+                    milkType === 'artificial' && styles.milkTypeButtonSelected
                   ]}
                 >
                   <Text style={[
                     styles.milkTypeText,
-                    diaperType === 0 && styles.milkTypeTextSelected
+                    milkType === 'artificial' && styles.milkTypeTextSelected
                   ]}>
-                    {t('diapers.dur')}
+                    {t('milkType.artificial')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => setDiaperType(diaperType === 1 ? null : 1)}
+                  onPress={() => setMilkType(milkType === 'maternal' ? null : 'maternal')}
                   style={[
                     styles.milkTypeButton,
-                    diaperType === 1 && styles.milkTypeButtonSelected
+                    milkType === 'maternal' && styles.milkTypeButtonSelected
                   ]}
                 >
                   <Text style={[
                     styles.milkTypeText,
-                    diaperType === 1 && styles.milkTypeTextSelected
+                    milkType === 'maternal' && styles.milkTypeTextSelected
                   ]}>
-                    {t('diapers.mou')}
+                    {t('milkType.maternal')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => setDiaperType(diaperType === 2 ? null : 2)}
+                  onPress={() => setMilkType(milkType === 'other' ? null : 'other')}
                   style={[
                     styles.milkTypeButton,
-                    diaperType === 2 && styles.milkTypeButtonSelected
+                    milkType === 'other' && styles.milkTypeButtonSelected
                   ]}
                 >
                   <Text style={[
                     styles.milkTypeText,
-                    diaperType === 2 && styles.milkTypeTextSelected
+                    milkType === 'other' && styles.milkTypeTextSelected
                   ]}>
-                    {t('diapers.liquide')}
+                    {t('milkType.other')}
                   </Text>
                 </TouchableOpacity>
               </View>
