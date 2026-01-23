@@ -567,7 +567,7 @@ const UpdateTask = ({ route, navigation }) => {
 
           {/* Diaper Type (consistency) - Only for diaper (id === 1) */}
           {selectedImage === 1 && (
-            <View style={{ paddingTop: 30, alignSelf: 'center' }}>
+            <View style={{ paddingTop: 30 }}>
               <Text style={{ color: 'gray', paddingBottom: 12 }}>
                 {t('diapers.type')}
               </Text>
@@ -620,7 +620,7 @@ const UpdateTask = ({ route, navigation }) => {
 
           {/* Diaper Content - Only for diaper (id === 1) */}
           {selectedImage === 1 && (
-            <View style={{ paddingTop: 30, alignSelf: 'center' }}>
+            <View style={{ paddingTop: 30 }}>
               <Text style={{ color: 'gray', paddingBottom: 12 }}>
                 {t('diapers.content')}
               </Text>
@@ -671,55 +671,28 @@ const UpdateTask = ({ route, navigation }) => {
             </View>
           )}
 
-          {/* Time Picker - Show for diaper (id === 1) */}
-          {selectedImage === 1 && (
-            <View style={{ paddingTop: 30, alignSelf: 'center' }}>
-              <Text style={{ color: 'gray', paddingBottom: 12 }}>{t('task.whenTask')}</Text>
-              <TouchableOpacity
-                onPress={() => setIsDateTimePickerVisible(true)}
-                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#C75B4A', borderRadius: 8, padding: 10, width: 250 }}
-              >
-                <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
-              </TouchableOpacity>
-              <DateTimePicker
-                isVisible={isDateTimePickerVisible}
-                onConfirm={(date) => handleDateChange(date)}
-                onCancel={() => setIsDateTimePickerVisible(false)}
-                minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}
-                maximumDate={new Date()}
-                mode="datetime"
-                is24Hour={true}
-                cancelTextIOS={t('settings.cancel')}
-                confirmTextIOS={t('validateOnly')}
-                date={selectedDate}
-              />
-            </View>
-          )}
-
-          {/* Time Picker - Show for non-diaper tasks */}
-          {selectedImage !== 1 && (
-            <View style={styles.timePickerContainer}>
-              <Text style={styles.timePickerLabel}>{t('task.whenTask')}</Text>
-              <TouchableOpacity
-                onPress={() => setIsDateTimePickerVisible(true)}
-                style={styles.timePickerButton}
-              >
-                <Text style={styles.timePickerText}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
-              </TouchableOpacity>
-              <DateTimePicker
-                isVisible={isDateTimePickerVisible}
-                onConfirm={(date) => handleDateChange(date)}
-                onCancel={() => setIsDateTimePickerVisible(false)}
-                minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}
-                maximumDate={new Date()}
-                mode="datetime"
-                is24Hour={true}
-                cancelTextIOS={t('settings.cancel')}
-                confirmTextIOS={t('validateOnly')}
-                date={selectedDate}
-              />
-            </View>
-          )}
+          {/* Time Picker - Unified for all tasks */}
+          <View style={{ paddingTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+            <Text style={{ color: 'gray', paddingBottom: 12 }}>{t('task.whenTask')}</Text>
+            <TouchableOpacity
+              onPress={() => setIsDateTimePickerVisible(true)}
+              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#C75B4A', borderRadius: 8, padding: 10, width: 120 }}
+            >
+              <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
+            </TouchableOpacity>
+            <DateTimePicker
+              isVisible={isDateTimePickerVisible}
+              onConfirm={(date) => handleDateChange(date)}
+              onCancel={() => setIsDateTimePickerVisible(false)}
+              minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}
+              maximumDate={new Date()}
+              mode="datetime"
+              is24Hour={true}
+              cancelTextIOS={t('settings.cancel')}
+              confirmTextIOS={t('validateOnly')}
+              date={selectedDate}
+            />
+          </View>
 
           {/* Milk Type - Only for bottle (id === 0) */}
           {selectedImage === 0 && (

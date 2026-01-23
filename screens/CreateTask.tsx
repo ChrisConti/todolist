@@ -566,7 +566,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
 
               {/* Diaper Type (consistency) - Only for diaper (id === 1) */}
               {selectedImage === 1 && (
-                <View style={{ paddingTop: 30, alignSelf: 'center' }}>
+                <View style={{ paddingTop: 30 }}>
                   <Text style={{ color: 'gray', paddingBottom: 12 }}>
                     {t('diapers.type')}
                   </Text>
@@ -619,7 +619,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
 
               {/* Diaper Content - Only for diaper (id === 1) */}
               {selectedImage === 1 && (
-                <View style={{ paddingTop: 30, alignSelf: 'center' }}>
+                <View style={{ paddingTop: 30 }}>
                   <Text style={{ color: 'gray', paddingBottom: 12 }}>
                     {t('diapers.content')}
                   </Text>
@@ -670,36 +670,8 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                 </View>
               )}
 
-              {/* Time - Show for diaper (id === 1) */}
-              {selectedImage === 1 && (
-                <View style={{ paddingTop: 30, alignSelf: 'center' }}>
-                <Text style={{ color: 'gray', paddingBottom: 12 }}>
-                  {t('task.whenTask')}
-                </Text>
-                <TouchableOpacity onPress={() => {isDateTimePickerVisible ? setIsDateTimePickerVisible(false) : setIsDateTimePickerVisible(true)}} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#C75B4A', borderRadius: 8, padding: 10, width: 250 }}>
-                  <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
-                </TouchableOpacity>
-
-                <DateTimePicker
-                  isVisible={isDateTimePickerVisible}
-                  onConfirm={(date) => handleDateChange(date)}
-                  onCancel={()=> {
-                  setIsDateTimePickerVisible(false);
-                  setSelectedDate(new Date());
-                  }}
-                  minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}
-                  maximumDate={new Date()}
-                  mode="datetime"
-                  is24Hour={true}
-                  cancelTextIOS={t(`settings.cancel`)}
-                  confirmTextIOS={t(`validateOnly`)}
-                />
-                </View>
-              )}
-
-              {/* Time - Show for non-diaper tasks */}
-              {selectedImage !== 1 && (
-                <View style={{ paddingTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+              {/* Time - Show for all tasks (including diaper) */}
+              <View style={{ paddingTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
                 <Text style={{ color: 'gray', paddingBottom: 12 }}>
                   {t('task.whenTask')}
                 </Text>
@@ -721,8 +693,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                   cancelTextIOS={t(`settings.cancel`)}
                   confirmTextIOS={t(`validateOnly`)}
                 />
-                </View>
-              )}
+              </View>
 
               {/* Milk Type - Only for bottle (id === 0) */}
               {selectedImage === 0 && (
