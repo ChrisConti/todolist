@@ -42,10 +42,9 @@ const UpdateTask = ({ route, navigation }) => {
   const [note, setNote] = useState(task.comment || '');
   const [milkType, setMilkType] = useState<string | null>(task.milkType || null);
   const [diaperContent, setDiaperContent] = useState<number | null>(task.diaperContent ?? null); // 0=pee, 1=poop, 2=both
+  const [diaperType, setDiaperType] = useState<number | null>(task.diaperType ?? task.idCaca ?? null); // 0=normal, 1=soft, 2=liquid
   const [selectedDate, setSelectedDate] = useState(task.date ? new Date(task.date) : new Date());
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
-  // Support both new diaperType and legacy idCaca for backward compatibility
-  const [selectedItem, setSelectedItem] = useState(task.diaperType ?? task.idCaca ?? 0);
 
   const [timer1, setTimer1] = useState(task.boobLeft || 0);
   const [timer2, setTimer2] = useState(task.boobRight || 0);
@@ -166,9 +165,9 @@ const UpdateTask = ({ route, navigation }) => {
               id: selectedImage,
               date: time,
               label: label || 0,
-              idCaca: label,
+              idCaca: diaperType ?? 0, // Keep for backward compatibility
               // Only include diaperType and diaperContent for diaper tasks (id === 1)
-              ...(selectedImage === 1 && { diaperType: parseInt(String(label)) || 0 }),
+              ...(selectedImage === 1 && diaperType !== null && { diaperType }),
               ...(selectedImage === 1 && diaperContent !== null && { diaperContent }),
               boobLeft: breastfeedingMode === 'manual' ? manualMinutesLeft * 60 : timer1,
               boobRight: breastfeedingMode === 'manual' ? manualMinutesRight * 60 : timer2,
@@ -362,22 +361,7 @@ const UpdateTask = ({ route, navigation }) => {
           />
         );
       } else if (id == 1) {
-        return (
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}> 
-            {imagesDiapers.map((image, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => {
-                  setSelectedItem(index);
-                  setLabel('' + image.id);
-                }}
-                style={[selectedItem == image.id ? styles.imageSelected : styles.imageNonSelected]}
-              >
-                <Text>{image.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        );
+        return null; // Diaper type selector moved to inline section below
   
       } else if (id == 2) {
         return (
@@ -695,6 +679,59 @@ const UpdateTask = ({ route, navigation }) => {
                     diaperContent === 2 && styles.milkTypeTextSelected
                   ]}>
                     💧💩 {t('diapers.both')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Diaper Type (consistency) */}
+          {selectedImage === 1 && (
+            <View style={{ paddingTop: 20 }}>
+              <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                {t('diapers.type')}
+              </Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 5 }}>
+                <TouchableOpacity
+                  onPress={() => setDiaperType(diaperType === 0 ? null : 0)}
+                  style={[
+                    styles.milkTypeButton,
+                    diaperType === 0 && styles.milkTypeButtonSelected
+                  ]}
+                >
+                  <Text style={[
+                    styles.milkTypeText,
+                    diaperType === 0 && styles.milkTypeTextSelected
+                  ]}>
+                    {t('diapers.dur')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setDiaperType(diaperType === 1 ? null : 1)}
+                  style={[
+                    styles.milkTypeButton,
+                    diaperType === 1 && styles.milkTypeButtonSelected
+                  ]}
+                >
+                  <Text style={[
+                    styles.milkTypeText,
+                    diaperType === 1 && styles.milkTypeTextSelected
+                  ]}>
+                    {t('diapers.mou')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setDiaperType(diaperType === 2 ? null : 2)}
+                  style={[
+                    styles.milkTypeButton,
+                    diaperType === 2 && styles.milkTypeButtonSelected
+                  ]}
+                >
+                  <Text style={[
+                    styles.milkTypeText,
+                    diaperType === 2 && styles.milkTypeTextSelected
+                  ]}>
+                    {t('diapers.liquide')}
                   </Text>
                 </TouchableOpacity>
               </View>

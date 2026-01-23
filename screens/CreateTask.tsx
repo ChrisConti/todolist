@@ -41,8 +41,8 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const [note, setNote] = useState('');
   const [milkType, setMilkType] = useState<string | null>(null);
   const [diaperContent, setDiaperContent] = useState<number | null>(null); // 0=pee, 1=poop, 2=both
+  const [diaperType, setDiaperType] = useState<number | null>(null); // 0=normal, 1=soft, 2=liquid
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedItem, setSelectedItem] = useState(0);
   const uniqueId = uuid.v4();
   const [timer1, setTimer1] = useState(0);
   const [timer2, setTimer2] = useState(0);
@@ -200,9 +200,9 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         labelTask: returnLabel(selectedImage),
         date: time,
         label: label ? label : 0,
-        idCaca: label,
+        idCaca: diaperType ?? 0, // Keep for backward compatibility
         // Only include diaperType and diaperContent for diaper tasks (id === 1)
-        ...(selectedImage === 1 && { diaperType: parseInt(label) || 0 }),
+        ...(selectedImage === 1 && diaperType !== null && { diaperType }),
         ...(selectedImage === 1 && diaperContent !== null && { diaperContent }),
         boobLeft: breastfeedingMode === 'manual' ? manualMinutesLeft * 60 : timer1,
         boobRight: breastfeedingMode === 'manual' ? manualMinutesRight * 60 : timer2,
@@ -286,22 +286,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         />
       );
     } else if (id == 1) {
-      return (
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}> 
-          {imagesDiapers.map((image, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => {
-                setSelectedItem(index);
-                setLabel('' + image.id);
-              }}
-              style={[selectedItem == image.id ? styles.imageSelected : styles.imageNonSelected]}
-            >
-              <Text>{image.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      );
+      return null; // Diaper type selector moved to inline section below
 
     } else if (id == 2) {
       return (
@@ -565,8 +550,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                   onPress={() => {
                     Keyboard.dismiss();
                     setSelectedImage(image.id);
-                    image.id == 1 ? setLabel(imagesDiapers[0].id.toString()) : setLabel('');
-                    setSelectedItem(0);
+                    setLabel('');
                   }}
                   style={[selectedImage == image.id ? styles.imageSelected : styles.imageNonSelected]}
                 >
@@ -705,6 +689,59 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                         diaperContent === 2 && styles.milkTypeTextSelected
                       ]}>
                         💧💩 {t('diapers.both')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+              {/* Diaper Type (consistency) */}
+              {selectedImage === 1 && (
+                <View style={{ paddingTop: 20 }}>
+                  <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                    {t('diapers.type')}
+                  </Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 5 }}>
+                    <TouchableOpacity
+                      onPress={() => setDiaperType(diaperType === 0 ? null : 0)}
+                      style={[
+                        styles.milkTypeButton,
+                        diaperType === 0 && styles.milkTypeButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.milkTypeText,
+                        diaperType === 0 && styles.milkTypeTextSelected
+                      ]}>
+                        {t('diapers.dur')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setDiaperType(diaperType === 1 ? null : 1)}
+                      style={[
+                        styles.milkTypeButton,
+                        diaperType === 1 && styles.milkTypeButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.milkTypeText,
+                        diaperType === 1 && styles.milkTypeTextSelected
+                      ]}>
+                        {t('diapers.mou')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setDiaperType(diaperType === 2 ? null : 2)}
+                      style={[
+                        styles.milkTypeButton,
+                        diaperType === 2 && styles.milkTypeButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.milkTypeText,
+                        diaperType === 2 && styles.milkTypeTextSelected
+                      ]}>
+                        {t('diapers.liquide')}
                       </Text>
                     </TouchableOpacity>
                   </View>
