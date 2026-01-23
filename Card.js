@@ -144,13 +144,19 @@ const Card = ({ task, navigation, editable }) => {
       }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
         {handleImageType()}
-        <View style={{ flexDirection: "column", marginLeft: 8 }}>
-          {task.comment && task.comment.trim() !== '' && (
-            <Ionicons name="chatbubble-ellipses" size={20} color="#F6F0EB" />
-          )}
-          {getDiaperContentIcon() && (
-            <Text style={{ fontSize: 20 }}>{getDiaperContentIcon()}</Text>
-          )}
+        <View style={{ flexDirection: "column", marginLeft: 8, justifyContent: "flex-start" }}>
+          {/* Line 1: Comment icon or empty space */}
+          <View style={{ height: 20, marginBottom: 2 }}>
+            {task.comment && task.comment.trim() !== '' && (
+              <Ionicons name="chatbubble-ellipses" size={20} color="#F6F0EB" />
+            )}
+          </View>
+          {/* Line 2: Content icon or empty space */}
+          <View style={{ height: 20 }}>
+            {getDiaperContentIcon() && (
+              <Text style={{ fontSize: 20, lineHeight: 20 }}>{getDiaperContentIcon()}</Text>
+            )}
+          </View>
         </View>
       </View>
       <View style={{ flexDirection: 'row' }}>
