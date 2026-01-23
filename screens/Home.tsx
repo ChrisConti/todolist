@@ -7,8 +7,6 @@ import { useTranslation } from 'react-i18next';
 import Card from "../Card.js";
 import Stork from '../assets/parachute2.svg';
 import SleepingBaby from '../assets/sleepingBaby.svg';
-import Settings from '../assets/settings.svg';
-import Graph from '../assets/graph.svg';
 import analytics from '../services/analytics';
 
 // Force Metro rebuild - fix ReviewModal bug
@@ -37,9 +35,6 @@ const BabyList = ({ navigation }) => {
 
     // Set up a new listener for baby data
     snapshotListener.current = fetchBabyData();
-
-    // Set navigation options
-    updateNavigationOptions();
 
     return () => {
       if (snapshotListener.current) snapshotListener.current(); // Cleanup listener
@@ -108,25 +103,7 @@ const BabyList = ({ navigation }) => {
     }
   };
 
-  const updateNavigationOptions = () => {
-    navigation.setOptions({
-      headerTitle: () => (
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={[styles.headerButton, { left: 15 }]}>
-            <Settings width={22} height={22} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{babyName || t('title.following')}</Text>
-          {babyExist && (
-            <TouchableOpacity onPress={() => navigation.navigate('ManageBaby', { tasks })} style={[styles.headerButton, { right: 15 }]}>
-              <Graph width={22} height={22} />
-            </TouchableOpacity>
-          )}
-        </View>
-      ),
-      headerLeft: () => null,
-      headerRight: () => null,
-    });
-  };
+
 
   const groupTasksByDay = (tasks) => {
     const daysOfWeek = [t('days.sunday'), t('days.monday'), t('days.tuesday'), t('days.wednesday'), t('days.thursday'), t('days.friday'), t('days.saturday')];
@@ -164,15 +141,7 @@ const BabyList = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={[styles.headerButton, { left: 15 }]}>
-          <Settings width={22} height={22} />
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>{babyName || t('title.following')}</Text>
-        {babyExist && (
-          <TouchableOpacity onPress={() => navigation.navigate('ManageBaby', { tasks })} style={[styles.headerButton, { right: 15 }]}>
-            <Graph width={22} height={22} />
-          </TouchableOpacity>
-        )}
       </View>
 
       {loading ? (
@@ -182,10 +151,19 @@ const BabyList = ({ navigation }) => {
       ) : !babyExist ? (
         <EmptyState
           icon={<Stork height={180} width={180} />}
-          message={t('noBabyFound')}
           actions={[
-            { label: t('title.addBaby'), onPress: () => navigation.navigate('Baby') },
-            { label: t('settings.joinBaby'), onPress: () => navigation.navigate('JoinBaby') },
+            { label: t('title.addBaby'), onPress: () => {
+              const parentNav = navigation.getParent();
+              if (parentNav) {
+                parentNav.navigate('Baby');
+              }
+            }, primary: true },
+            { label: t('settings.joinBaby'), onPress: () => {
+              const parentNav = navigation.getParent();
+              if (parentNav) {
+                parentNav.navigate('JoinBaby');
+              }
+            }, primary: false },
           ]}
         />
       ) : tasks.length === 0 ? (
@@ -221,13 +199,20 @@ const BabyList = ({ navigation }) => {
 };
 
 const EmptyState = ({ icon, message, actions }) => (
-  <View style={{ alignSelf: 'center', paddingTop: 25 }}>
+  <View style={{ alignSelf: 'center', paddingTop: 50 }}>
     <View style={{ alignItems: 'center' }}>{icon}</View>
-    <View style={{ height: 20 }} />
+    {message && <Text style={styles.emptyStateText}>{message}</Text>}
+    {!message && <View style={{ height: 30 }} />}
     {actions.map((action, index) => (
       <TouchableOpacity key={index} onPress={action.onPress}>
-        <View style={styles.button}>
-          <Text style={styles.buttonText}>{action.label}</Text>
+        <View style={[
+          styles.button,
+          action.primary === false && styles.secondaryButton
+        ]}>
+          <Text style={[
+            styles.buttonText,
+            action.primary === false && styles.secondaryButtonText
+          ]}>{action.label}</Text>
         </View>
       </TouchableOpacity>
     ))}
@@ -237,20 +222,12 @@ const EmptyState = ({ icon, message, actions }) => (
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F6F0EB' },
   header: { 
-    flexDirection: 'row', 
     justifyContent: 'center', 
     alignItems: 'center', 
-    paddingVertical: 10, 
+    paddingVertical: 15, 
     paddingHorizontal: 15, 
     backgroundColor: '#C75B4A', 
-    paddingTop: 45,
-    position: 'relative',
-  },
-  headerButton: {
-    padding: 5,
-    position: 'absolute',
-    top: 45,
-    zIndex: 1,
+    paddingTop: 50,
   },
   headerTitle: { 
     fontSize: 22, 
@@ -258,15 +235,28 @@ const styles = StyleSheet.create({
     color: '#F6F0EB', 
     fontFamily: 'Pacifico',
     textAlign: 'center',
-    flex: 1,
   },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FDF1E7' },
   sectionHeader: { color: '#7A8889', fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginBottom: 5, marginTop: 3 },
   footer: { position: 'absolute', bottom: 40, right: 30 },
   floatingButton: { backgroundColor: '#C75B4A', width: 70, height: 70, borderRadius: 50, alignItems: 'center', justifyContent: 'center' },
   floatingButtonText: { color: '#F6F0EB', fontWeight: 'bold', fontSize: 35 },
-  button: { backgroundColor: '#C75B4A', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 20, alignItems: 'center', marginBottom: 20, width: 300 },
+  button: { backgroundColor: '#C75B4A', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 30, alignItems: 'center', marginBottom: 15, width: 250 },
   buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#C75B4A',
+  },
+  secondaryButtonText: {
+    color: '#C75B4A',
+  },
+  emptyStateText: {
+    fontSize: 18,
+    color: '#7A8889',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
 });
 
 export default BabyList;

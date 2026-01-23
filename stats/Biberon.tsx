@@ -1,99 +1,61 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import moment from 'moment';
-import { AuthentificationUserContext } from '../Context/AuthentificationContext';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import Card from '../Card';
 import { useTranslation } from 'react-i18next';
+import { useBiberonStats } from '../hooks/useTaskStatistics';
+import { Task } from '../types/stats';
 
-const Biberon = ({ navigation, tasks }) => {
+interface BiberonProps {
+  navigation: any;
+  tasks: Task[];
+}
+
+const Biberon: React.FC<BiberonProps> = ({ navigation, tasks }) => {
   const { t } = useTranslation();
-  const { babyID } = useContext(AuthentificationUserContext);
-  const [todaySum, setTodaySum] = useState(0);
-  const [yesterdaySum, setYesterdaySum] = useState(0);
-  const [lastSevenDaysSum, setLastSevenDaysSum] = useState(0);
-  const [lastTask, setLastTask] = useState(null);
-  const [data, setData] = useState({
-    labels: [],
-    datasets: [{ data: [] }],
-  });
+  const { dailyStats, chartData, lastTask, isLoading, error } = useBiberonStats(tasks);
 
-  useEffect(() => {
-    processTasks();
-  }, [tasks]);
-
-  const processTasks = () => {
-    let todaySum = 0;
-    let yesterdaySum = 0;
-    let lastSevenDaysSum = 0;
-    let mostRecentTask = null;
-    let lastSevenDaysData = Array(7).fill(0);
-    let labels = [];
-
-    for (let i = 0; i < 7; i++) {
-      labels.push(moment().subtract(i, 'days').format('YYYY-MM-DD'));
-    }
-
-    tasks.forEach((task) => {
-      const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
-
-      if (taskDate.isSame(moment(), 'day')) {
-        todaySum += parseFloat(task.label);
-      }
-      if (taskDate.isSame(moment().subtract(1, 'day'), 'day')) {
-        yesterdaySum += parseFloat(task.label);
-      }
-      if (taskDate.isAfter(moment().subtract(7, 'days'))) {
-        lastSevenDaysSum += parseFloat(task.label);
-      }
-
-      for (let i = 0; i < 7; i++) {
-        if (taskDate.isSame(moment().subtract(i, 'days'), 'day')) {
-          lastSevenDaysData[i] += parseFloat(task.label);
-        }
-      }
-
-      if (!mostRecentTask || taskDate.isAfter(moment(mostRecentTask.date, 'YYYY-MM-DD HH:mm:ss'))) {
-        mostRecentTask = task;
-      }
-    });
-
-    setTodaySum(todaySum);
-    setYesterdaySum(yesterdaySum);
-    setLastSevenDaysSum(lastSevenDaysSum);
-    setLastTask(mostRecentTask);
-    setData({
-      labels: labels.map(label => moment(label).format('DD')),
-      datasets: [{ data: lastSevenDaysData }],
-    });
-  };
-
-  const renderBar = (value, maxValue, color, isMax) => {
-    const barWidth = (value / maxValue) * 200; // Adjust the width scale as needed
+  const renderBar = (value: number, maxValue: number, color: string, isMax: boolean) => {
+    const barWidth = (value / maxValue) * 200;
     return (
       <View style={[styles.barContainer]}>
         <View style={[styles.bar, { width: barWidth, backgroundColor: color, opacity: isMax ? 1 : 0.5 }]}>
           <Text style={styles.barText}>{value ? value : ''}</Text>
         </View>
-        {value ? 
-        <View style={[styles.arrow, { opacity: isMax ? 1 : 0.5 }]} />
-        : ''}
+        {value ? <View style={[styles.arrow, { opacity: isMax ? 1 : 0.5 }]} /> : null}
       </View>
     );
   };
 
   const renderChart = () => {
-    const maxValue = Math.max(...data.datasets[0].data);
+    const dataValues = chartData.datasets[0].data as number[];
+    const maxValue = Math.max(...dataValues);
     return (
       <View style={styles.chartContainer}>
-        {data.labels.map((label, index) => (
+        {chartData.labels.map((label, index) => (
           <View key={index} style={styles.chartRow}>
             <Text style={styles.chartLabel}>{label}</Text>
-            {renderBar(data.datasets[0].data[index], maxValue, '#34777B', data.datasets[0].data[index] === maxValue)}
+            {renderBar(dataValues[index], maxValue, '#34777B', dataValues[index] === maxValue)}
           </View>
         ))}
       </View>
     );
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text>{t('common.loading')}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -101,7 +63,7 @@ const Biberon = ({ navigation, tasks }) => {
         <View>
           <View style={{ marginBottom: 20 }}>
             <Text style={styles.titleParameter}>{t('biberon.lastTask')}</Text>
-            <Card key={lastTask.id} task={lastTask} navigation={navigation} editable={false} /> 
+            <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} /> 
           </View>
           <View style={{ marginBottom: 20 }}>
             <Text style={styles.titleParameter}>{t('biberon.someFigures')}</Text>
@@ -112,9 +74,9 @@ const Biberon = ({ navigation, tasks }) => {
                 <Text>{t('biberon.last7Days')}</Text>
               </View>
               <View>
-                <Text>{todaySum} ml</Text>
-                <Text>{yesterdaySum} ml</Text>
-                <Text>{lastSevenDaysSum} ml</Text>
+                <Text>{dailyStats.today} ml</Text>
+                <Text>{dailyStats.yesterday} ml</Text>
+                <Text>{dailyStats.lastPeriod} ml</Text>
               </View>
             </View>
           </View>
@@ -140,6 +102,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 5,
     marginTop: 3,
+  },
+  errorText: {
+    color: '#C75B4A',
+    fontSize: 14,
+    textAlign: 'center',
   },
   chartContainer: {
     flexDirection: 'column',

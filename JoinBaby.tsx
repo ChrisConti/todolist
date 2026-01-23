@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, TouchableWithoutFeedback, Keyboard, Alert } from 'react-native';
-import React, { useContext, useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { doc, getDocs, query, updateDoc, where, arrayUnion } from 'firebase/firestore';
 import { babiesRef, db } from './config';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
@@ -13,10 +13,18 @@ const JoinBaby = ({ navigation }) => {
   const { user, setBabyID } = useContext(AuthentificationUserContext);
   const [babyIDPaste, setbabyIDPaste] = useState('');
   const [userError, setError] = useState('');
+  const inputRef = useRef(null);
 
   // Log screen view when the component is mounted
   useEffect(() => {
     analytics.logScreenView('JoinBaby');
+    
+    // Auto-focus on the input field
+    const timer = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const onHandleModification = async () => {
@@ -77,7 +85,7 @@ const JoinBaby = ({ navigation }) => {
       });
 
       Alert.alert(t('congratsjoinbaby'));
-      navigation.navigate('BabyList');
+      navigation.navigate('MainTabs');
     } catch (error) {
       console.error('Error updating document:', error);
       setError(t('error.updateFailed'));
@@ -91,9 +99,14 @@ const JoinBaby = ({ navigation }) => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <View style={{ flex: 1, padding: 10 }}>
         <TextInput
+          ref={inputRef}
           style={styles.input}
           placeholder={t('placeholder.code')}
           keyboardType="email-address"
@@ -103,6 +116,8 @@ const JoinBaby = ({ navigation }) => {
           onChangeText={(text) => setbabyIDPaste(text)}
           accessibilityLabel={t('accessibility.enterCode')}
           accessibilityHint={t('accessibility.enterCodeHint')}
+          returnKeyType="done"
+          onSubmitEditing={onHandleModification}
         />
         {userError ? <Text style={styles.errorText}>{userError}</Text> : null}
 
@@ -112,7 +127,7 @@ const JoinBaby = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </View>
-    </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 

@@ -13,38 +13,46 @@ import Dodo from '../assets/dodo-color.svg';
 import Couche from '../assets/couche-color.svg';
 import Sante from '../assets/sante-color.svg';
 import Biberon from '../assets/biberon-color.svg';
-import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
-import { db } from '../config';
+import { onSnapshot, query, where } from 'firebase/firestore';
+import { babiesRef } from '../config';
 
 export default function Statistics({ navigation }: any) {
   const { t } = useTranslation();
-  const { babyID, setBabyID, userInfo }: any = useContext(AuthentificationUserContext);
+  const { user, babyID, setBabyID, userInfo }: any = useContext(AuthentificationUserContext);
   const [selectedImage, setSelectedImage] = useState(0);
   const [tasks, setTasks] = useState<any[]>([]);
 
   // Fetch tasks from Firebase
   useEffect(() => {
-    if (!babyID) {
+    if (!user || !babyID) {
       setTasks([]);
       return;
     }
 
-    const q = query(
-      collection(db, 'tasks'),
-      where('babyID', '==', babyID),
-      orderBy('createdAt', 'desc')
+    const babyQuery = query(babiesRef, where('user', 'array-contains', user.uid));
+
+    const unsubscribe = onSnapshot(
+      babyQuery,
+      (querySnapshot) => {
+        if (!querySnapshot.empty) {
+          const babyData = querySnapshot.docs[0]?.data();
+          if (babyData && babyData.id === babyID) {
+            setTasks(babyData.tasks || []);
+          } else {
+            setTasks([]);
+          }
+        } else {
+          setTasks([]);
+        }
+      },
+      (error) => {
+        console.error('Error fetching baby data:', error);
+        setTasks([]);
+      }
     );
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const tasksData: any[] = [];
-      querySnapshot.forEach((doc) => {
-        tasksData.push({ ...doc.data(), docId: doc.id });
-      });
-      setTasks(tasksData);
-    });
-
     return () => unsubscribe();
-  }, [babyID]);
+  }, [babyID, user]);
 
   const images = [
     { id: 0, rq: require('../assets/biberon.png') },
@@ -84,32 +92,53 @@ export default function Statistics({ navigation }: any) {
   }
 
   return (
-    <ScrollView style={{ padding: 10, backgroundColor: '#FDF1E7' }}>
-      <View style={{ backgroundColor: '#FDF1E7' }}>
-        
-        {/* Image picker */}
-        <View style={{ flexDirection: 'row', alignSelf: 'center', marginBottom: 20 }}>
-          {images.map((image, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => {
-                setSelectedImage(image.id);
-              }}
-              style={[selectedImage == image.id ? styles.imageSelected : styles.imageNonSelected]}
-            >
-              {handleImageType(image.id)}
-            </TouchableOpacity>
-          ))}
-        </View>
-        <View>
-          {handleStatsCategory(selectedImage)}
-        </View>
+    <View style={{ flex: 1, backgroundColor: '#FDF1E7' }}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>{t('title.stats') || 'Statistiques'}</Text>
       </View>
-    </ScrollView>
+      
+      <ScrollView style={{ padding: 10, backgroundColor: '#FDF1E7' }}>
+        <View style={{ backgroundColor: '#FDF1E7' }}>
+          
+          {/* Image picker */}
+          <View style={{ flexDirection: 'row', alignSelf: 'center', marginBottom: 20 }}>
+            {images.map((image, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => {
+                  setSelectedImage(image.id);
+                }}
+                style={[selectedImage == image.id ? styles.imageSelected : styles.imageNonSelected]}
+              >
+                {handleImageType(image.id)}
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View>
+            {handleStatsCategory(selectedImage)}
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  header: { 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    paddingVertical: 15, 
+    paddingHorizontal: 15, 
+    backgroundColor: '#C75B4A', 
+    paddingTop: 50,
+  },
+  headerTitle: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    color: '#F6F0EB', 
+    fontFamily: 'Pacifico',
+    textAlign: 'center',
+  },
   image: {
     width: 30,
     height: 30,

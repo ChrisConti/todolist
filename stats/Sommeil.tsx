@@ -1,78 +1,20 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import moment from 'moment';
-import { AuthentificationUserContext } from '../Context/AuthentificationContext';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import Card from '../Card';
 import { useTranslation } from 'react-i18next';
+import { useSommeilStats } from '../hooks/useTaskStatistics';
+import { Task } from '../types/stats';
 
-const Sommeil = ({ navigation, tasks }) => {
+interface SommeilProps {
+  navigation: any;
+  tasks: Task[];
+}
+
+const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
   const { t } = useTranslation();
-  const { babyID } = useContext(AuthentificationUserContext);
-  const [todaySum, setTodaySum] = useState(0);
-  const [yesterdaySum, setYesterdaySum] = useState(0);
-  const [lastSevenDaysSum, setLastSevenDaysSum] = useState(0);
-  const [lastTask, setLastTask] = useState(null);
-  const [data, setData] = useState({
-    labels: [],
-    datasets: [{ data: [] }],
-  });
+  const { dailyStats, chartData, lastTask, isLoading, error } = useSommeilStats(tasks);
 
-  useEffect(() => {
-    if (tasks && tasks.length > 0) {
-      processTasks();
-    }
-  }, [tasks]);
-
-  const processTasks = () => {
-    let todaySum = 0;
-    let yesterdaySum = 0;
-    let lastSevenDaysSum = 0;
-    let mostRecentTask = null;
-    let lastSevenDaysData = Array(7).fill(0);
-    let labels = [];
-
-    for (let i = 0; i < 7; i++) {
-      labels.push(moment().subtract(i, 'days').format('YYYY-MM-DD'));
-    }
-
-    tasks.forEach((task) => {
-      const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
-      const duration = parseInt(task.label, 10); // Assuming duration is in minutes
-
-      if (!isNaN(duration)) {
-        if (taskDate.isSame(moment(), 'day')) {
-          todaySum += duration;
-        }
-        if (taskDate.isSame(moment().subtract(1, 'day'), 'day')) {
-          yesterdaySum += duration;
-        }
-        if (taskDate.isAfter(moment().subtract(7, 'days'))) {
-          lastSevenDaysSum += duration;
-        }
-
-        for (let i = 0; i < 7; i++) {
-          if (taskDate.isSame(moment().subtract(i, 'days'), 'day')) {
-            lastSevenDaysData[i] += duration;
-          }
-        }
-
-        if (!mostRecentTask || taskDate.isAfter(moment(mostRecentTask.date, 'YYYY-MM-DD HH:mm:ss'))) {
-          mostRecentTask = task;
-        }
-      }
-    });
-
-    setTodaySum(todaySum);
-    setYesterdaySum(yesterdaySum);
-    setLastSevenDaysSum(lastSevenDaysSum);
-    setLastTask(mostRecentTask);
-    setData({
-      labels: labels.map(label => moment(label).format('DD')).reverse(),
-      datasets: [{ data: lastSevenDaysData.reverse() }],
-    });
-  };
-
-  const formatDuration = (minutes) => {
+  const formatDuration = (minutes: number) => {
     if (minutes < 60) {
       return `${minutes} min`;
     }
@@ -81,16 +23,17 @@ const Sommeil = ({ navigation, tasks }) => {
     return `${hours}h ${mins}m`;
   };
 
-  const renderBar = (value, maxValue, color, isMax) => {
+  const renderBar = (value: number, maxValue: number, color: string, isMax: boolean) => {
     if (value === 0) return null;
-    const barHeight = (value / maxValue) * 200; // Adjust the height scale as needed
+    const barHeight = (value / maxValue) * 200;
     return (
       <View style={[styles.bar, { height: barHeight, backgroundColor: color, opacity: isMax ? 1 : 0.5 }]} />
     );
   };
 
   const renderChart = () => {
-    const maxValue = Math.max(...data.datasets[0].data);
+    const dataValues = chartData.datasets[0].data as number[];
+    const maxValue = Math.max(...dataValues);
     const yAxisLabels = [maxValue, maxValue / 2, 0].map(formatDuration);
     return (
       <View style={styles.chartContainer}>
@@ -100,9 +43,9 @@ const Sommeil = ({ navigation, tasks }) => {
           ))}
         </View>
         <View style={styles.chartContent}>
-          {data.labels.map((label, index) => (
+          {chartData.labels.map((label, index) => (
             <View key={index} style={styles.chartColumn}>
-              {renderBar(data.datasets[0].data[index], maxValue, '#E29656', data.datasets[0].data[index] === maxValue)}
+              {renderBar(dataValues[index], maxValue, '#E29656', dataValues[index] === maxValue)}
               <Text style={styles.chartLabel}>{label}</Text>
             </View>
           ))}
@@ -111,13 +54,29 @@ const Sommeil = ({ navigation, tasks }) => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text>{t('common.loading')}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {lastTask ? 
         <View>
           <View style={{ marginBottom: 20 }}>
             <Text style={styles.titleParameter}>{t('sommeil.lastTask')}</Text>
-            <Card key={lastTask.id} task={lastTask} navigation={navigation} editable={false} /> 
+            <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} /> 
           </View>
           <View style={{ marginBottom: 20 }}>
             <Text style={styles.titleParameter}>{t('sommeil.someFigures')}</Text>
@@ -128,9 +87,9 @@ const Sommeil = ({ navigation, tasks }) => {
                 <Text>{t('sommeil.last7Days')}</Text>
               </View>
               <View>
-                <Text>{formatDuration(todaySum)}</Text>
-                <Text>{formatDuration(yesterdaySum)}</Text>
-                <Text>{formatDuration(lastSevenDaysSum)}</Text>
+                <Text>{formatDuration(dailyStats.today as number)}</Text>
+                <Text>{formatDuration(dailyStats.yesterday as number)}</Text>
+                <Text>{formatDuration(dailyStats.lastPeriod as number)}</Text>
               </View>
             </View>
           </View>
@@ -156,6 +115,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 5,
     marginTop: 3,
+  },
+  errorText: {
+    color: '#C75B4A',
+    fontSize: 14,
+    textAlign: 'center',
   },
   chartContainer: {
     flexDirection: 'row',

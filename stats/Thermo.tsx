@@ -1,119 +1,82 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import moment from 'moment';
-import 'moment/locale/en-gb'; // Ensure moment uses English locale
-import 'moment/locale/fr'; // Ensure moment uses French locale
-import { AuthentificationUserContext } from '../Context/AuthentificationContext';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import Card from '../Card';
 import { useTranslation } from 'react-i18next';
+import { useThermoStats } from '../hooks/useTaskStatistics';
+import { Task } from '../types/stats';
 
-const Thermo = ({ navigation, tasks }) => {
+interface ThermoProps {
+  navigation: any;
+  tasks: Task[];
+}
+
+const Thermo: React.FC<ThermoProps> = ({ navigation, tasks }) => {
   const { t, i18n } = useTranslation();
-  const { babyID } = useContext(AuthentificationUserContext);
-  const [todaySum, setTodaySum] = useState(0);
-  const [yesterdaySum, setYesterdaySum] = useState(0);
-  const [last24HoursSum, setLast24HoursSum] = useState(0);
-  const [lastTask, setLastTask] = useState(null);
-  const [data, setData] = useState({
-    labels: [],
-    datasets: [{ data: [] }],
-  });
-
-  useEffect(() => {
-    processTasks();
-  }, [tasks]);
-
-  const processTasks = () => {
-    let todaySum = 0;
-    let yesterdaySum = 0;
-    let last24HoursSum = 0;
-    let mostRecentTask = null;
-    let last24HoursData = Array(12).fill(null); // 12 slots for 24 hours with 2-hour intervals
-    let labels = [];
-
-    const isFrench = i18n.language === 'fr';
-
-    for (let i = 0; i < 24; i += 2) {
-      labels.push(moment().subtract(i, 'hours').locale(isFrench ? 'fr' : 'en-gb').format(isFrench ? 'HH' : 'h ')); // Format to display hours in 24-hour format for French and 12-hour format with AM/PM for English
-    }
-    labels.reverse();
-
-    tasks.forEach((task) => {
-      const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
-      const taskTemperature = parseFloat(task.label);
-
-      if (isNaN(taskTemperature)) {
-        console.warn(`Invalid task temperature for task ID ${task.id}: ${task.label}`);
-        return;
-      }
-
-      if (taskDate.isSame(moment(), 'day')) {
-        todaySum += taskTemperature;
-      }
-      if (taskDate.isSame(moment().subtract(1, 'day'), 'day')) {
-        yesterdaySum += taskTemperature;
-      }
-      if (taskDate.isAfter(moment().subtract(24, 'hours'))) {
-        last24HoursSum += taskTemperature;
-      }
-
-      for (let i = 0; i < 24; i += 2) {
-        if (taskDate.isBetween(moment().subtract(i + 2, 'hours'), moment().subtract(i, 'hours'))) {
-          last24HoursData[11 - i / 2] = taskTemperature;
-        }
-      }
-
-      if (!mostRecentTask || taskDate.isAfter(moment(mostRecentTask.date, 'YYYY-MM-DD HH:mm:ss'))) {
-        mostRecentTask = task;
-      }
-    });
-
-    setTodaySum(todaySum);
-    setYesterdaySum(yesterdaySum);
-    setLast24HoursSum(last24HoursSum);
-    setLastTask(mostRecentTask);
-    setData({
-      labels: labels,
-      datasets: [{ data: last24HoursData }],
-    });
-  };
-
-  const renderCircle = (value, maxValue, color, isMax) => {
-    if (value === null) return null;
-    const circleSize = 40; // Adjust the size of the circle as needed
-    const circlePosition = (value / maxValue) * 200; // Adjust the position scale as needed
-    return (
-      <View style={[styles.circleContainer, { bottom: circlePosition }]}>
-        <View style={[styles.circle, { backgroundColor: color, opacity: isMax ? 1 : 0.5 }]}>
-          <Text style={styles.circleText}>{value.toFixed(1)}°</Text>
-        </View>
-      </View>
-    );
-  };
+  const { dailyStats, chartData, lastTask, isLoading, error } = useThermoStats(tasks, i18n.language);
 
   const renderChart = () => {
-    const maxValue = Math.max(...data.datasets[0].data.filter(value => value !== null));
-    const yAxisLabels = [maxValue, maxValue / 2, 0].map(value => `${value.toFixed(1)}°`);
+    const temperatureData = (chartData as any).temperatureData || [];
+    
+    if (temperatureData.length === 0) {
+      return <Text style={styles.noDataText}>{t('thermo.noData')}</Text>;
+    }
+    
     return (
-      <View style={styles.chartContainer}>
-        <View style={styles.yAxis}>
-          {yAxisLabels.reverse().map((label, index) => (
-            <View key={index} style={[styles.yAxisLabelContainer, { bottom: (index / (yAxisLabels.length - 1)) * 200 }]}>
-              <Text style={styles.yAxisLabel}>{label}</Text>
-            </View>
-          ))}
+      <View style={styles.tableContainer}>
+        {/* Header */}
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableHeaderText, { flex: 1 }]}>Heure</Text>
+          <Text style={[styles.tableHeaderText, { flex: 1 }]}>Température</Text>
         </View>
-        <View style={styles.chartContent}>
-          {data.labels.map((label, index) => (
-            <View key={index} style={styles.chartColumn}>
-              {renderCircle(data.datasets[0].data[index], maxValue, '#4F469F', data.datasets[0].data[index] === maxValue)}
-              <Text style={styles.chartLabel}>{label}</Text>
+        
+        {/* Rows */}
+        {temperatureData.map((row: any, index: number) => {
+          let backgroundColor = 'transparent';
+          let textColor = '#000';
+          
+          if (row.isMax) {
+            backgroundColor = '#FFE5E5';
+            textColor = '#C75B4A';
+          } else if (row.isMin) {
+            backgroundColor = '#E5F5E5';
+            textColor = '#4CAF50';
+          }
+          
+          return (
+            <View 
+              key={index} 
+              style={[
+                styles.tableRow, 
+                { backgroundColor },
+                index % 2 === 0 && !row.isMax && !row.isMin ? styles.tableRowEven : null
+              ]}
+            >
+              <Text style={[styles.tableCell, { flex: 1, color: textColor }]}>{row.time}</Text>
+              <Text style={[styles.tableCell, { flex: 1, fontWeight: row.isMin || row.isMax ? 'bold' : 'normal', color: textColor }]}>
+                {row.temp.toFixed(1)}°
+              </Text>
             </View>
-          ))}
-        </View>
+          );
+        })}
       </View>
     );
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text>{t('common.loading')}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -121,20 +84,38 @@ const Thermo = ({ navigation, tasks }) => {
         <View>
           <View style={{ marginBottom: 20 }}>
             <Text style={styles.titleParameter}>{t('thermo.lastTask')}</Text>
-            <Card key={lastTask.id} task={lastTask} navigation={navigation} editable={false}/> 
+            <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false}/> 
           </View>
           <View style={{ marginBottom: 20 }}>
             <Text style={styles.titleParameter}>{t('thermo.someFigures')}</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around'  }}>
-              <View style={{  }}>
-                <Text>{t('thermo.today')}</Text>
-                <Text>{t('thermo.yesterday')}</Text>
-                <Text>{t('thermo.last24Hours')}</Text>
+            
+            {/* Aujourd'hui */}
+            <View style={{ marginBottom: 15 }}>
+              <Text style={styles.sectionTitle}>{t('thermo.today')}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+                <View>
+                  <Text style={styles.labelText}>Min:</Text>
+                  <Text style={styles.labelText}>Max:</Text>
+                </View>
+                <View>
+                  <Text style={styles.valueText}>{dailyStats.today.min !== null ? `${dailyStats.today.min.toFixed(1)}°` : 'N/A'}</Text>
+                  <Text style={styles.valueText}>{dailyStats.today.max !== null ? `${dailyStats.today.max.toFixed(1)}°` : 'N/A'}</Text>
+                </View>
               </View>
-              <View style={{  }}>
-                <Text>{todaySum.toFixed(1)} °C</Text>
-                <Text>{yesterdaySum.toFixed(1)} °C</Text>
-                <Text>{last24HoursSum.toFixed(1)} °C </Text>
+            </View>
+
+            {/* Hier */}
+            <View style={{ marginBottom: 15 }}>
+              <Text style={styles.sectionTitle}>{t('thermo.yesterday')}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+                <View>
+                  <Text style={styles.labelText}>Min:</Text>
+                  <Text style={styles.labelText}>Max:</Text>
+                </View>
+                <View>
+                  <Text style={styles.valueText}>{dailyStats.yesterday.min !== null ? `${dailyStats.yesterday.min.toFixed(1)}°` : 'N/A'}</Text>
+                  <Text style={styles.valueText}>{dailyStats.yesterday.max !== null ? `${dailyStats.yesterday.max.toFixed(1)}°` : 'N/A'}</Text>
+                </View>
               </View>
             </View>
           </View>
@@ -161,60 +142,69 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     marginTop: 3,
   },
-  chartContainer: {
-    flexDirection: 'row',
-    height: 220,
-    marginVertical: 28,
-    borderRadius: 16,
-    backgroundColor: '#FDF1E7',
-    alignItems: 'flex-end',
-    position: 'relative',
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#34777B',
+    marginBottom: 8,
   },
-  yAxis: {
-    justifyContent: 'space-between',
-    marginRight: 35,
-    position: 'relative',
-    height: '100%',
-  },
-  yAxisLabelContainer: {
-    position: 'absolute',
-    left: 0,
-  },
-  yAxisLabel: {
-    fontSize: 12,
+  labelText: {
+    fontSize: 14,
     color: '#7A8889',
+    marginBottom: 4,
   },
-  chartContent: {
+  valueText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000',
+    marginBottom: 4,
+  },
+  errorText: {
+    color: '#C75B4A',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  tableContainer: {
+    backgroundColor: '#FDF1E7',
+    borderRadius: 16,
+    padding: 10,
+    marginVertical: 10,
+  },
+  tableHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    flex: 1,
-    position: 'relative',
+    borderBottomWidth: 2,
+    borderBottomColor: '#C75B4A',
+    paddingBottom: 10,
+    marginBottom: 5,
   },
-  chartColumn: {
-    alignItems: 'center',
-    flex: 1,
-    position: 'relative',
-  },
-  chartLabel: {
-    marginTop: 5,
-  },
-  circleContainer: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  circle: {
-    width: 30,
-    height: 30,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  circleText: {
-    color: 'white',
-    fontSize: 10,
+  tableHeaderText: {
+    fontSize: 14,
     fontWeight: 'bold',
+    color: '#7A8889',
+    textAlign: 'center',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 5,
+    borderRadius: 8,
+  },
+  tableRowEven: {
+    backgroundColor: 'transparent',
+  },
+  tableRowOdd: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  tableCell: {
+    fontSize: 13,
+    textAlign: 'center',
+    color: '#000',
+  },
+  noDataText: {
+    textAlign: 'center',
+    color: '#7A8889',
+    fontSize: 14,
+    marginTop: 20,
   },
 });
 

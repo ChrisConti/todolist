@@ -9,7 +9,10 @@ interface Task {
   labelTask?: string;
   date: string;
   label?: string | number;
+  /** @deprecated Use diaperType instead. Kept for backward compatibility. */
   idCaca?: number;
+  /** Type of diaper: 0 = solid, 1 = soft, 2 = liquid */
+  diaperType?: number;
   boobLeft?: number;
   boobRight?: number;
   user?: string;
@@ -93,9 +96,11 @@ export const generateCSV = (options: ExportOptions): string => {
     const type = task.labelTask || getTaskLabel(task.id);
     
     let details = '';
-    if (task.id === 2 && task.idCaca !== undefined) {
+    // Support both new diaperType and legacy idCaca for backward compatibility
+    const diaperType = task.diaperType ?? task.idCaca;
+    if (task.id === 2 && diaperType !== undefined) {
       // Diaper task
-      details = getDiaperLabel(task.idCaca);
+      details = getDiaperLabel(diaperType);
     } else if (task.label) {
       details = String(task.label);
     }

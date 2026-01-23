@@ -7,6 +7,7 @@ import i18n from './i18n';
 import ErrorBoundary from './components/ErrorBoundary';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import BabyList from './screens/Home';
 import Connection from './Connection';
 import SignIn from './SignIn';
@@ -15,6 +16,8 @@ import UpdateTask from './screens/UpdateTask';
 import Settings from './Settings';
 import Baby from './Baby';
 import BabyState from './BabyState';
+import BabyTab from './BabyTab';
+import EditBaby from './EditBaby';
 import ChangeName from './screens/ChangeName';
 import ChangeEmail from './screens/ChangeEmail';
 import DeleteAccount from './screens/DeleteAccount';
@@ -31,11 +34,14 @@ import PrivacyPolicy from './screens/PrivacyPolicy';
 import TermsOfUse from './screens/TermsOfUse';
 import AnalyticsTest from './screens/AnalyticsTest';
 import ExportTasks from './screens/ExportTasks';
+import Statistics from './screens/Statistics';
 import { useTranslation } from 'react-i18next';
 import { log } from './utils/logger';
 import { APP_INIT_TIMEOUT } from './utils/constants';
+import { Ionicons } from '@expo/vector-icons';
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
 SplashScreen.preventAutoHideAsync();
 
@@ -199,18 +205,81 @@ function AuthStack() {
   );
 }
 
+function TabNavigator() {
+  const { t } = useTranslation();
+  
+  return (
+    <Tab.Navigator
+      id={undefined}
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Baby') {
+            iconName = focused ? 'person' : 'person-outline';
+          } else if (route.name === 'Statistics') {
+            iconName = focused ? 'stats-chart' : 'stats-chart-outline';
+          } else if (route.name === 'Settings') {
+            iconName = focused ? 'settings' : 'settings-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#C75B4A',
+        tabBarInactiveTintColor: 'gray',
+        tabBarStyle: {
+          backgroundColor: '#FDF1E7',
+          borderTopColor: '#E8D5C4',
+          height: 80,
+          paddingBottom: 10,
+          paddingTop: 10,
+        },
+        headerShown: false,
+      })}
+    >
+      <Tab.Screen 
+        name="Home" 
+        component={BabyList}
+        options={{
+          tabBarLabel: t('title.activities') || 'Activités',
+        }}
+      />
+      <Tab.Screen 
+        name="Baby" 
+        component={BabyTab}
+        options={{
+          tabBarLabel: t('baby.title') || 'Bébé',
+        }}
+      />
+      <Tab.Screen 
+        name="Statistics" 
+        component={Statistics}
+        options={{
+          tabBarLabel: t('title.stats') || 'Stats',
+        }}
+      />
+      <Tab.Screen 
+        name="Settings" 
+        component={Settings}
+        options={{
+          tabBarLabel: t('title.settings') || 'Réglages',
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
+
 function MainStack() {
   const { t } = useTranslation();
   return (
-    <Stack.Navigator initialRouteName='BabyList' id={undefined}>
+    <Stack.Navigator initialRouteName='MainTabs' id={undefined}>
       <Stack.Screen 
-        name="BabyList"
-        component={BabyList} 
+        name="MainTabs"
+        component={TabNavigator} 
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
           headerShown: false,
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7', paddingLeft: 20, paddingRight: 20 },
         }}
       />
       <Stack.Screen 
@@ -236,17 +305,6 @@ function MainStack() {
         }}
       />
       <Stack.Screen 
-        name="Settings" 
-        component={Settings} 
-        options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
-          headerTitle: t('title.settings'),
-          headerBackTitle: ''
-        }}
-      />
-      <Stack.Screen 
         name="Baby" 
         component={Baby} 
         options={{
@@ -265,6 +323,17 @@ function MainStack() {
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('title.myBaby'),
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen 
+        name="EditBaby" 
+        component={EditBaby} 
+        options={{
+          headerStyle: { backgroundColor: '#C75B4A' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitle: t('baby.editProfile'),
           headerBackTitle: ''
         }}
       />
@@ -342,17 +411,6 @@ function MainStack() {
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('title.joinBaby'),
-          headerBackTitle: ''
-        }}
-      />
-      <Stack.Screen 
-        name="ManageBaby" 
-        component={ManageBaby} 
-        options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
-          headerTitle: t('title.babyStats'),
           headerBackTitle: ''
         }}
       />

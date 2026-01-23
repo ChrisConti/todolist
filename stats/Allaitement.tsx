@@ -1,34 +1,18 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import moment from 'moment';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import Card from '../Card';
 import { useTranslation } from 'react-i18next';
+import { useAllaitementStats } from '../hooks/useTaskStatistics';
+import { Task } from '../types';
 
-const Allaitement = ({ navigation, tasks }) => {
+const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) => {
   const { t } = useTranslation();
   const { babyID } = useContext(AuthentificationUserContext);
-  const [todaySum, setTodaySum] = useState({ boobLeft: 0, boobRight: 0, total: 0 });
-  const [yesterdaySum, setYesterdaySum] = useState({ boobLeft: 0, boobRight: 0, total: 0 });
-  const [lastSevenDaysSum, setLastSevenDaysSum] = useState({ boobLeft: 0, boobRight: 0, total: 0 });
-  const [lastTask, setLastTask] = useState(null);
   const [selectedItem, setSelectedItem] = useState(0);
-  const [data, setData] = useState({
-    labels: [],
-    boobLeft: [],
-    boobRight: [],
-    total: [],
-  });
 
-  useEffect(() => {
-    if (tasks && tasks.length > 0) {
-      console.log('Tasks available:', tasks);
-      processTasks();
-    } else {
-      console.log('No tasks available');
-    }
-    console.log('babyID:', babyID);
-  }, [tasks]);
+  const { dailyStats, chartData, lastTask, isLoading, error } = useAllaitementStats(tasks);
 
   const boobSide = [
     { id: 0, side: t('allaitement.left'), name: t('allaitement.left'), nameTrad: 0 },
@@ -36,92 +20,11 @@ const Allaitement = ({ navigation, tasks }) => {
     { id: 2, side: t('allaitement.both'), name: t('allaitement.both'), nameTrad: 2 },
   ];
 
-  const processTasks = () => {
-    try {
-      console.log("Processing tasks for allaitement");
-
-      let todaySum = { boobLeft: 0, boobRight: 0, total: 0 };
-      let yesterdaySum = { boobLeft: 0, boobRight: 0, total: 0 };
-      let lastSevenDaysSum = { boobLeft: 0, boobRight: 0, total: 0 };
-      let mostRecentTask = null;
-      let lastSevenDaysData = {
-        boobLeft: Array(7).fill(0),
-        boobRight: Array(7).fill(0),
-        total: Array(7).fill(0),
-      };
-      let labels = [];
-
-      for (let i = 0; i < 7; i++) {
-        labels.push(moment().subtract(i, 'days').format('YYYY-MM-DD'));
-      }
-      labels.reverse();
-
-      tasks.forEach((task) => {
-        if (task.id === 5) {
-          const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
-          const boobLeft = (parseFloat(task.boobLeft) || 0) / 60; // Convert seconds to minutes
-          const boobRight = (parseFloat(task.boobRight) || 0) / 60; // Convert seconds to minutes
-          const total = boobLeft + boobRight;
-
-          if (taskDate.isSame(moment(), 'day')) {
-            todaySum.boobLeft += boobLeft;
-            todaySum.boobRight += boobRight;
-            todaySum.total += total;
-          }
-          if (taskDate.isSame(moment().subtract(1, 'day'), 'day')) {
-            yesterdaySum.boobLeft += boobLeft;
-            yesterdaySum.boobRight += boobRight;
-            yesterdaySum.total += total;
-          }
-          if (taskDate.isAfter(moment().subtract(7, 'days'))) {
-            lastSevenDaysSum.boobLeft += boobLeft;
-            lastSevenDaysSum.boobRight += boobRight;
-            lastSevenDaysSum.total += total;
-          }
-
-          for (let i = 0; i < 7; i++) {
-            if (taskDate.isSame(moment().subtract(i, 'days'), 'day')) {
-              lastSevenDaysData.boobLeft[6 - i] += boobLeft;
-              lastSevenDaysData.boobRight[6 - i] += boobRight;
-              lastSevenDaysData.total[6 - i] += total;
-            }
-          }
-
-          if (!mostRecentTask || taskDate.isAfter(moment(mostRecentTask.date, 'YYYY-MM-DD HH:mm:ss'))) {
-            mostRecentTask = task;
-          }
-        }
-      });
-
-      setTodaySum(todaySum);
-      setYesterdaySum(yesterdaySum);
-      setLastSevenDaysSum(lastSevenDaysSum);
-      setLastTask(mostRecentTask);
-      setData({
-        labels: labels.map(label => moment(label).format('DD')),
-        boobLeft: lastSevenDaysData.boobLeft,
-        boobRight: lastSevenDaysData.boobRight,
-        total: lastSevenDaysData.total,
-      });
-
-      console.log('Processed tasks:', {
-        todaySum,
-        yesterdaySum,
-        lastSevenDaysSum,
-        mostRecentTask,
-        lastSevenDaysData,
-        labels,
-      });
-    } catch (error) {
-      console.error('Error processing tasks:', error);
-    }
-  };
-
   const renderBarChart = () => {
-    const maxValue = Math.max(...data.total);
-    const chartHeight = 220;
+    const allaitementChartData = chartData as any;
+    const maxValue = Math.max(...allaitementChartData.total.filter((v: any) => typeof v === 'number'));
+    const chartHeight = 150;
     const barWidth = 20;
-    const barSpacing = 10;
 
     return (
       <View style={styles.chartContainer}>
@@ -133,46 +36,31 @@ const Allaitement = ({ navigation, tasks }) => {
           ))}
         </View>
         <View style={styles.chartContent}>
-          {data.labels.map((label, index) => (
+          {allaitementChartData.labels.map((label: string, index: number) => (
             <View key={index} style={styles.chartColumn}>
-              <Text style={styles.totalText}>
-                {data.total[index] > 60
-                  ? `${(data.total[index] / 60).toFixed(1)} h`
-                  : `${data.total[index].toFixed(0)}`}
-              </Text>
               <View style={styles.barContainer}>
-                
                 <View
                   style={[
                     styles.bar,
                     {
-                      height: (data.boobLeft[index] / maxValue) * chartHeight,
+                      height: (allaitementChartData.boobLeft[index] / maxValue) * chartHeight || 1,
                       backgroundColor: '#1AAAAA',
                       width: barWidth,
                     },
                   ]}
-                >
-                  <Text style={styles.barText}>{data.boobLeft[index].toFixed(0)}</Text>
-                  <Text style={styles.barText}>m</Text>
-                </View>
+                />
                 <View
                   style={[
                     styles.bar,
                     {
-                      height: (data.boobRight[index] / maxValue) * chartHeight,
+                      height: (allaitementChartData.boobRight[index] / maxValue) * chartHeight || 1,
                       backgroundColor: '#E29656',
-                      
                       width: barWidth,
-                      //marginLeft: barSpacing,
                     },
                   ]}
-                >
-                  <Text style={styles.barText}>{data.boobRight[index].toFixed(0)}</Text>
-                  <Text style={styles.barText}>m</Text>
-                </View>
+                />
               </View>
               <Text style={styles.chartLabel}>{label}</Text>
-              
             </View>
           ))}
         </View>
@@ -180,33 +68,99 @@ const Allaitement = ({ navigation, tasks }) => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text>{t('common.loading')}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {lastTask ? 
         <View>
-          <View style={{ }}>
+          <View style={{ marginBottom: 20 }}>
             <Text style={styles.titleParameter}>{t('allaitement.lastTask')}</Text>
-            <View style={{ marginTop: 20 }}>
-              <Card key={lastTask.id} task={lastTask} navigation={navigation} editable={false} />
+            <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} />
+          </View>
+
+          <View style={{ marginBottom: 20 }}>
+            <Text style={styles.titleParameter}>{t('allaitement.someFigures')}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 }}>
+              {boobSide.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => setSelectedItem(item.id)}
+                  style={selectedItem === item.id ? styles.imageSelected : styles.imageNonSelected}
+                >
+                  <Text>{item.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+              <View>
+                <Text>{t('allaitement.today')}</Text>
+                <Text>{t('allaitement.yesterday')}</Text>
+                <Text>{t('allaitement.last7Days')}</Text>
+              </View>
+              <View>
+                <Text>{(() => {
+                  const allaitementStats = dailyStats as any;
+                  const getStatsForSide = (stats: any, side: number) => {
+                    if (side === 0) return stats.boobLeft;
+                    if (side === 1) return stats.boobRight;
+                    return stats.total;
+                  };
+                  const value = getStatsForSide(allaitementStats.today, selectedItem);
+                  return value > 60 ? `${(value / 60).toFixed(1)} h` : `${value.toFixed(0)} min`;
+                })()}</Text>
+                <Text>{(() => {
+                  const allaitementStats = dailyStats as any;
+                  const getStatsForSide = (stats: any, side: number) => {
+                    if (side === 0) return stats.boobLeft;
+                    if (side === 1) return stats.boobRight;
+                    return stats.total;
+                  };
+                  const value = getStatsForSide(allaitementStats.yesterday, selectedItem);
+                  return value > 60 ? `${(value / 60).toFixed(1)} h` : `${value.toFixed(0)} min`;
+                })()}</Text>
+                <Text>{(() => {
+                  const allaitementStats = dailyStats as any;
+                  const getStatsForSide = (stats: any, side: number) => {
+                    if (side === 0) return stats.boobLeft;
+                    if (side === 1) return stats.boobRight;
+                    return stats.total;
+                  };
+                  const value = getStatsForSide(allaitementStats.lastPeriod, selectedItem);
+                  return value > 60 ? `${(value / 60).toFixed(1)} h` : `${value.toFixed(0)} min`;
+                })()}</Text>
+              </View>
             </View>
           </View>
 
-          <View style={{ marginTop : 20}}>
-            <Text style={styles.titleParameter}>{t('diapers.last7DaysStacked')}</Text>
+          <View>
+            <Text style={styles.titleParameter}>{t('allaitement.evolutionLast7Days')}</Text>
             {renderBarChart()}
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
-                     
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
-                          <View style={{ width: 10, height: 10, backgroundColor: '#1AAAAA', marginRight: 5 }} />
-                          <Text>{t('breast.left')}</Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
-                          <View style={{ width: 10, height: 10, backgroundColor: "#E29656", marginRight: 5 }} />
-                          <Text>{t('breast.right')}</Text>
-                        </View>
-                      
-                    </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
+              <View style={{ width: 10, height: 10, backgroundColor: '#1AAAAA', marginRight: 5 }} />
+              <Text>{t('breast.left')}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
+              <View style={{ width: 10, height: 10, backgroundColor: "#E29656", marginRight: 5 }} />
+              <Text>{t('breast.right')}</Text>
+            </View>
+          </View>
         </View> 
       : 
         <Text>{t('allaitement.noTaskFound')}</Text>}      
@@ -229,21 +183,21 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     flexDirection: 'row',
-    height: 220,
-    marginVertical: 28,
+    height: 180,
+    marginVertical: 20,
     borderRadius: 16,
     backgroundColor: '#FDF1E7',
     alignItems: 'flex-end',
-    position: 'relative',
+    paddingBottom: 30,
   },
   yAxis: {
     justifyContent: 'space-between',
     marginRight: 10,
-    position: 'relative',
-    height: '100%',
+    marginLeft: 10,
+    height: 150,
   },
   yAxisLabel: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#7A8889',
   },
   chartContent: {
@@ -251,34 +205,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'flex-end',
     flex: 1,
-    position: 'relative',
   },
   chartColumn: {
     alignItems: 'center',
     flex: 1,
-    position: 'relative',
   },
   barContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    gap: 2,
   },
   bar: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  barText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'bold',
+    width: 18,
   },
   chartLabel: {
     marginTop: 5,
-  },
-  totalText: {
-    marginTop: 5,
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: 10,
   },
   image: {
     width: 30,
@@ -286,24 +229,29 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   imageSelected: {
-    width: 55,
-    height: 55,
-    resizeMode: 'cover',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
     borderColor: '#1AAAAA',
-    borderWidth: 5,
-    borderRadius: 60,
+    borderWidth: 3,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    minWidth: 80,
   },
   imageNonSelected: {
-    width: 50,
-    height: 50,
-    resizeMode: 'cover',
-    borderWidth: 5,
-    borderRadius: 60,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderWidth: 3,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    borderColor: 'transparent',
+    borderColor: '#E0E0E0',
+    minWidth: 80,
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 

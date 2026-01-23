@@ -13,7 +13,12 @@ export interface Task {
   labelTask: string;
   date: string;
   label: string | number;
+  /** @deprecated Use diaperType instead. Kept for backward compatibility with existing data. */
   idCaca?: string | number;
+  /** Type of diaper consistency: 0 = solid, 1 = soft, 2 = liquid */
+  diaperType?: number;
+  /** Content of diaper: 0 = pee, 1 = poop, 2 = both (optional) */
+  diaperContent?: number;
   boobLeft?: number;
   boobRight?: number;
   user: string;
@@ -26,6 +31,9 @@ export interface Baby {
   type: 'Boy' | 'Girl';
   name: string;
   birthDate: string;
+  profilePhoto?: string; // URL Firebase Storage
+  height?: number; // en cm
+  weight?: number; // en kg (avec décimales)
   CreatedDate: string;
   user: string[];
   admin: string;

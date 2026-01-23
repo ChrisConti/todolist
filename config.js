@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, initializeAuth, getReactNativePersistence } from "firebase/auth";
 import { collection, initializeFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 import { log } from './utils/logger';
 
@@ -33,6 +34,9 @@ log.info('Firebase Auth initialized', 'config.js');
 
 export const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 log.info('Firestore initialized', 'config.js');
+
+export const storage = getStorage(app);
+log.info('Firebase Storage initialized', 'config.js');
 
 export const userRef = collection(db, "Users");
 export const babiesRef = collection(db, "Baby");

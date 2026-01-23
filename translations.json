@@ -7,6 +7,9 @@
     "hello": "Hello, how are you?",
     "forgotPassword": "Forgot password?",
     "noAccount": "Don't have an account?",
+    "common": {
+      "loading": "Loading..."
+    },
     "button": {
       "login": "Login",
       "signup": "Sign Up",
@@ -24,7 +27,19 @@
       "millilitres": "Milliliters",
       "medicaments": "Medecine",
       "sleepTime": "Sleep time (min)",
-      "temperature": "Temperature"
+      "temperature": "Temperature",
+      "weight": "Weight (kg)",
+      "height": "Height (cm)"
+    },
+    "milkType": {
+      "title": "Milk",
+      "artificial": "Formula",
+      "maternal": "Breast milk",
+      "other": "Other"
+    },
+    "breastfeeding": {
+      "timer": "Timer",
+      "manual": "Manual"
     },
     "error": {
       "invalidEmail": "Please enter a valid email.",
@@ -58,7 +73,12 @@
       "birthdateInvalidDate": "Invalid date",
       "birthdateTooOld": "Birthdate cannot be more than 3 years ago",
       "birthdateTooFuture": "Birthdate cannot be more than 3 months in the future",
-      "nameMinLength": "Name must be at least 2 characters"
+      "nameMinLength": "Name must be at least 2 characters",
+      "invalidWeight": "Weight must be between 0.1 and 50 kg",
+      "invalidHeight": "Height must be between 20 and 200 cm",
+      "photoUploadFailed": "Failed to upload photo. Please try again.",
+      "galleryPermission": "Permission to access gallery is required!",
+      "cameraPermission": "Permission to access camera is required!"
     },
     "success": {
       "title": "Success",
@@ -68,7 +88,11 @@
       "taskUpdated": "Task updated successfully!",
       "taskDeleted": "Task deleted successfully!",
       "tasksExported": "Tasks exported successfully!",
-      "emailChanged": "Email updated successfully."
+      "emailChanged": "Email updated successfully.",
+      "babyUpdated": "Baby profile updated successfully!",
+      "photoUploaded": "Photo uploaded successfully!",
+      "photoRemoved": "Photo removed successfully!",
+      "copied": "Code copied!"
     },
     "header": {
       "suivi": "Tracking"
@@ -85,7 +109,47 @@
       "yesterday": "Yesterday"
     },
     "noBaby": "No baby yet? ",
+    "noBabyFound": "No baby found",
     "noActivity": "No activity yet? Click here!",
+    "baby": {
+      "title": "Baby",
+      "profile": "Profile",
+      "family": "Family",
+      "edit": "Edit",
+      "editProfile": "Edit Profile",
+      "name": "Name",
+      "birthdate": "Birthdate",
+      "addPhoto": "Add photo",
+      "changePhoto": "Change photo",
+      "selectPhoto": "Select photo",
+      "takePhoto": "Take photo",
+      "removePhoto": "Remove photo",
+      "weight": "Weight",
+      "height": "Height",
+      "age": "Age",
+      "sex": "Sex",
+      "boy": "Boy",
+      "girl": "Girl",
+      "optionalInfo": "Optional information",
+      "infoCanBeAddedLater": "This information is optional and can be added later",
+      "familyMembers": "Family Members",
+      "shareBaby": "Share Baby",
+      "copyCode": "Copy code",
+      "manageFamily": "Manage Family",
+      "shareMessage": "Here is a code to share with your friends to join your baby.",
+      "leaveBaby": "Leave Baby",
+      "days": "days",
+      "weeks": "weeks",
+      "months": "months",
+      "years": "years",
+      "year": "year",
+      "month": "month",
+      "week": "week",
+      "day": "day",
+      "kg": "kg",
+      "cm": "cm",
+      "openSettings": "Open Settings"
+    },
     "task": {
       "createdBy": "Created by",
       "date": "On date",
@@ -98,6 +162,10 @@
       "dur": "Normal",
       "mou": "Soft",
       "liquide": "Liquid",
+      "pee": "Pee",
+      "poop": "Poop",
+      "both": "Both",
+      "content": "Content",
       "lastTask": "Last task done",
       "someFigures": "Some figures",
       "today": "Today",
@@ -147,7 +215,9 @@
       "changeEmail": "Change email",
       "changePassword": "Change password",
       "deleteAccount": "Delete my account",
-      "babyStats": "Baby stats"
+      "babyStats": "Baby stats",
+      "activities": "Activities",
+      "stats": "Stats"
     },
     "enterValidName": "Please enter a valid name", 
     "modification": "Modification", 
@@ -198,6 +268,7 @@
       "evolutionLeft": "Evolution of Left Boob over the last 7 days",
       "evolutionRight": "Evolution of Right Boob over the last 7 days",
       "evolutionTotal": "Evolution of Total over the last 7 days",
+      "evolutionLast7Days": "Evolution over the last 7 days",
       "lastTask": "Last task done",
       "noTaskFound": "No task found"
     },
@@ -228,7 +299,8 @@
       "yesterday": "Yesterday",
       "last24Hours": "Last 24 hours",
       "evolutionLast24Hours": "Evolution over the last 24 hours",
-      "noTaskFound": "No task found"
+      "noTaskFound": "No task found",
+      "noData": "No data available"
     },
     "privacyPolicy": {
             "title": "Privacy Policy",
@@ -320,8 +392,9 @@
     "welcome": "Bienvenue",
     "hello": "Bonjour, comment ça va?",
     "forgotPassword": "Mot de passe oublié ?",
-    "noAccount": "Vous n'avez pas de compte ?",
-    "button": {
+    "noAccount": "Vous n'avez pas de compte ?",    "common": {
+      "loading": "Chargement..."
+    },    "button": {
       "login": "Se connecter",
       "signup": "S'inscrire",
       "submit": "Valider",
@@ -338,7 +411,19 @@
       "millilitres": "Millilitres",
       "medicaments": "Médicaments",
       "sleepTime": "Temps de sommeil (min)",
-      "temperature": "Température"
+      "temperature": "Température",
+      "weight": "Poids (kg)",
+      "height": "Taille (cm)"
+    },
+    "milkType": {
+      "title": "Lait",
+      "artificial": "Artificiel",
+      "maternal": "Maternel",
+      "other": "Autre"
+    },
+    "breastfeeding": {
+      "timer": "Timer",
+      "manual": "Manuel"
     },
     "error": {
       "invalidEmail": "Veuillez entrer un email valide.",
@@ -372,7 +457,12 @@
       "birthdateInvalidDate": "Date invalide",
       "birthdateTooOld": "La date de naissance ne peut pas être il y a plus de 3 ans",
       "birthdateTooFuture": "La date de naissance ne peut pas être dans plus de 3 mois",
-      "nameMinLength": "Le nom doit contenir au moins 2 caractères"
+      "nameMinLength": "Le nom doit contenir au moins 2 caractères",
+      "invalidWeight": "Le poids doit être entre 0.1 et 50 kg",
+      "invalidHeight": "La taille doit être entre 20 et 200 cm",
+      "photoUploadFailed": "Échec du téléchargement de la photo. Veuillez réessayer.",
+      "galleryPermission": "L'autorisation d'accès à la galerie est requise !",
+      "cameraPermission": "L'autorisation d'accès à la caméra est requise !"
     },
     "success": {
       "title": "Succès",
@@ -382,7 +472,11 @@
       "taskUpdated": "Tâche modifiée avec succès !",
       "taskDeleted": "Tâche supprimée avec succès !",
       "tasksExported": "Les tâches ont été exportées avec succès !",
-      "emailChanged": "Email mis à jour avec succès."
+      "emailChanged": "Email mis à jour avec succès.",
+      "babyUpdated": "Profil du bébé mis à jour avec succès!",
+      "photoUploaded": "Photo téléchargée avec succès!",
+      "photoRemoved": "Photo supprimée avec succès!",
+      "copied": "Code copié!"
     },
     "header": {
       "suivi": "Suivi"
@@ -399,7 +493,47 @@
       "yesterday": "Hier"
     },
     "noBaby": "Pas encore de bébé ? ",
+    "noBabyFound": "Aucun bébé trouvé",
     "noActivity": "Pas encore d'activité ? Cliquez ici !",
+    "baby": {
+      "title": "Bébé",
+      "profile": "Profil",
+      "family": "Famille",
+      "edit": "Modifier",
+      "editProfile": "Modifier le profil",
+      "name": "Nom",
+      "birthdate": "Date de naissance",
+      "addPhoto": "Ajouter une photo",
+      "changePhoto": "Changer la photo",
+      "selectPhoto": "Sélectionner une photo",
+      "takePhoto": "Prendre une photo",
+      "removePhoto": "Supprimer la photo",
+      "weight": "Poids",
+      "height": "Taille",
+      "age": "Âge",
+      "sex": "Sexe",
+      "boy": "Garçon",
+      "girl": "Fille",
+      "optionalInfo": "Informations optionnelles",
+      "infoCanBeAddedLater": "Ces informations sont optionnelles et peuvent être ajoutées plus tard",
+      "familyMembers": "Membres de la famille",
+      "shareBaby": "Partager le bébé",
+      "copyCode": "Copier le code",
+      "manageFamily": "Gérer la famille",
+      "shareMessage": "Voici un code à communiquer à vos amis, pour rejoindre votre bébé.",
+      "leaveBaby": "Quitter le bébé",
+      "days": "jours",
+      "weeks": "semaines",
+      "months": "mois",
+      "years": "ans",
+      "year": "an",
+      "month": "mois",
+      "week": "semaine",
+      "day": "jour",
+      "kg": "kg",
+      "cm": "cm",
+      "openSettings": "Ouvrir les réglages"
+    },
     "task": {
       "createdBy": "Créé par",
       "date": "En date du", 
@@ -412,14 +546,17 @@
       "dur": "Normal",
       "mou": "Mou",
       "liquide": "Liquide",
+      "pee": "Pipi",
+      "poop": "Caca",
+      "both": "Les deux",
+      "content": "Contenu",
       "lastTask": "Dernière tâche effectuée",
-    "someFigures": "Quelques chiffres",
-    "today": "Aujourd'hui",
-    "yesterday": "Hier",
-    "last7Days": "Les 7 derniers jours",
-    "last7DaysStacked": "Les 7 derniers jours (Stacked)",
-    "noTaskFound": "Aucune tâche trouvée"
-      
+      "someFigures": "Quelques chiffres",
+      "today": "Aujourd'hui",
+      "yesterday": "Hier",
+      "last7Days": "Les 7 derniers jours",
+      "last7DaysStacked": "Les 7 derniers jours (Stacked)",
+      "noTaskFound": "Aucune tâche trouvée"
     },
     "settings": {
       "babyOptions": "Options de bébé",
@@ -471,10 +608,6 @@
     "Copier le code": "Copier le code", 
     "Voici un code à communiquer à vos amis, pour rejoindre votre bébé.": "Voici un code à communiquer à vos amis, pour rejoindre votre bébé.", 
     "Quitter le bébé": "Quitter le bébé",
-    "placeholders": { "name": "Nom", "birthdate": "Date de naissance (JJ/MM/AAAA)" }, 
-    "errors": { "name": "Le nom doit contenir au moins 2 caractères.", 
-    "birthdate": "Veuillez entrer une date de naissance valide." }, 
-    "buttons": { "validate": "Valider" },
     "title":{
       "signup": "S'inscrire",
       "passwordForgotten": "Mot de passe oublié",
@@ -489,7 +622,9 @@
       "changeEmail": "Changer d'email",
       "changePassword": "Changer de mot de passe",
       "deleteAccount": "Supprimer mon compte",
-      "babyStats": "Statistiques du bébé"
+      "babyStats": "Statistiques du bébé",
+      "activities": "Activités",
+      "stats": "Stats"
     },
     "conditions":{
       "label": "En cliquant sur valider, vous acceptez nos ",
@@ -512,6 +647,7 @@
         "evolutionLeft": "Evolution des Boob Gauche sur les 7 derniers jours",
         "evolutionRight": "Evolution des Boob Droite sur les 7 derniers jours",
         "evolutionTotal": "Evolution du Total sur les 7 derniers jours",
+        "evolutionLast7Days": "Evolution sur les 7 derniers jours",
         "lastTask": "Dernière tâche effectuée",
         "noTaskFound": "Aucune tâche trouvée"
       },
@@ -543,7 +679,8 @@
     "yesterday": "Hier",
     "last24Hours": "Les dernières 24 heures",
     "evolutionLast24Hours": "Evolution sur les dernières 24 heures",
-    "noTaskFound": "Aucune tâche trouvée"
+    "noTaskFound": "Aucune tâche trouvée",
+    "noData": "Aucune donnée disponible"
   },
   "privacyPolicy": {
             "title": "Politique de Confidentialité",
@@ -617,12 +754,7 @@
       "applicableLawText": "Les présentes CGU sont soumises au droit français. En cas de litige, une solution amiable sera privilégiée avant tout recours judiciaire. Vous pouvez nous contacter à : tribubabytracker@gmail.com."
     },
     "validateOnly": "Valider",
-    "Par":"Fait par"
-        ,
-        "success": {
-          "copied": "Code copié !"
-        }
-    ,
+    "Par":"Fait par",
     "review": {
       "title": "Tu adores l'app ?",
       "message": "Ton avis nous aide à améliorer l'app et aide d'autres parents à découvrir notre travail.",
@@ -640,6 +772,9 @@
       "hello": "Hola, ¿cómo estás?",
       "forgotPassword": "¿Olvidaste tu contraseña?",
       "noAccount": "¿No tienes una cuenta?",
+      "common": {
+        "loading": "Cargando..."
+      },
       "button": {
         "login": "Iniciar sesión",
         "signup": "Registrarse",
@@ -657,7 +792,21 @@
         "millilitres": "Mililitros",
         "medicaments": "Medicamentos",
         "sleepTime": "Tiempo de sueño (min)",
-        "temperature": "Temperatura"
+        "temperature": "Temperatura",
+        "weight": "Peso (kg)",
+        "height": "Altura (cm)"
+      },
+      "milkType": {
+        "title": "Leche",
+        "artificial": "Artificial",
+        "maternal": "Materna",
+        "other": "Otra"
+      },
+      "breastfeeding": {
+        "timer": "Timer",
+        "manual": "Manual"
+      },
+      "error": {
       },
       "error": {
         "invalidEmail": "Por favor, introduce un correo electrónico válido.",
@@ -690,7 +839,12 @@
         "birthdateInvalidDate": "Fecha inválida",
         "birthdateTooOld": "La fecha de nacimiento no puede ser hace más de 3 años",
         "birthdateTooFuture": "La fecha de nacimiento no puede ser en más de 3 meses",
-        "nameMinLength": "El nombre debe tener al menos 2 caracteres"
+        "nameMinLength": "El nombre debe tener al menos 2 caracteres",
+        "invalidWeight": "El peso debe estar entre 0.1 y 50 kg",
+        "invalidHeight": "La altura debe estar entre 20 y 200 cm",
+        "photoUploadFailed": "Error al subir la foto. Por favor, inténtelo de nuevo.",
+        "galleryPermission": "¡Se requiere permiso para acceder a la galería!",
+        "cameraPermission": "¡Se requiere permiso para acceder a la cámara!"
       },
       "success": {
         "title": "Éxito",
@@ -700,7 +854,11 @@
         "taskUpdated": "¡Tarea actualizada con éxito!",
         "taskDeleted": "¡Tarea eliminada con éxito!",
         "tasksExported": "¡Tareas exportadas con éxito!",
-        "emailChanged": "Correo actualizado con éxito."
+        "emailChanged": "Correo actualizado con éxito.",
+        "babyUpdated": "¡Perfil del bebé actualizado con éxito!",
+        "photoUploaded": "¡Foto subida con éxito!",
+        "photoRemoved": "¡Foto eliminada con éxito!",
+        "copied": "¡Código copiado!"
       },
       "header": {
         "suivi": "Seguimiento"
@@ -717,7 +875,47 @@
         "yesterday": "Ayer"
       },
       "noBaby": "¿No tienes bebé todavía? ",
+      "noBabyFound": "No se encontró bebé",
       "noActivity": "¿No tienes actividad todavía? ¡Haz clic aquí!",
+      "baby": {
+        "title": "Bebé",
+        "profile": "Perfil",
+        "family": "Familia",
+        "edit": "Editar",
+        "editProfile": "Editar perfil",
+        "name": "Nombre",
+        "birthdate": "Fecha de nacimiento",
+        "addPhoto": "Añadir foto",
+        "changePhoto": "Cambiar foto",
+        "selectPhoto": "Seleccionar foto",
+        "takePhoto": "Tomar foto",
+        "removePhoto": "Eliminar foto",
+        "weight": "Peso",
+        "height": "Altura",
+        "age": "Edad",
+        "sex": "Sexo",
+        "boy": "Niño",
+        "girl": "Niña",
+        "optionalInfo": "Información opcional",
+        "infoCanBeAddedLater": "Esta información es opcional y puede añadirse más tarde",
+        "familyMembers": "Miembros de la familia",
+        "shareBaby": "Compartir bebé",
+        "copyCode": "Copiar código",
+        "manageFamily": "Gestionar familia",
+        "shareMessage": "Aquí hay un código para compartir con tus amigos para unirse a tu bebé.",
+        "leaveBaby": "Dejar bebé",
+        "days": "días",
+        "weeks": "semanas",
+        "months": "meses",
+        "years": "años",
+        "year": "año",
+        "month": "mes",
+        "week": "semana",
+        "day": "día",
+        "kg": "kg",
+        "cm": "cm",
+        "openSettings": "Abrir ajustes"
+      },
       "task": {
         "createdBy": "Creado por",
         "date": "En la fecha de",
@@ -727,17 +925,21 @@
         "deleteMessage": "¿Estás seguro de que quieres eliminar esta tarea?"
       },
       "diapers": {
-      "dur": "Normal",
-      "mou": "Suave",
-      "liquide": "Liquid",
-      "lastTask": "Última tarea realizada",
-      "someFigures": "Algunas cifras",
-      "today": "Hoy",
-      "yesterday": "Ayer",
-      "last7Days": "Últimos 7 días",
-      "last7DaysStacked": "Últimos 7 días (Apilados)",
-      "noTaskFound": "No se encontró ninguna tarea"
-    },
+        "dur": "Normal",
+        "mou": "Suave",
+        "liquide": "Líquido",
+        "pee": "Pipí",
+        "poop": "Caca",
+        "both": "Ambos",
+        "content": "Contenido",
+        "lastTask": "Última tarea realizada",
+        "someFigures": "Algunas cifras",
+        "today": "Hoy",
+        "yesterday": "Ayer",
+        "last7Days": "Últimos 7 días",
+        "last7DaysStacked": "Últimos 7 días (Apilados)",
+        "noTaskFound": "No se encontró ninguna tarea"
+      },
       "settings": {
         "babyOptions": "Opciones de bebé",
         "myBaby": "Mi bebé",
@@ -763,8 +965,7 @@
         "contactUs": "Contáctenos",
         "resetPasswordInstructions": "Para restablecer tu contraseña, haz clic en el botón para recibir un correo electrónico.",
         "sendEmail": "Enviar correo",
-        "resetPassordEmailSent": "Se ha enviado un correo electrónico para restablecer tu contraseña.",
-        
+        "resetPassordEmailSent": "Se ha enviado un correo electrónico para restablecer tu contraseña."
       },
       "enterValidName": "Por favor, introduce un nombre válido", 
       "enterValidEmail": "Por favor, introduce un correo válido", 
@@ -785,9 +986,6 @@
       "Copier le code": "Copiar el código", 
       "Voici un code à communiquer à vos amis, pour rejoindre votre bébé.": "Aquí hay un código para compartir con tus amigos para unirse a tu bebé.", 
       "Quitter le bébé": "Dejar el bebé",
-      "placeholders": { "name": "Nombre", "birthdate": "Fecha de nacimiento (DD/MM/AAAA)" }, 
-      "errors": { "name": "El nombre debe tener al menos 2 caracteres.", "birthdate": "Por favor, ingrese una fecha de nacimiento válida." }, 
-      "buttons": { "validate": "Validar" },
       "title":{
         "signup": "Registrarse",
         "passwordForgotten": "Contraseña olvidada",
@@ -802,7 +1000,9 @@
         "changeEmail": "Cambiar correo",
         "changePassword": "Cambiar contraseña",
         "deleteAccount": "Eliminar mi cuenta",
-        "babyStats": "Estadísticas del bebé"
+        "babyStats": "Estadísticas del bebé",
+        "activities": "Actividades",
+        "stats": "Estadísticas"
       },
       "conditions":{
         "label": "Al hacer clic en validar, acepta nuestros ",
@@ -823,6 +1023,7 @@
         "evolutionLeft": "Evolución del Pecho Izquierdo en los últimos 7 días",
         "evolutionRight": "Evolución del Pecho Derecho en los últimos 7 días",
         "evolutionTotal": "Evolución del Total en los últimos 7 días",
+        "evolutionLast7Days": "Evolución en los últimos 7 días",
         "lastTask": "Última tarea realizada",
         "noTaskFound": "No se encontró ninguna tarea"
       },
@@ -853,7 +1054,8 @@
         "yesterday": "Ayer",
         "last24Hours": "Últimas 24 horas",
         "evolutionLast24Hours": "Evolución en las últimas 24 horas",
-        "noTaskFound": "No se encontró ninguna tarea"
+        "noTaskFound": "No se encontró ninguna tarea",
+        "noData": "No hay datos disponibles"
       },
       "privacyPolicy": {
         "title": "Política de Privacidad",

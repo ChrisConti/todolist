@@ -103,7 +103,8 @@ describe('CreateTask - Business Logic', () => {
           labelTask: 'biberon',
           date: '2025-01-04 12:00:00',
           label: 150,
-          idCaca: 150,
+          idCaca: 150, // legacy field for backward compatibility
+          diaperType: undefined, // not a diaper task
           boobLeft: 0,
           boobRight: 0,
           user: mockUser.uid,
@@ -280,7 +281,8 @@ describe('CreateTask - Business Logic', () => {
         labelTask: 'allaitement',
         date: '2025-01-04 10:30:00',
         label: 0,
-        idCaca: 0,
+        idCaca: 0, // legacy field for backward compatibility
+        diaperType: undefined, // not a diaper task
         boobLeft: 300,
         boobRight: 240,
         user: 'user-id-123',
@@ -323,15 +325,34 @@ describe('CreateTask - Business Logic', () => {
       expect(bottleTask.label).toBeGreaterThan(0);
     });
 
-    it('should include idCaca for diaper tasks', () => {
+    it('should include diaperType for diaper tasks (with idCaca for backward compatibility)', () => {
       const diaperTask = {
         id: 1,
         labelTask: 'couche',
-        idCaca: 2, // liquide
+        idCaca: 2, // legacy field for backward compatibility
+        diaperType: 2, // new field: liquide
       };
 
+      // New field should be defined
+      expect(diaperTask.diaperType).toBeDefined();
+      expect([0, 1, 2]).toContain(diaperTask.diaperType); // dur, mou, liquide
+
+      // Legacy field should also be present for backward compatibility
       expect(diaperTask.idCaca).toBeDefined();
-      expect([0, 1, 2]).toContain(diaperTask.idCaca); // dur, mou, liquide
+      expect(diaperTask.diaperType).toBe(diaperTask.idCaca);
+    });
+
+    it('should read diaperType with fallback to idCaca for legacy data', () => {
+      // Simulate legacy data without diaperType (as it would come from Firestore)
+      const legacyTask: { id: number; labelTask: string; idCaca: number; diaperType?: number } = {
+        id: 1,
+        labelTask: 'couche',
+        idCaca: 1, // mou - legacy field only
+      };
+
+      // Reading with fallback pattern used in the app
+      const diaperType = legacyTask.diaperType ?? legacyTask.idCaca;
+      expect(diaperType).toBe(1);
     });
   });
 });

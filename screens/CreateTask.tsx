@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, Keyboard, ScrollView, FlatList, TouchableWithoutFeedback, Button, AppState, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import Slider from '@react-native-community/slider';
 import s = require("../Style.js");
 import { auth, db, babiesRef, userRef } from '../config.js';
 import { addDoc, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
@@ -38,6 +39,8 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const [time, setTime] = useState(moment().format('YYYY-MM-DD HH:mm:ss'));
   const [label, setLabel] = useState('');
   const [note, setNote] = useState('');
+  const [milkType, setMilkType] = useState<string | null>(null);
+  const [diaperContent, setDiaperContent] = useState<number | null>(null); // 0=pee, 1=poop, 2=both
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedItem, setSelectedItem] = useState(0);
   const uniqueId = uuid.v4();
@@ -45,6 +48,9 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const [timer2, setTimer2] = useState(0);
   const [isRunning1, setIsRunning1] = useState(false);
   const [isRunning2, setIsRunning2] = useState(false);
+  const [breastfeedingMode, setBreastfeedingMode] = useState<'timer' | 'manual'>('timer');
+  const [manualMinutesLeft, setManualMinutesLeft] = useState(0);
+  const [manualMinutesRight, setManualMinutesRight] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
   const [startTime1, setStartTime1] = useState(null);
@@ -188,19 +194,27 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
       // Ne prendre que le premier document trouvé
       const document = querySnapshot.docs[0];
       
+      const newTask = {
+        uid: uniqueId,
+        id: selectedImage,
+        labelTask: returnLabel(selectedImage),
+        date: time,
+        label: label ? label : 0,
+        idCaca: label,
+        // Only include diaperType and diaperContent for diaper tasks (id === 1)
+        ...(selectedImage === 1 && { diaperType: parseInt(label) || 0 }),
+        ...(selectedImage === 1 && diaperContent !== null && { diaperContent }),
+        boobLeft: breastfeedingMode === 'manual' ? manualMinutesLeft * 60 : timer1,
+        boobRight: breastfeedingMode === 'manual' ? manualMinutesRight * 60 : timer2,
+        breastfeedingMode: selectedImage === 5 ? breastfeedingMode : null,
+        milkType: selectedImage === 0 ? milkType : null,
+        user: user.uid,
+        createdBy: userInfo?.username || 'Unknown',
+        comment: note,
+      };
+
       await updateDoc(doc(db, 'Baby', document.id), {
-        tasks: [...document.data().tasks, 
-          { uid: uniqueId, 
-            id: selectedImage, 
-            labelTask: returnLabel(selectedImage),
-            date: time, 
-            label: label ? label : 0, 
-            idCaca:label,
-            boobLeft: timer1,
-            boobRight: timer2,
-            user: user.uid, 
-            createdBy: userInfo?.username || 'Unknown', 
-            comment: note }],
+        tasks: [...document.data().tasks, newTask],
       });
       
       console.log('Task created successfully');
@@ -340,34 +354,133 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
     } else if (id == 5) {
       return (
         <View>
-          <View style={styles.timerContainer}>
-        <Text>{t('breast.left')} {formatTime(timer1)}</Text>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={() => startTimer(setTimer1, setIsRunning1, interval1, 1)} disabled={isRunning1}>
-            <Ionicons name="play" size={24} color={isRunning1 ? "#C75B4A" : "black"} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => pauseTimer(setIsRunning1, interval1, 1)} disabled={!isRunning1}>
-            <Ionicons name="pause" size={24} color={!isRunning1 ? "#C75B4A" : "black"} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => stopTimer(setTimer1, setIsRunning1, interval1, 1)}>
-            <Ionicons name="close-circle" size={24} color="black" />
-          </TouchableOpacity>
-        </View>
-      </View>
-      <View style={styles.timerContainer}>
-        <Text>{t('breast.right')} {formatTime(timer2)}</Text>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={() => startTimer(setTimer2, setIsRunning2, interval2, 2)} disabled={isRunning2}>
-            <Ionicons name="play" size={24} color={isRunning2 ? "#C75B4A" : "black"} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => pauseTimer(setIsRunning2, interval2, 2)} disabled={!isRunning2}>
-            <Ionicons name="pause" size={24} color={!isRunning2 ? "#C75B4A" : "black"} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => stopTimer(setTimer2, setIsRunning2, interval2, 2)}>
-            <Ionicons name="close-circle" size={24} color="black" />
-          </TouchableOpacity>
-        </View>
-      </View>
+          {/* Mode Switch */}
+          <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 20, gap: 10 }}>
+            <TouchableOpacity
+              onPress={() => setBreastfeedingMode('timer')}
+              style={[
+                styles.modeButton,
+                breastfeedingMode === 'timer' && styles.modeButtonSelected
+              ]}
+            >
+              <Text style={[
+                styles.modeButtonText,
+                breastfeedingMode === 'timer' && styles.modeButtonTextSelected
+              ]}>
+                ⏱️ {t('breastfeeding.timer')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setBreastfeedingMode('manual')}
+              style={[
+                styles.modeButton,
+                breastfeedingMode === 'manual' && styles.modeButtonSelected
+              ]}
+            >
+              <Text style={[
+                styles.modeButtonText,
+                breastfeedingMode === 'manual' && styles.modeButtonTextSelected
+              ]}>
+                ✏️ {t('breastfeeding.manual')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {breastfeedingMode === 'timer' ? (
+            // Timer Mode
+            <View>
+              <View style={styles.timerContainer}>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#7A8889', marginBottom: 10 }}>{t('breast.left')}</Text>
+                <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#C75B4A', marginBottom: 10 }}>{formatTime(timer1)}</Text>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity 
+                    onPress={() => startTimer(setTimer1, setIsRunning1, interval1, 1)} 
+                    disabled={isRunning1}
+                    style={[styles.timerButton, isRunning1 && styles.timerButtonDisabled]}
+                  >
+                    <Ionicons name="play" size={24} color={isRunning1 ? "#D8ABA0" : "#F6F0EB"} />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    onPress={() => pauseTimer(setIsRunning1, interval1, 1)} 
+                    disabled={!isRunning1}
+                    style={[styles.timerButton, !isRunning1 && styles.timerButtonDisabled]}
+                  >
+                    <Ionicons name="pause" size={24} color={!isRunning1 ? "#D8ABA0" : "#F6F0EB"} />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    onPress={() => stopTimer(setTimer1, setIsRunning1, interval1, 1)}
+                    style={styles.timerButton}
+                  >
+                    <Ionicons name="close-circle" size={24} color="#F6F0EB" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View style={styles.timerContainer}>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#7A8889', marginBottom: 10 }}>{t('breast.right')}</Text>
+                <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#C75B4A', marginBottom: 10 }}>{formatTime(timer2)}</Text>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity 
+                    onPress={() => startTimer(setTimer2, setIsRunning2, interval2, 2)} 
+                    disabled={isRunning2}
+                    style={[styles.timerButton, isRunning2 && styles.timerButtonDisabled]}
+                  >
+                    <Ionicons name="play" size={24} color={isRunning2 ? "#D8ABA0" : "#F6F0EB"} />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    onPress={() => pauseTimer(setIsRunning2, interval2, 2)} 
+                    disabled={!isRunning2}
+                    style={[styles.timerButton, !isRunning2 && styles.timerButtonDisabled]}
+                  >
+                    <Ionicons name="pause" size={24} color={!isRunning2 ? "#D8ABA0" : "#F6F0EB"} />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    onPress={() => stopTimer(setTimer2, setIsRunning2, interval2, 2)}
+                    style={styles.timerButton}
+                  >
+                    <Ionicons name="close-circle" size={24} color="#F6F0EB" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          ) : (
+            // Manual Mode
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 20 }}>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#C75B4A', marginBottom: 5 }}>{manualMinutesLeft} {t('min')}</Text>
+                <View style={{ height: 200, justifyContent: 'center', alignItems: 'center' }}>
+                  <Slider
+                    style={{ width: 200, height: 40, transform: [{ rotate: '-90deg' }] }}
+                    minimumValue={0}
+                    maximumValue={60}
+                    step={1}
+                    value={manualMinutesLeft}
+                    onValueChange={(value) => setManualMinutesLeft(Math.round(value))}
+                    minimumTrackTintColor="#C75B4A"
+                    maximumTrackTintColor="#D8ABA0"
+                    thumbTintColor="#C75B4A"
+                  />
+                </View>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#7A8889', marginTop: 5 }}>{t('breast.left')}</Text>
+              </View>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#C75B4A', marginBottom: 5 }}>{manualMinutesRight} {t('min')}</Text>
+                <View style={{ height: 200, justifyContent: 'center', alignItems: 'center' }}>
+                  <Slider
+                    style={{ width: 200, height: 40, transform: [{ rotate: '-90deg' }] }}
+                    minimumValue={0}
+                    maximumValue={60}
+                    step={1}
+                    value={manualMinutesRight}
+                    onValueChange={(value) => setManualMinutesRight(Math.round(value))}
+                    minimumTrackTintColor="#C75B4A"
+                    maximumTrackTintColor="#D8ABA0"
+                    thumbTintColor="#C75B4A"
+                  />
+                </View>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#7A8889', marginTop: 5 }}>{t('breast.right')}</Text>
+              </View>
+            </View>
+          )}
         </View>
       )
     }
@@ -492,6 +605,112 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                 />
                 </View>
 
+              {/* Milk Type - Only for bottle (id === 0) */}
+              {selectedImage === 0 && (
+                <View style={{ paddingTop: 30, alignSelf: 'center' }}>
+                  <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                    {t('milkType.title')}
+                  </Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 5 }}>
+                    <TouchableOpacity
+                      onPress={() => setMilkType(milkType === 'artificial' ? null : 'artificial')}
+                      style={[
+                        styles.milkTypeButton,
+                        milkType === 'artificial' && styles.milkTypeButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.milkTypeText,
+                        milkType === 'artificial' && styles.milkTypeTextSelected
+                      ]}>
+                        {t('milkType.artificial')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setMilkType(milkType === 'maternal' ? null : 'maternal')}
+                      style={[
+                        styles.milkTypeButton,
+                        milkType === 'maternal' && styles.milkTypeButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.milkTypeText,
+                        milkType === 'maternal' && styles.milkTypeTextSelected
+                      ]}>
+                        {t('milkType.maternal')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setMilkType(milkType === 'other' ? null : 'other')}
+                      style={[
+                        styles.milkTypeButton,
+                        milkType === 'other' && styles.milkTypeButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.milkTypeText,
+                        milkType === 'other' && styles.milkTypeTextSelected
+                      ]}>
+                        {t('milkType.other')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+              {/* Diaper Content - Only for diaper (id === 1) */}
+              {selectedImage === 1 && (
+                <View style={{ paddingTop: 30, alignSelf: 'center' }}>
+                  <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                    {t('diapers.content')}
+                  </Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 5 }}>
+                    <TouchableOpacity
+                      onPress={() => setDiaperContent(diaperContent === 0 ? null : 0)}
+                      style={[
+                        styles.milkTypeButton,
+                        diaperContent === 0 && styles.milkTypeButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.milkTypeText,
+                        diaperContent === 0 && styles.milkTypeTextSelected
+                      ]}>
+                        💧 {t('diapers.pee')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setDiaperContent(diaperContent === 1 ? null : 1)}
+                      style={[
+                        styles.milkTypeButton,
+                        diaperContent === 1 && styles.milkTypeButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.milkTypeText,
+                        diaperContent === 1 && styles.milkTypeTextSelected
+                      ]}>
+                        💩 {t('diapers.poop')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setDiaperContent(diaperContent === 2 ? null : 2)}
+                      style={[
+                        styles.milkTypeButton,
+                        diaperContent === 2 && styles.milkTypeButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.milkTypeText,
+                        diaperContent === 2 && styles.milkTypeTextSelected
+                      ]}>
+                        💧💩 {t('diapers.both')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
               {/* Notes */}
               <View style={{ paddingTop: 40, alignSelf: 'center' }}>
                 <TextInput
@@ -613,11 +832,72 @@ const styles = StyleSheet.create({
   timerContainer: {
     marginBottom: 20,
     alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    backgroundColor: '#F6F0EB',
+    borderRadius: 12,
+    width: 280,
+    alignSelf: 'center',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    width: '60%',
+    width: '100%',
     marginTop: 10,
+  },
+  timerButton: {
+    backgroundColor: '#C75B4A',
+    borderRadius: 8,
+    padding: 12,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  timerButtonDisabled: {
+    backgroundColor: '#D8ABA0',
+    opacity: 0.5,
+  },
+  milkTypeButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#C75B4A',
+    backgroundColor: 'transparent',
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  milkTypeButtonSelected: {
+    backgroundColor: '#C75B4A',
+  },
+  milkTypeText: {
+    color: '#C75B4A',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  milkTypeTextSelected: {
+    color: '#F6F0EB',
+  },
+  modeButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#C75B4A',
+    backgroundColor: 'transparent',
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  modeButtonSelected: {
+    backgroundColor: '#C75B4A',
+  },
+  modeButtonText: {
+    color: '#C75B4A',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modeButtonTextSelected: {
+    color: '#F6F0EB',
   },
 });

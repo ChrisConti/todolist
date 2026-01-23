@@ -1,34 +1,19 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
-import moment from 'moment';
-import { AuthentificationUserContext } from '../Context/AuthentificationContext';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Card from '../Card';
 import { useTranslation } from 'react-i18next';
+import { useDiaperStats } from '../hooks/useTaskStatistics';
+import { Task } from '../types/stats';
 
-const Diaper = ({ navigation, tasks }) => {
+interface DiaperProps {
+  navigation: any;
+  tasks: Task[];
+}
+
+const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
   const { t } = useTranslation();
-  const { babyID } = useContext(AuthentificationUserContext);
-  const [todaySum, setTodaySum] = useState({ 0: 0, 1: 0, 2: 0 });
-  const [yesterdaySum, setYesterdaySum] = useState({ 0: 0, 1: 0, 2: 0 });
-  const [lastSevenDaysSum, setLastSevenDaysSum] = useState({ 0: 0, 1: 0, 2: 0 });
-  const [lastTask, setLastTask] = useState(null);
   const [selectedItem, setSelectedItem] = useState(0);
-  const [data, setData] = useState({
-    0: { labels: [], datasets: [{ data: [] }] },
-    1: { labels: [], datasets: [{ data: [] }] },
-    2: { labels: [], datasets: [{ data: [] }] },
-  });
-  const [stackedData, setStackedData] = useState({
-    labels: [],
-    legend: [t('diapers.dur'), t('diapers.mou'), t('diapers.liquide')],
-    data: [],
-    barColors: ["#34777B", "#C75B4A", "#4F469F"]
-  });
-
-  useEffect(() => {
-    processTasks();
-    console.log(babyID);
-  }, [tasks]);
+  const { dailyStats, chartData, separateCharts, lastTask, isLoading, error } = useDiaperStats(tasks, t);
 
   const imagesDiapers = [
     { id: 0, name: t('diapers.dur'), nameTrad: 0 },
@@ -36,125 +21,58 @@ const Diaper = ({ navigation, tasks }) => {
     { id: 2, name: t('diapers.liquide'), nameTrad: 2 },
   ];
 
-  const processTasks = () => {
-    console.log("diaper");
+  const handleCategoryCaca = (selectedItem: number) => {
+    const diaperType = imagesDiapers[selectedItem].id;
+    const todayValue = (dailyStats.today as { [key: string]: number })[diaperType];
+    const yesterdayValue = (dailyStats.yesterday as { [key: string]: number })[diaperType];
+    const lastPeriodValue = (dailyStats.lastPeriod as { [key: string]: number })[diaperType];
 
-    let todaySum = { 0: 0, 1: 0, 2: 0 };
-    let yesterdaySum = { 0: 0, 1: 0, 2: 0 };
-    let lastSevenDaysSum = { 0: 0, 1: 0, 2: 0 };
-    let mostRecentTask = null;
-    let lastSevenDaysData = {
-      0: Array(7).fill(0),
-      1: Array(7).fill(0),
-      2: Array(7).fill(0),
-    };
-    let labels = [];
-
-    for (let i = 0; i < 7; i++) {
-      labels.push(moment().subtract(i, 'days').format('YYYY-MM-DD'));
-    }
-    labels.reverse();
-
-    tasks.forEach((task) => {
-      const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
-      const taskIdCaca = task.idCaca; // Assuming idCaca is 0, 1, or 2
-
-      if (taskDate.isSame(moment(), 'day')) {
-        todaySum[taskIdCaca] += 1;
-      }
-      if (taskDate.isSame(moment().subtract(1, 'day'), 'day')) {
-        yesterdaySum[taskIdCaca] += 1;
-      }
-      if (taskDate.isAfter(moment().subtract(7, 'days'))) {
-        lastSevenDaysSum[taskIdCaca] += 1;
-      }
-
-      for (let i = 0; i < 7; i++) {
-        if (taskDate.isSame(moment().subtract(i, 'days'), 'day')) {
-          lastSevenDaysData[taskIdCaca][6 - i] += 1;
-        }
-      }
-
-      if (!mostRecentTask || taskDate.isAfter(moment(mostRecentTask.date, 'YYYY-MM-DD HH:mm:ss'))) {
-        mostRecentTask = task;
-      }
-    });
-
-    setTodaySum(todaySum);
-    setYesterdaySum(yesterdaySum);
-    setLastSevenDaysSum(lastSevenDaysSum);
-    setLastTask(mostRecentTask);
-    setData({
-      0: {
-        labels: labels.map(label => moment(label).format('DD MMM')),
-        datasets: [{ data: lastSevenDaysData[0] }],
-      },
-      1: {
-        labels: labels.map(label => moment(label).format('DD MMM')),
-        datasets: [{ data: lastSevenDaysData[1] }],
-      },
-      2: {
-        labels: labels.map(label => moment(label).format('DD MMM')),
-        datasets: [{ data: lastSevenDaysData[2] }],
-      },
-    });
-
-    setStackedData({
-      labels: labels.map(label => moment(label).format('DD')),
-      legend: [],
-      data: labels.map((label, index) => [
-        lastSevenDaysData[0][index] > 0 ? lastSevenDaysData[0][index] : '',
-        lastSevenDaysData[1][index] > 0 ? lastSevenDaysData[1][index] : '',
-        lastSevenDaysData[2][index] > 0 ? lastSevenDaysData[2][index] : '',
-      ]),
-      barColors: ["#A8A8A8", "#C75B4A", "#E29656"]
-    });
-  };
-
-  const handleCategoryCaca = (selectedItem) => {
-    const idCaca = imagesDiapers[selectedItem].id;
-    const selectedData = data[idCaca] || { labels: [], datasets: [{ data: [] }] };
     return (
-      <View key={idCaca}>
+      <View key={diaperType}>
         <Text style={styles.titleParameter}>{t('diapers.someFigures')}</Text>
         <View style={{ marginBottom: 20, flexDirection: 'row', justifyContent: 'space-around' }}>
-          <View style={{ }}>
+          <View>
             <Text>{t('diapers.today')}</Text>
             <Text>{t('diapers.yesterday')}</Text>
             <Text>{t('diapers.last7Days')}</Text>
           </View>
-          <View style={{ }}>
-            <Text>{todaySum[idCaca]}</Text>
-            <Text>{yesterdaySum[idCaca]}</Text>
-            <Text>{lastSevenDaysSum[idCaca]}</Text>
+          <View>
+            <Text>{todayValue}</Text>
+            <Text>{yesterdayValue}</Text>
+            <Text>{lastPeriodValue}</Text>
           </View>
         </View>
-
       </View>
     );
   };
 
-  const renderBar = (value, maxValue, color) => {
-    const barHeight = (value / maxValue) * 120; // Adjust the height scale as needed
+  const renderBar = (value: number | string, maxValue: number, color: string) => {
+    if (!value) return null;
+    const numValue = typeof value === 'string' ? 0 : value;
+    const barHeight = (numValue / maxValue) * 120;
     return (
-      <View style={[styles.bar, { height: barHeight, backgroundColor: color,  }]}>
+      <View style={[styles.bar, { height: barHeight, backgroundColor: color }]}>
         <Text style={styles.barText}>{value}</Text>
       </View>
     );
   };
 
   const renderChart = () => {
-    const maxValue = Math.max(...stackedData.data.flat());
+    const stackedChartData = chartData as any;
+    const flatData = stackedChartData.data.flat().filter((v: any) => typeof v === 'number');
+    const maxValue = flatData.length > 0 ? Math.max(...flatData) : 1;
+    
     return (
       <View style={styles.chartContainer}>
-        {stackedData.labels.map((label, index) => {
-          const dayTotal = stackedData.data[index].reduce((acc, val) => acc + (val || 0), 0);
+        {stackedChartData.labels.map((label: string, index: number) => {
+          const dayData = stackedChartData.data[index];
+          const dayTotal = dayData.reduce((acc: number, val: any) => acc + (typeof val === 'number' ? val : 0), 0);
           return (
             <View key={index} style={styles.chartColumn}>
               <Text style={styles.totalLabel}>{dayTotal ? dayTotal : ''}</Text>
-              {stackedData.data[index].map((value, idx) => (
+              {dayData.map((value: any, idx: number) => (
                 <View key={idx}>
-                  {renderBar(value, maxValue, stackedData.barColors[idx])}
+                  {renderBar(value, maxValue, stackedChartData.barColors[idx])}
                 </View>
               ))}
               <Text style={styles.chartLabel}>{label}</Text>
@@ -165,30 +83,44 @@ const Diaper = ({ navigation, tasks }) => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text>{t('common.loading')}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {lastTask ? 
       <View>
-        <View style={{ }}>
+        <View>
           <Text style={styles.titleParameter}>{t('diapers.lastTask')}</Text>
           <View>
-            <Card key={lastTask.id} task={lastTask} navigation={navigation} editable={false} />
+            <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} />
           </View>
         </View>
-
-        
 
         <View>
           {handleCategoryCaca(selectedItem)}
         </View>
 
-        <View style={{ marginTop: 20, }}>
+        <View style={{ marginTop: 20 }}>
           <Text style={styles.titleParameter}>{t('diapers.last7DaysStacked')}</Text>
           {renderChart()}
           <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
             {imagesDiapers.map((image, index) => (
               <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
-                <View style={{ width: 10, height: 10, backgroundColor: stackedData.barColors[index], marginRight: 5 }} />
+                <View style={{ width: 10, height: 10, backgroundColor: (chartData as any).barColors[index], marginRight: 5 }} />
                 <Text>{image.name}</Text>
               </View>
             ))}
@@ -267,6 +199,11 @@ const styles = StyleSheet.create({
   totalLabel: {
     marginTop: 5,
     fontWeight: 'bold',
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 

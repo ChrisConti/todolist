@@ -16,7 +16,6 @@ import Lolipop from './assets/lolipop.svg';
 const Settings = ({ navigation }) => {
   const { user, setUser, babyID, setBabyID, setUserInfo } = useContext(AuthentificationUserContext);
   const { showReviewModalManually, hasReviewed } = useReviewPrompt();
-  const [babyExist, setBabyExist] = useState(babyID ? true : false);
   const [modalVisible, setModalVisible] = useState(false);
   const { t } = useTranslation();
 
@@ -62,40 +61,13 @@ const Settings = ({ navigation }) => {
     Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
   };
 
-  useEffect(() => {
-    //GetUserInfo(queryResult);
-
-  }, [babyExist]);
-
-
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>{t('title.settings') || 'Réglages'}</Text>
+      </View>
+      
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <View>
-          <View>
-            <Text style={styles.titleParameter}>{t('settings.babyOptions')}</Text>
-          </View>
-          <View>
-            {babyExist ? (
-              <>
-                <TouchableOpacity onPress={() => navigation.navigate('BabyState')}>
-                  <ItemParameter title={t('settings.myBaby')} icon="child" />
-                </TouchableOpacity>
-                
-              </>
-            ) : (
-              <View>
-                <TouchableOpacity onPress={() => navigation.navigate('Baby')}>
-                  <ItemParameter title={t('title.addBaby')} icon="plus" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('JoinBaby')}>
-                  <ItemParameter title={t('settings.joinBaby')} icon="share" />
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
-
         <View>
           <View>
             <Text style={styles.titleParameter}>{t('settings.personalOptions')}</Text>
@@ -194,8 +166,22 @@ export default Settings;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: '#FDF1E7',
+  },
+  header: { 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    paddingVertical: 15, 
+    paddingHorizontal: 15, 
+    backgroundColor: '#C75B4A', 
+    paddingTop: 50,
+  },
+  headerTitle: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    color: '#F6F0EB', 
+    fontFamily: 'Pacifico',
+    textAlign: 'center',
   },
   titleParameter: {
     color: '#7A8889',
@@ -205,7 +191,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   contentContainer: {
-
+    padding: 16,
   },
   webview: { flex: 1 },
   webViewcontainer: {

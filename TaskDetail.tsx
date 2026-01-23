@@ -43,7 +43,7 @@ const TaskDetail = ({ route, navigation }) => {
         await updateDoc(doc(db, 'Baby', document.id), { tasks: updatedTasks });
       });
       await Promise.all(updatePromises);
-      navigation.navigate('BabyList');
+      navigation.navigate('MainTabs');
     } catch (error) {
       console.error('Error updating document:', error);
     }
