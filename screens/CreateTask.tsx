@@ -200,9 +200,9 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         labelTask: returnLabel(selectedImage),
         date: time,
         label: label ? label : 0,
-        idCaca: diaperType ?? 0, // Keep for backward compatibility
         // Only include diaperType and diaperContent for diaper tasks (id === 1)
         ...(selectedImage === 1 && diaperType !== null && { diaperType }),
+        ...(selectedImage === 1 && diaperType !== null && { idCaca: diaperType }), // Backward compatibility only if selected
         ...(selectedImage === 1 && diaperContent !== null && { diaperContent }),
         boobLeft: breastfeedingMode === 'manual' ? manualMinutesLeft * 60 : timer1,
         boobRight: breastfeedingMode === 'manual' ? manualMinutesRight * 60 : timer2,

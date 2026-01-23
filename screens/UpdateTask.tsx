@@ -165,9 +165,9 @@ const UpdateTask = ({ route, navigation }) => {
               id: selectedImage,
               date: time,
               label: label || 0,
-              idCaca: diaperType ?? 0, // Keep for backward compatibility
               // Only include diaperType and diaperContent for diaper tasks (id === 1)
               ...(selectedImage === 1 && diaperType !== null && { diaperType }),
+              ...(selectedImage === 1 && diaperType !== null && { idCaca: diaperType }), // Backward compatibility only if selected
               ...(selectedImage === 1 && diaperContent !== null && { diaperContent }),
               boobLeft: breastfeedingMode === 'manual' ? manualMinutesLeft * 60 : timer1,
               boobRight: breastfeedingMode === 'manual' ? manualMinutesRight * 60 : timer2,
@@ -179,6 +179,15 @@ const UpdateTask = ({ route, navigation }) => {
             // Remove diaper fields if not a diaper task (to avoid undefined in Firestore)
             if (selectedImage !== 1) {
               delete updatedTask.diaperType;
+              delete updatedTask.diaperContent;
+              delete updatedTask.idCaca;
+            }
+            // Remove diaper fields if user deselected them
+            if (selectedImage === 1 && diaperType === null) {
+              delete updatedTask.diaperType;
+              delete updatedTask.idCaca;
+            }
+            if (selectedImage === 1 && diaperContent === null) {
               delete updatedTask.diaperContent;
             }
             return updatedTask;

@@ -118,12 +118,17 @@ const Card = ({ task, navigation, editable }) => {
       }
 
       // Fallback to diaperType if no diaperContent
-      const diaperType = task.diaperType ?? task.idCaca ?? 0;
-      return (
-        <Text style={{ color: '#F6F0EB', fontSize: 15 }}>
-          {imagesDiapers[diaperType].name}
-        </Text>
-      );
+      const diaperType = task.diaperType ?? task.idCaca;
+      if (diaperType !== undefined && diaperType !== null) {
+        return (
+          <Text style={{ color: '#F6F0EB', fontSize: 15 }}>
+            {imagesDiapers[diaperType].name}
+          </Text>
+        );
+      }
+
+      // If neither diaperContent nor diaperType is set, show nothing
+      return <Text style={{ color: '#F6F0EB', fontSize: 15 }}>-</Text>;
     }
     return <Text>{task.label}</Text>;
   };
