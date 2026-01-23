@@ -94,26 +94,35 @@ const Card = ({ task, navigation, editable }) => {
     }
     // Support both new diaperType and legacy idCaca for backward compatibility
     if (task.id == 1) {
-      const diaperType = task.diaperType ?? task.idCaca ?? 0;
       const diaperContent = task.diaperContent;
 
-      // Display diaper content icon if available
-      let contentIcon = '';
-      if (diaperContent === 0) contentIcon = '💧 ';
-      else if (diaperContent === 1) contentIcon = '💩 ';
-      else if (diaperContent === 2) contentIcon = '💧💩 ';
-
-      return (
-        <View style={{ flexDirection: 'column', alignItems: 'flex-end' }}>
-          {contentIcon && (
-            <Text style={{ color: '#F6F0EB', fontSize: 20, marginBottom: 2 }}>
-              {contentIcon}
-            </Text>
-          )}
-          <Text style={{ color: '#F6F0EB', fontSize: 15 }}>
-            {imagesDiapers[diaperType].name}
+      // Display diaper content with icon and text
+      if (diaperContent === 0) {
+        return (
+          <Text style={{ color: '#F6F0EB', fontSize: 20 }}>
+            💧 {t('diapers.pee')}
           </Text>
-        </View>
+        );
+      } else if (diaperContent === 1) {
+        return (
+          <Text style={{ color: '#F6F0EB', fontSize: 20 }}>
+            💩 {t('diapers.poop')}
+          </Text>
+        );
+      } else if (diaperContent === 2) {
+        return (
+          <Text style={{ color: '#F6F0EB', fontSize: 20 }}>
+            💧💩 {t('diapers.both')}
+          </Text>
+        );
+      }
+
+      // Fallback to diaperType if no diaperContent
+      const diaperType = task.diaperType ?? task.idCaca ?? 0;
+      return (
+        <Text style={{ color: '#F6F0EB', fontSize: 15 }}>
+          {imagesDiapers[diaperType].name}
+        </Text>
       );
     }
     return <Text>{task.label}</Text>;
