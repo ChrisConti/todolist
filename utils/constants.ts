@@ -58,3 +58,12 @@ export const COLORS = {
   TEXT_PRIMARY: '#333',
   TEXT_SECONDARY: '#666',
 } as const;
+
+// Keyboard Configuration
+// Using 'padding' behavior works consistently across both platforms
+// The offset accounts for the navigation header height
+export const KEYBOARD_CONFIG = {
+  BEHAVIOR: 'padding' as const,
+  IOS_OFFSET: 90,
+  ANDROID_OFFSET: 90, // Using same offset for consistency
+} as const;

@@ -31,11 +31,9 @@ android.enablePngCrunchInReleaseBuilds=true
 # ./gradlew <task> -PreactNativeArchitectures=x86_64
 reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
 
-# Use this property to enable support to the new architecture.
-# This will allow you to use TurboModules and the Fabric render in
-# your application. You should enable this flag either if you want
-# to write custom TurboModules/Fabric components OR use libraries that
-# are providing them.
+# Use this property to specify which architecture you want to build.
+# You can also override it from the CLI using
+# ./gradlew <task> -PreactNativeArchitectures=x86_64
 newArchEnabled=false
 
 # Use this property to enable or disable the Hermes JS engine.
@@ -57,7 +55,9 @@ EX_DEV_CLIENT_NETWORK_INSPECTOR=true
 expo.useLegacyPackaging=false
 
 
+# IMPORTANT: Fill these with your actual keystore credentials
+# Do NOT commit the actual credentials to version control
 MYAPP_UPLOAD_STORE_FILE=my-tribubaby-key.jks
 MYAPP_UPLOAD_KEY_ALIAS=tribubaby
-MYAPP_UPLOAD_STORE_PASSWORD=
-MYAPP_UPLOAD_KEY_PASSWORD=
+MYAPP_UPLOAD_STORE_PASSWORD=YOUR_KEYSTORE_PASSWORD_HERE
+MYAPP_UPLOAD_KEY_PASSWORD=YOUR_KEY_PASSWORD_HERE

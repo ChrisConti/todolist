@@ -16,6 +16,9 @@ web-build/
 *.key
 *.mobileprovision
 
+# Android signing
+android/gradle.properties
+
 # Metro
 .metro-health-check*
 

@@ -5,6 +5,7 @@ import { db, userRef } from '../config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
 import { getAuth, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
+import { KEYBOARD_CONFIG } from '../utils/constants';
 
 
 const ChangeEmail = ({ route, navigation }) => {
@@ -69,8 +70,8 @@ const ChangeEmail = ({ route, navigation }) => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      behavior={KEYBOARD_CONFIG.BEHAVIOR}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>

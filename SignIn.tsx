@@ -6,6 +6,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { addDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import analytics from './services/analytics';
 import * as Localization from 'expo-localization';
+import { KEYBOARD_CONFIG } from './utils/constants';
 
 const SignIn = ({ navigation }) => {
   const { t } = useTranslation();
@@ -158,8 +159,8 @@ const SignIn = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      behavior={KEYBOARD_CONFIG.BEHAVIOR}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView

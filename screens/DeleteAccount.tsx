@@ -6,6 +6,7 @@ import { babiesRef, userRef } from '../config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider, deleteUser, signOut } from 'firebase/auth';
+import { KEYBOARD_CONFIG } from '../utils/constants';
 
 const DeleteAccount = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -149,8 +150,8 @@ const DeleteAccount = ({ route, navigation }) => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      behavior={KEYBOARD_CONFIG.BEHAVIOR}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>

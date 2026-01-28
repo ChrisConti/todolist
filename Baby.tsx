@@ -12,7 +12,7 @@ import analytics from './services/analytics';
 import Boy from './assets/garcon.svg';
 import Girl from './assets/fille.svg';
 import { validateBabyName, validateBirthdate, formatBirthdateInput, validateWeight, validateHeight } from './utils/validation';
-import { BABY_TYPES, COLLECTIONS } from './utils/constants';
+import { BABY_TYPES, COLLECTIONS, KEYBOARD_CONFIG } from './utils/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome } from '@expo/vector-icons';
 
@@ -255,10 +255,10 @@ const Baby = ({ navigation }) => {
     };
 
     return (
-        <KeyboardAvoidingView 
-            style={{ flex: 1, backgroundColor: '#FDF1E7' }} 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        <KeyboardAvoidingView
+            style={{ flex: 1, backgroundColor: '#FDF1E7' }}
+            behavior={KEYBOARD_CONFIG.BEHAVIOR}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
         >
             <ScrollView
                 style={{ flex: 1 }}

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import ModalReviewPrompt from '../components/ModalReviewPrompt';
 import analytics from '../services/analytics';
 import { log } from '../utils/logger';
@@ -13,6 +13,10 @@ interface ReviewPromptContextType {
 }
 
 const ReviewPromptContext = createContext<ReviewPromptContextType | undefined>(undefined);
+
+// App Store and Play Store URLs
+const APP_STORE_URL = 'https://apps.apple.com/app/id6740452792?action=write-review';
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.tribubaby.tribubaby';
 
 export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const authContext = useContext(AuthentificationUserContext);
@@ -123,30 +127,35 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const handleRate = useCallback(async () => {
     if (!user?.uid) return;
-    
+
     try {
-      const appStoreUrl = 'https://apps.apple.com/app/id6740452792?action=write-review';
-      
+      // Use platform-specific store URL
+      const storeUrl = Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL;
+      const storeName = Platform.OS === 'ios' ? 'App Store' : 'Play Store';
+
       // Vérifier si on peut ouvrir l'URL avant de continuer
-      const canOpen = await Linking.canOpenURL(appStoreUrl);
-      
+      const canOpen = await Linking.canOpenURL(storeUrl);
+
       if (!canOpen) {
-        log.warn('Cannot open App Store URL', 'ReviewPromptContext');
+        log.warn(`Cannot open ${storeName} URL`, 'ReviewPromptContext');
         setShowReviewModal(false);
         return;
       }
-      
-      analytics.logEvent('review_write_clicked');
-      await Linking.openURL(appStoreUrl);
-      
+
+      analytics.logEvent('review_write_clicked', {
+        platform: Platform.OS,
+        store_url: storeUrl,
+      });
+      await Linking.openURL(storeUrl);
+
       // Marquer définitivement que l'utilisateur a reviewé (uniquement si ouverture réussie)
       await AsyncStorage.setItem(`has_reviewed_app_${user.uid}`, 'true');
       setHasReviewed(true);
       setShowReviewModal(false);
-      
-      log.info('User clicked to write review', 'ReviewPromptContext');
+
+      log.info(`User clicked to write review on ${storeName}`, 'ReviewPromptContext');
     } catch (error) {
-      log.error('Failed to open App Store', 'ReviewPromptContext', error);
+      log.error(`Failed to open ${Platform.OS === 'ios' ? 'App Store' : 'Play Store'}`, 'ReviewPromptContext', error);
       setShowReviewModal(false);
     }
   }, [user?.uid]);

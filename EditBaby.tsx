@@ -32,6 +32,7 @@ import {
 import analytics from './services/analytics';
 import Boy from './assets/garcon.svg';
 import Girl from './assets/fille.svg';
+import { KEYBOARD_CONFIG } from './utils/constants';
 
 const EditBaby = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -434,8 +435,8 @@ const EditBaby = ({ navigation, route }) => {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      behavior={KEYBOARD_CONFIG.BEHAVIOR}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
     >
       <ScrollView
         ref={scrollViewRef}

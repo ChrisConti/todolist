@@ -6,6 +6,7 @@ import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
 import analytics from './services/analytics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { KEYBOARD_CONFIG } from './utils/constants';
 
 
 const JoinBaby = ({ navigation }) => {
@@ -83,10 +84,10 @@ const JoinBaby = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      behavior={KEYBOARD_CONFIG.BEHAVIOR}
       style={styles.container}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
     >
       <View style={{ flex: 1, padding: 10 }}>
         <TextInput

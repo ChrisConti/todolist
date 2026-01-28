@@ -21,6 +21,7 @@ import Couche from '../assets/couche-color.svg';
 import Sante from '../assets/sante-color.svg';
 import Biberon from '../assets/biberon-color.svg';
 import analytics from '../services/analytics';
+import { KEYBOARD_CONFIG } from '../utils/constants';
 
 
 interface CreateTaskProps {
@@ -537,10 +538,10 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
 
   return (
     <>
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={KEYBOARD_CONFIG.BEHAVIOR}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
       >
         <View style={{ flex: 1, backgroundColor: '#FDF1E7', alignItems: 'center', paddingTop: 10, }}>
           <ScrollView
