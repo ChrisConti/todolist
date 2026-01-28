@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { auth, db } from './config';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import analytics from './services/analytics';
 import * as Localization from 'expo-localization';
 
@@ -17,7 +17,6 @@ const SignIn = ({ navigation }) => {
   const emailInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    analytics.logScreenView('SignIn');
     // Auto-focus sur le champ email
     setTimeout(() => emailInputRef.current?.focus(), 100);
   }, []);
@@ -52,25 +51,49 @@ const SignIn = ({ navigation }) => {
     try {
       // Créer l'utilisateur dans Firebase Auth et Firestore de manière atomique
       const res = await createUserWithEmailAndPassword(auth, email.trim(), password);
-      
+
       try {
         // Récupérer le pays de l'utilisateur
         const userCountry = Localization.region || 'Unknown';
-        
-        // CRITIQUE : Créer le document User dans Firestore
-        const userDocRef = await addDoc(collection(db, "Users"), {
-          userId: res.user.uid,
-          email: res.user.email,
-          username: trimmedName,
-          BabyID: '',
-          country: userCountry,
-          creationDate: new Date(),
-        });
-        
-        console.log('✅ User document created successfully:', userDocRef.id);
-        
+
+        // Vérifier si un document User existe déjà pour cet userId
+        const userQuery = query(
+          collection(db, "Users"),
+          where('userId', '==', res.user.uid)
+        );
+        const userSnapshot = await getDocs(userQuery);
+
+        if (!userSnapshot.empty) {
+          // Document User existe déjà - situation anormale, il faut faire un rollback
+          console.error('❌ User document already exists for:', res.user.uid);
+
+          // ROLLBACK : Supprimer le compte Auth qu'on vient de créer
+          try {
+            await res.user.delete();
+            console.log('🔄 Auth user deleted - document already existed');
+          } catch (deleteError) {
+            console.error('❌ CRITICAL: Failed to delete auth user', deleteError);
+          }
+
+          setError(t('error.userDocumentExists') || 'An account already exists. Please try logging in.');
+          setLoading(false);
+          return;
+        } else {
+          // CRITIQUE : Créer le document User dans Firestore
+          const userDocRef = await addDoc(collection(db, "Users"), {
+            userId: res.user.uid,
+            email: res.user.email,
+            username: trimmedName,
+            BabyID: '',
+            country: userCountry,
+            creationDate: new Date(),
+          });
+
+          console.log('✅ User document created successfully:', userDocRef.id);
+        }
+
         analytics.logEvent('user_signup', {
-          userId: res.user.uid,
+          user_id: res.user.uid,
           method: 'email',
           country: userCountry
         });
@@ -79,10 +102,18 @@ const SignIn = ({ navigation }) => {
         
         // onAuthStateChanged dans App.tsx va gérer la navigation automatique
         
-      } catch (firestoreError) {
+      } catch (firestoreError: any) {
         // ROLLBACK : Si Firestore échoue, supprimer l'utilisateur Auth
         console.error('❌ Failed to create User document, rolling back auth user', firestoreError);
-        
+
+        // Vérifier si c'est l'erreur "document already exists"
+        if (firestoreError.message && firestoreError.message.includes('Document already exists')) {
+          console.log('⚠️ Document already exists - this should not happen with the check above');
+          setError(t('error.userDocumentExists') || 'An account already exists. Please try logging in.');
+          setLoading(false);
+          return;
+        }
+
         try {
           await res.user.delete();
           console.log('🔄 Auth user deleted after Firestore failure');
@@ -93,13 +124,13 @@ const SignIn = ({ navigation }) => {
           setLoading(false);
           return;
         }
-        
+
         setError(t('error.databaseError') || 'Database error. Please try again later.');
         setLoading(false);
-        
+
         analytics.logEvent('signup_error', {
-          errorCode: 'firestore_creation_failed',
-          errorType: 'firestore_error'
+          error_code: 'firestore_creation_failed',
+          error_type: 'firestore_error'
         });
       }
     } catch (error: any) {
@@ -117,85 +148,101 @@ const SignIn = ({ navigation }) => {
       }
       
       analytics.logEvent('signup_error', {
-        errorCode: error.code,
-        errorType: error.code === "auth/email-already-in-use" ? 'email_in_use' : 
+        error_code: error.code,
+        error_type: error.code === "auth/email-already-in-use" ? 'email_in_use' :
                    error.code === "auth/network-request-failed" ? 'network_error' : 'general'
       });
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
-          <View>
-            <TextInput
-              ref={emailInputRef}
-              style={styles.input}
-              placeholder={t('placeholder.email')}
-              keyboardType="email-address"
-              textContentType="emailAddress"
-              autoComplete="email"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
-          <TextInput
-            style={styles.input}
-            placeholder={t('placeholder.password')}
-            secureTextEntry={true}
-            autoCorrect={false}
-            autoCapitalize="none"
-            textContentType="password"
-            autoComplete="password-new"
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder={t('placeholder.name')}
-            autoCapitalize="none"
-            value={name}
-            onChangeText={setName}
-          />
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.container}>
+            <View style={styles.inputContainer}>
+              <TextInput
+                ref={emailInputRef}
+                style={styles.input}
+                placeholder={t('placeholder.email')}
+                keyboardType="email-address"
+                textContentType="emailAddress"
+                autoComplete="email"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+                editable={!loading}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder={t('placeholder.password')}
+                secureTextEntry={true}
+                autoCorrect={false}
+                autoCapitalize="none"
+                textContentType="password"
+                autoComplete="password-new"
+                value={password}
+                onChangeText={setPassword}
+                editable={!loading}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder={t('placeholder.name')}
+                autoCapitalize="words"
+                value={name}
+                onChangeText={setName}
+                editable={!loading}
+              />
+            </View>
 
-        <View style={{
-          position: 'absolute',
-          bottom: 10,
-          left: 0,
-          right: 0,
-          backgroundColor: 'transparent',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          flexDirection: 'column',
-        }}>
-           <Text>{t('conditions.label')}</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')} style={{}}>
-            <Text style={{color:'#C75B4A', alignSelf:'center'}}>{t('settings.privacyPolicy')}</Text> 
-          </TouchableOpacity> 
-          <TouchableOpacity onPress={() => navigation.navigate('TermsOfUse')} style={{}}>
-            <Text style={{color:'#C75B4A', alignSelf:'center'}}>{t('settings.termsOfUse')}</Text> 
-          </TouchableOpacity> 
-          <Text style={styles.errorText}>{userError}</Text>
-          <TouchableOpacity 
-            style={[styles.button, loading && styles.buttonDisabled]} 
-            onPress={onHandleRegister}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#F6F0EB" />
-            ) : (
-              <Text style={styles.buttonText}>{t('button.submit')}</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
-    </TouchableWithoutFeedback>
+            <View style={styles.footerContainer}>
+              <Text style={styles.conditionsLabel}>{t('conditions.label')}</Text>
+
+              <View style={styles.linksContainer}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('PrivacyPolicy')}
+                  disabled={loading}
+                >
+                  <Text style={styles.linkText}>{t('settings.privacyPolicy')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('TermsOfUse')}
+                  disabled={loading}
+                  style={styles.linkSpacing}
+                >
+                  <Text style={styles.linkText}>{t('settings.termsOfUse')}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {userError !== '' && (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{userError}</Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={onHandleRegister}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#F6F0EB" />
+                ) : (
+                  <Text style={styles.buttonText}>{t('button.submit')}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };
@@ -203,21 +250,62 @@ const SignIn = ({ navigation }) => {
 export default SignIn;
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    backgroundColor: '#FDF1E7',
+  },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
+    padding: 20,
     backgroundColor: '#FDF1E7',
+    justifyContent: 'space-between',
+  },
+  inputContainer: {
+    marginTop: 20,
   },
   input: {
     width: '100%',
     height: 50,
-    borderBottomWidth: 1,
+    borderWidth: 1,
     borderColor: '#C75B4A',
     borderRadius: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    backgroundColor: '#FFFFFF',
+  },
+  footerContainer: {
+    alignItems: 'center',
+    paddingBottom: 20,
+  },
+  conditionsLabel: {
+    color: '#7A8889',
+    fontSize: 14,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  linksContainer: {
     marginBottom: 20,
+    alignItems: 'center',
+  },
+  linkText: {
+    color: '#C75B4A',
+    fontSize: 15,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  linkSpacing: {
+    marginTop: 10,
+  },
+  errorContainer: {
+    marginBottom: 15,
+    width: '100%',
+    paddingHorizontal: 10,
+  },
+  errorText: {
+    color: '#FFD700',
+    fontSize: 16,
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   button: {
     backgroundColor: '#C75B4A',
@@ -225,21 +313,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'center',
     width: 250,
+    minHeight: 48,
   },
   buttonDisabled: {
-    backgroundColor: '#D8ABA0',
-    opacity: 0.7,
+    opacity: 0.6,
   },
   buttonText: {
     color: '#F6F0EB',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'Pacifico',
   },
 });

@@ -8,8 +8,19 @@ const isToday = (date: string) => moment(date, 'YYYY-MM-DD HH:mm:ss').isSame(mom
 const isYesterday = (date: string) => moment(date, 'YYYY-MM-DD HH:mm:ss').isSame(moment().subtract(1, 'day'), 'day');
 const isInLastNDays = (date: string, days: number) => moment(date, 'YYYY-MM-DD HH:mm:ss').isAfter(moment().subtract(days, 'days'));
 
+// Performance optimization: Create stable signature for tasks array
+// This prevents unnecessary recalculations when tasks array reference changes
+// but content is the same
+const createTasksSignature = (tasks: Task[]): string => {
+  if (!tasks || tasks.length === 0) return 'empty';
+  return tasks.map(t => `${t.uid}-${t.date}-${t.label || ''}`).join('|');
+};
+
 // Hook pour Biberon
 export const useBiberonStats = (tasks: Task[]): TaskStatistics => {
+  // Performance optimization: use stable signature instead of tasks array reference
+  const tasksSignature = useMemo(() => createTasksSignature(tasks), [tasks]);
+
   return useMemo(() => {
     if (!tasks || tasks.length === 0) {
       return {
@@ -62,11 +73,14 @@ export const useBiberonStats = (tasks: Task[]): TaskStatistics => {
       isLoading: false,
       error: null
     };
-  }, [tasks]);
+  }, [tasksSignature, tasks]);
 };
 
 // Hook pour Sommeil
 export const useSommeilStats = (tasks: Task[]): TaskStatistics => {
+  // Performance optimization: use stable signature instead of tasks array reference
+  const tasksSignature = useMemo(() => createTasksSignature(tasks), [tasks]);
+
   return useMemo(() => {
     if (!tasks || tasks.length === 0) {
       return {
@@ -119,11 +133,14 @@ export const useSommeilStats = (tasks: Task[]): TaskStatistics => {
       isLoading: false,
       error: null
     };
-  }, [tasks]);
+  }, [tasksSignature, tasks]);
 };
 
 // Hook pour Température avec min/max
 export const useThermoStats = (tasks: Task[], language: string = 'en') => {
+  // Performance optimization: use stable signature instead of tasks array reference
+  const tasksSignature = useMemo(() => createTasksSignature(tasks), [tasks]);
+
   return useMemo(() => {
     if (!tasks || tasks.length === 0) {
       return {
@@ -206,14 +223,26 @@ export const useThermoStats = (tasks: Task[], language: string = 'en') => {
       isLoading: false,
       error: null
     };
-  }, [tasks, language]);
+  }, [tasksSignature, tasks, language]);
 };
 
 // Hook pour Diaper
 export const useDiaperStats = (tasks: Task[], t: (key: string) => string) => {
+  // Performance optimization: use stable signature instead of tasks array reference
+  const tasksSignature = useMemo(() => createTasksSignature(tasks), [tasks]);
+
   return useMemo(() => {
     if (!tasks || tasks.length === 0) {
       return {
+        dailyCountStats: {
+          today: 0,
+          yesterday: 0,
+          lastPeriod: 0
+        },
+        countChartData: {
+          labels: [],
+          datasets: [{ data: [] }]
+        },
         dailyStats: {
           today: { 0: 0, 1: 0, 2: 0 },
           yesterday: { 0: 0, 1: 0, 2: 0 },
@@ -247,6 +276,11 @@ export const useDiaperStats = (tasks: Task[], t: (key: string) => string) => {
       };
     }
 
+    // General count stats (all diaper tasks)
+    let todayCount = 0;
+    let yesterdayCount = 0;
+    let lastSevenDaysCount = 0;
+
     let todaySum = { 0: 0, 1: 0, 2: 0 };
     let yesterdaySum = { 0: 0, 1: 0, 2: 0 };
     let lastSevenDaysSum = { 0: 0, 1: 0, 2: 0 };
@@ -257,6 +291,7 @@ export const useDiaperStats = (tasks: Task[], t: (key: string) => string) => {
     let lastSevenDaysContentSum = { 0: 0, 1: 0, 2: 0 };
 
     let mostRecentTask: Task | null = null;
+    let lastSevenDaysCountData = Array(7).fill(0);
     let lastSevenDaysData = {
       0: Array(7).fill(0),
       1: Array(7).fill(0),
@@ -276,22 +311,36 @@ export const useDiaperStats = (tasks: Task[], t: (key: string) => string) => {
 
     tasks.forEach((task) => {
       const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
-      // Support both new diaperType and legacy idCaca for backward compatibility
-      const diaperType = task.diaperType ?? task.idCaca;
 
-      if (diaperType === undefined || diaperType < 0 || diaperType > 2) return;
+      // General count - all diaper tasks
+      if (isToday(task.date)) todayCount += 1;
+      if (isYesterday(task.date)) yesterdayCount += 1;
+      if (isInLastNDays(task.date, 7)) lastSevenDaysCount += 1;
 
-      if (isToday(task.date)) todaySum[diaperType] += 1;
-      if (isYesterday(task.date)) yesterdaySum[diaperType] += 1;
-      if (isInLastNDays(task.date, 7)) lastSevenDaysSum[diaperType] += 1;
-
+      // Track general count per day
       for (let i = 0; i < 7; i++) {
         if (taskDate.isSame(moment().subtract(i, 'days'), 'day')) {
-          lastSevenDaysData[diaperType][6 - i] += 1;
+          lastSevenDaysCountData[6 - i] += 1;
         }
       }
 
-      // Track diaperContent stats
+      // Support both new diaperType and legacy idCaca for backward compatibility
+      const diaperType = task.diaperType ?? task.idCaca;
+
+      // Track diaperType stats (if available)
+      if (diaperType !== undefined && diaperType >= 0 && diaperType <= 2) {
+        if (isToday(task.date)) todaySum[diaperType] += 1;
+        if (isYesterday(task.date)) yesterdaySum[diaperType] += 1;
+        if (isInLastNDays(task.date, 7)) lastSevenDaysSum[diaperType] += 1;
+
+        for (let i = 0; i < 7; i++) {
+          if (taskDate.isSame(moment().subtract(i, 'days'), 'day')) {
+            lastSevenDaysData[diaperType][6 - i] += 1;
+          }
+        }
+      }
+
+      // Track diaperContent stats (if available)
       const diaperContent = task.diaperContent;
       if (diaperContent !== undefined && diaperContent >= 0 && diaperContent <= 2) {
         if (isToday(task.date)) todayContentSum[diaperContent] += 1;
@@ -305,12 +354,25 @@ export const useDiaperStats = (tasks: Task[], t: (key: string) => string) => {
         }
       }
 
+      // Always track most recent task
       if (!mostRecentTask || taskDate.isAfter(moment(mostRecentTask.date, 'YYYY-MM-DD HH:mm:ss'))) {
         mostRecentTask = task;
       }
     });
 
     return {
+      dailyCountStats: {
+        today: todayCount,
+        yesterday: yesterdayCount,
+        lastPeriod: lastSevenDaysCount
+      },
+      countChartData: {
+        labels: labels.map(label => moment(label).format('DD')),
+        datasets: [{
+          data: lastSevenDaysCountData,
+          color: (opacity = 1) => `rgba(199, 91, 74, ${opacity})` // #C75B4A
+        }]
+      },
       dailyStats: {
         today: todaySum,
         yesterday: yesterdaySum,
@@ -359,11 +421,126 @@ export const useDiaperStats = (tasks: Task[], t: (key: string) => string) => {
       isLoading: false,
       error: null
     };
-  }, [tasks, t]);
+  }, [tasksSignature, tasks, t]);
+};
+
+// Hook pour Biberon - Mode Comptage
+export const useBiberonCountStats = (tasks: Task[]): TaskStatistics => {
+  const tasksSignature = useMemo(() => createTasksSignature(tasks), [tasks]);
+
+  return useMemo(() => {
+    if (!tasks || tasks.length === 0) {
+      return {
+        dailyStats: { today: 0, yesterday: 0, lastPeriod: 0 },
+        chartData: { labels: [], datasets: [{ data: [] }] },
+        lastTask: null,
+        isLoading: false,
+        error: null
+      };
+    }
+
+    let todayCount = 0;
+    let yesterdayCount = 0;
+    let lastSevenDaysCount = 0;
+    let mostRecentTask: Task | null = null;
+    let lastSevenDaysData = Array(7).fill(0);
+    let labels = [];
+
+    for (let i = 0; i < 7; i++) {
+      labels.push(moment().subtract(i, 'days').format('YYYY-MM-DD'));
+    }
+
+    tasks.forEach((task) => {
+      if (isToday(task.date)) todayCount += 1;
+      if (isYesterday(task.date)) yesterdayCount += 1;
+      if (isInLastNDays(task.date, 7)) lastSevenDaysCount += 1;
+
+      for (let i = 0; i < 7; i++) {
+        if (moment(task.date, 'YYYY-MM-DD HH:mm:ss').isSame(moment().subtract(i, 'days'), 'day')) {
+          lastSevenDaysData[i] += 1;
+        }
+      }
+
+      const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
+      if (!mostRecentTask || taskDate.isAfter(moment(mostRecentTask.date, 'YYYY-MM-DD HH:mm:ss'))) {
+        mostRecentTask = task;
+      }
+    });
+
+    return {
+      dailyStats: { today: todayCount, yesterday: yesterdayCount, lastPeriod: lastSevenDaysCount },
+      chartData: {
+        labels: labels.map(label => moment(label).format('DD')),
+        datasets: [{ data: lastSevenDaysData }]
+      },
+      lastTask: mostRecentTask,
+      isLoading: false,
+      error: null
+    };
+  }, [tasksSignature, tasks]);
+};
+
+// Hook pour Sommeil - Mode Comptage
+export const useSommeilCountStats = (tasks: Task[]): TaskStatistics => {
+  const tasksSignature = useMemo(() => createTasksSignature(tasks), [tasks]);
+
+  return useMemo(() => {
+    if (!tasks || tasks.length === 0) {
+      return {
+        dailyStats: { today: 0, yesterday: 0, lastPeriod: 0 },
+        chartData: { labels: [], datasets: [{ data: [] }] },
+        lastTask: null,
+        isLoading: false,
+        error: null
+      };
+    }
+
+    let todayCount = 0;
+    let yesterdayCount = 0;
+    let lastSevenDaysCount = 0;
+    let mostRecentTask: Task | null = null;
+    let lastSevenDaysData = Array(7).fill(0);
+    let labels = [];
+
+    for (let i = 0; i < 7; i++) {
+      labels.push(moment().subtract(i, 'days').format('YYYY-MM-DD'));
+    }
+
+    tasks.forEach((task) => {
+      if (isToday(task.date)) todayCount += 1;
+      if (isYesterday(task.date)) yesterdayCount += 1;
+      if (isInLastNDays(task.date, 7)) lastSevenDaysCount += 1;
+
+      for (let i = 0; i < 7; i++) {
+        if (moment(task.date, 'YYYY-MM-DD HH:mm:ss').isSame(moment().subtract(i, 'days'), 'day')) {
+          lastSevenDaysData[i] += 1;
+        }
+      }
+
+      const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
+      if (!mostRecentTask || taskDate.isAfter(moment(mostRecentTask.date, 'YYYY-MM-DD HH:mm:ss'))) {
+        mostRecentTask = task;
+      }
+    });
+
+    return {
+      dailyStats: { today: todayCount, yesterday: yesterdayCount, lastPeriod: lastSevenDaysCount },
+      chartData: {
+        labels: labels.map(label => moment(label).format('DD')).reverse(),
+        datasets: [{ data: lastSevenDaysData.reverse() }]
+      },
+      lastTask: mostRecentTask,
+      isLoading: false,
+      error: null
+    };
+  }, [tasksSignature, tasks]);
 };
 
 // Hook pour Allaitement
 export const useAllaitementStats = (tasks: Task[]) => {
+  // Performance optimization: use stable signature instead of tasks array reference
+  const tasksSignature = useMemo(() => createTasksSignature(tasks), [tasks]);
+
   return useMemo(() => {
     if (!tasks || tasks.length === 0) {
       return {
@@ -453,5 +630,100 @@ export const useAllaitementStats = (tasks: Task[]) => {
       isLoading: false,
       error: null
     };
-  }, [tasks]);
+  }, [tasksSignature, tasks]);
+};
+
+// Hook pour Allaitement - Mode Comptage
+export const useAllaitementCountStats = (tasks: Task[]) => {
+  const tasksSignature = useMemo(() => createTasksSignature(tasks), [tasks]);
+
+  return useMemo(() => {
+    if (!tasks || tasks.length === 0) {
+      return {
+        dailyStats: {
+          today: { boobLeft: 0, boobRight: 0, total: 0 },
+          yesterday: { boobLeft: 0, boobRight: 0, total: 0 },
+          lastPeriod: { boobLeft: 0, boobRight: 0, total: 0 }
+        },
+        chartData: {
+          labels: [],
+          boobLeft: [],
+          boobRight: [],
+          total: []
+        },
+        lastTask: null,
+        isLoading: false,
+        error: null
+      };
+    }
+
+    const allaitementTasks = tasks.filter(task => task.id === 5);
+
+    let todayCount = { boobLeft: 0, boobRight: 0, total: 0 };
+    let yesterdayCount = { boobLeft: 0, boobRight: 0, total: 0 };
+    let lastSevenDaysCount = { boobLeft: 0, boobRight: 0, total: 0 };
+    let mostRecentTask: Task | null = null;
+    let lastSevenDaysData = {
+      boobLeft: Array(7).fill(0),
+      boobRight: Array(7).fill(0),
+      total: Array(7).fill(0),
+    };
+    let labels = [];
+
+    for (let i = 0; i < 7; i++) {
+      labels.push(moment().subtract(i, 'days').format('YYYY-MM-DD'));
+    }
+    labels.reverse();
+
+    allaitementTasks.forEach((task) => {
+      const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
+      const hasLeft = task.boobLeft && task.boobLeft > 0;
+      const hasRight = task.boobRight && task.boobRight > 0;
+
+      if (isToday(task.date)) {
+        if (hasLeft) todayCount.boobLeft += 1;
+        if (hasRight) todayCount.boobRight += 1;
+        todayCount.total += 1;
+      }
+      if (isYesterday(task.date)) {
+        if (hasLeft) yesterdayCount.boobLeft += 1;
+        if (hasRight) yesterdayCount.boobRight += 1;
+        yesterdayCount.total += 1;
+      }
+      if (isInLastNDays(task.date, 7)) {
+        if (hasLeft) lastSevenDaysCount.boobLeft += 1;
+        if (hasRight) lastSevenDaysCount.boobRight += 1;
+        lastSevenDaysCount.total += 1;
+      }
+
+      for (let i = 0; i < 7; i++) {
+        if (taskDate.isSame(moment().subtract(i, 'days'), 'day')) {
+          if (hasLeft) lastSevenDaysData.boobLeft[6 - i] += 1;
+          if (hasRight) lastSevenDaysData.boobRight[6 - i] += 1;
+          lastSevenDaysData.total[6 - i] += 1;
+        }
+      }
+
+      if (!mostRecentTask || taskDate.isAfter(moment(mostRecentTask.date, 'YYYY-MM-DD HH:mm:ss'))) {
+        mostRecentTask = task;
+      }
+    });
+
+    return {
+      dailyStats: {
+        today: todayCount,
+        yesterday: yesterdayCount,
+        lastPeriod: lastSevenDaysCount
+      },
+      chartData: {
+        labels: labels.map(label => moment(label).format('DD MMM')),
+        boobLeft: lastSevenDaysData.boobLeft,
+        boobRight: lastSevenDaysData.boobRight,
+        total: lastSevenDaysData.total
+      },
+      lastTask: mostRecentTask,
+      isLoading: false,
+      error: null
+    };
+  }, [tasksSignature, tasks]);
 };

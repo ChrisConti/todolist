@@ -24,7 +24,6 @@ const Baby = ({ navigation }) => {
     const [weight, setWeight] = useState('');
     const [height, setHeight] = useState('');
     const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-    const [showOptionalFields, setShowOptionalFields] = useState(false);
     const [userError, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const nameInputRef = useRef<TextInput>(null);
@@ -40,8 +39,6 @@ const Baby = ({ navigation }) => {
     useEffect(() => {
         if (!user) return;
 
-        analytics.logScreenView('Baby');
-        
         // Auto-focus sur le champ nom
         setTimeout(() => nameInputRef.current?.focus(), 100);
     }, []);
@@ -185,17 +182,17 @@ const Baby = ({ navigation }) => {
             }
 
             analytics.logEvent('baby_created', {
-                babyType: images[selectedImage].type,
-                babyId: uniqueId,
-                userId: user.uid,
-                hasPhoto: !!photoURL,
-                hasWeight: !!weightNum,
-                hasHeight: !!heightNum
+                baby_type: images[selectedImage].type,
+                baby_id: uniqueId,
+                user_id: user.uid,
+                has_photo: !!photoURL,
+                has_weight: !!weightNum,
+                has_height: !!heightNum
             });
             console.log('📊 baby_created event sent', {
-                babyType: images[selectedImage].type,
-                babyId: uniqueId,
-                userId: user.uid
+                baby_type: images[selectedImage].type,
+                baby_id: uniqueId,
+                user_id: user.uid
             });
 
             setLoading(false);
@@ -213,9 +210,9 @@ const Baby = ({ navigation }) => {
             }
 
             analytics.logEvent('baby_creation_failed', {
-                babyType: images[selectedImage].type,
-                userId: user.uid,
-                errorCode: error.code || 'unknown',
+                baby_type: images[selectedImage].type,
+                user_id: user.uid,
+                error_code: error.code || 'unknown',
                 error: error instanceof Error ? error.message : 'Unknown error'
             });
         }
@@ -224,6 +221,30 @@ const Baby = ({ navigation }) => {
     const handleChange = (text: string) => {
         const formatted = formatBirthdateInput(text);
         setBirthdate(formatted);
+    };
+
+    const handleWeightChange = (text: string) => {
+        // Ne garder que les chiffres et le point décimal
+        const cleaned = text.replace(/[^0-9.]/g, '');
+        // Empêcher plusieurs points
+        const parts = cleaned.split('.');
+        if (parts.length > 2) {
+            setWeight(parts[0] + '.' + parts.slice(1).join(''));
+        } else {
+            setWeight(cleaned);
+        }
+    };
+
+    const handleHeightChange = (text: string) => {
+        // Ne garder que les chiffres et le point décimal
+        const cleaned = text.replace(/[^0-9.]/g, '');
+        // Empêcher plusieurs points
+        const parts = cleaned.split('.');
+        if (parts.length > 2) {
+            setHeight(parts[0] + '.' + parts.slice(1).join(''));
+        } else {
+            setHeight(cleaned);
+        }
     };
 
     const handleImageSelection = (id) => {
@@ -239,27 +260,33 @@ const Baby = ({ navigation }) => {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
-            <ScrollView 
-                style={{ flex: 1, padding: 10 }}
+            <ScrollView
+                style={{ flex: 1 }}
                 keyboardShouldPersistTaps="handled"
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={styles.scrollContent}
             >
-                <View style={{ justifyContent: 'center' }}>
-                    <View style={{ flexDirection: "row", justifyContent: 'center' }}>
-                        <TouchableOpacity
-                            onPress={() => handleImageSelection(0)}
-                            style={[selectedImage == 0 ? styles.imageSelected : styles.imageNonSelected]}
-                        >
-                            <Boy height={90} width={90} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => handleImageSelection(1)}
-                            style={[selectedImage == 1 ? styles.imageSelected : styles.imageNonSelected]}
-                        >
-                            <Girl height={90} width={90} />
-                        </TouchableOpacity>
-                    </View>
-                    <View>
+                {/* Sélection du sexe */}
+                <View style={styles.sexSelection}>
+                    <TouchableOpacity
+                        onPress={() => handleImageSelection(0)}
+                        style={[selectedImage == 0 ? styles.imageSelected : styles.imageNonSelected]}
+                    >
+                        <Boy height={90} width={90} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => handleImageSelection(1)}
+                        style={[selectedImage == 1 ? styles.imageSelected : styles.imageNonSelected]}
+                    >
+                        <Girl height={90} width={90} />
+                    </TouchableOpacity>
+                </View>
+
+                {/* Section Informations essentielles */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>{t('baby.essentialInfo')}</Text>
+
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>{t('baby.name')}</Text>
                         <TextInput
                             ref={nameInputRef}
                             style={styles.input}
@@ -267,212 +294,188 @@ const Baby = ({ navigation }) => {
                             autoCapitalize="words"
                             value={name}
                             onChangeText={(text) => setName(text)}
+                            editable={!loading}
                         />
                     </View>
 
-                    <View style={styles.container}>
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>{t('baby.birthdate')}</Text>
                         <TextInput
                             style={styles.input}
                             value={birthdate}
                             onChangeText={handleChange}
                             keyboardType="numeric"
                             placeholder={t('placeholder.birthdate')}
-                            maxLength={10} // Maximum length for DD/MM/YYYY
+                            maxLength={10}
+                            editable={!loading}
+                        />
+                    </View>
+                </View>
+
+                {/* Section Informations complémentaires */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>{t('baby.additionalInfo')}</Text>
+                    <Text style={styles.optionalNote}>{t('baby.infoCanBeAddedLater')}</Text>
+
+                    {/* Photo de profil */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.labelOptional}>
+                            {t('baby.addPhoto')} <Text style={styles.optionalTag}>({t('baby.optional')})</Text>
+                        </Text>
+                        {profilePhoto ? (
+                            <View style={styles.photoContainer}>
+                                <Image source={{ uri: profilePhoto }} style={styles.photoPreview} />
+                                <TouchableOpacity
+                                    style={styles.changePhotoButton}
+                                    onPress={pickImage}
+                                    disabled={loading}
+                                >
+                                    <Text style={styles.changePhotoText}>{t('baby.changePhoto')}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <TouchableOpacity
+                                style={styles.addPhotoButton}
+                                onPress={pickImage}
+                                disabled={loading}
+                            >
+                                <FontAwesome name="camera" size={24} color="#C75B4A" />
+                                <Text style={styles.addPhotoText}>{t('baby.selectPhoto')}</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+
+                    {/* Poids */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.labelOptional}>
+                            {t('baby.weight')} <Text style={styles.optionalTag}>({t('baby.optional')})</Text>
+                        </Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder={t('placeholder.weight')}
+                            value={weight}
+                            onChangeText={handleWeightChange}
+                            keyboardType="decimal-pad"
+                            editable={!loading}
                         />
                     </View>
 
-                    {/* Section optionnelle */}
-                    <TouchableOpacity 
-                        style={styles.optionalSection}
-                        onPress={() => setShowOptionalFields(!showOptionalFields)}
-                    >
-                        <Text style={styles.optionalTitle}>{t('baby.optionalInfo')}</Text>
-                        <FontAwesome 
-                            name={showOptionalFields ? 'chevron-up' : 'chevron-down'} 
-                            size={16} 
-                            color="#C75B4A" 
+                    {/* Taille */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.labelOptional}>
+                            {t('baby.height')} <Text style={styles.optionalTag}>({t('baby.optional')})</Text>
+                        </Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder={t('placeholder.height')}
+                            value={height}
+                            onChangeText={handleHeightChange}
+                            keyboardType="decimal-pad"
+                            editable={!loading}
                         />
+                    </View>
+                </View>
+
+                {/* Message d'erreur */}
+                {userError !== '' && (
+                    <View style={styles.errorContainer}>
+                        <Text style={styles.errorText}>{userError}</Text>
+                    </View>
+                )}
+
+                {/* Bouton de validation */}
+                <View style={styles.footer}>
+                    <TouchableOpacity
+                        style={[styles.button, loading && styles.buttonDisabled]}
+                        onPress={handleCreateBaby}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <ActivityIndicator color="#F6F0EB" />
+                        ) : (
+                            <Text style={styles.buttonText}>{t('button.validate')}</Text>
+                        )}
                     </TouchableOpacity>
-                    
-                    {showOptionalFields && (
-                        <View style={styles.optionalFields}>
-                            <Text style={styles.optionalNote}>{t('baby.infoCanBeAddedLater')}</Text>
-                            
-                            {/* Photo de profil */}
-                            <View style={styles.photoSection}>
-                                <Text style={styles.label}>{t('baby.addPhoto')}</Text>
-                                {profilePhoto ? (
-                                    <View style={styles.photoContainer}>
-                                        <Image source={{ uri: profilePhoto }} style={styles.photoPreview} />
-                                        <TouchableOpacity 
-                                            style={styles.changePhotoButton}
-                                            onPress={pickImage}
-                                        >
-                                            <Text style={styles.changePhotoText}>{t('baby.changePhoto')}</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                ) : (
-                                    <TouchableOpacity 
-                                        style={styles.addPhotoButton}
-                                        onPress={pickImage}
-                                    >
-                                        <FontAwesome name="camera" size={24} color="#C75B4A" />
-                                        <Text style={styles.addPhotoText}>{t('baby.selectPhoto')}</Text>
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-
-                            {/* Poids */}
-                            <View>
-                                <Text style={styles.label}>{t('baby.weight')}</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder={t('placeholder.weight')}
-                                    value={weight}
-                                    onChangeText={setWeight}
-                                    keyboardType="decimal-pad"
-                                />
-                            </View>
-
-                            {/* Taille */}
-                            <View>
-                                <Text style={styles.label}>{t('baby.height')}</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder={t('placeholder.height')}
-                                    value={height}
-                                    onChangeText={setHeight}
-                                    keyboardType="decimal-pad"
-                                />
-                            </View>
-                        </View>
-                    )}
                 </View>
             </ScrollView>
-            <View style={styles.footer}>
-                <View>
-                    <Text style={styles.errorText}>{userError}</Text>
-                </View>
-                <TouchableOpacity
-                    style={[styles.button, loading && styles.buttonDisabled]}
-                    onPress={handleCreateBaby}
-                    disabled={loading}
-                >
-                    {loading ? (
-                        <ActivityIndicator color="#F6F0EB" />
-                    ) : (
-                        <Text style={styles.buttonText}>{t('button.validate')}</Text>
-                    )}
-                </TouchableOpacity>
-            </View>
         </KeyboardAvoidingView>
     );
 };
 
 const styles = StyleSheet.create({
+    scrollContent: {
+        padding: 20,
+        paddingBottom: 40,
+    },
+    sexSelection: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginBottom: 30,
+    },
     imageSelected: {
         width: 120,
         height: 120,
-        resizeMode: 'cover',
         borderColor: '#C75B4A',
         borderWidth: 5,
         borderRadius: 60,
         justifyContent: 'center',
         alignItems: 'center',
-        flexDirection: "row",
+        marginHorizontal: 10,
     },
     imageNonSelected: {
         width: 120,
         height: 120,
-        resizeMode: 'cover',
         borderWidth: 5,
         borderRadius: 60,
         justifyContent: 'center',
         alignItems: 'center',
         borderColor: 'transparent',
-        flexDirection: "row",
+        marginHorizontal: 10,
+    },
+    section: {
+        marginBottom: 25,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 10,
+    },
+    inputGroup: {
+        marginBottom: 15,
+    },
+    label: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 8,
+    },
+    labelOptional: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#7A8889',
+        marginBottom: 8,
+    },
+    optionalTag: {
+        fontSize: 13,
+        fontWeight: 'normal',
+        color: '#7A8889',
+        fontStyle: 'italic',
     },
     input: {
         width: '100%',
         height: 50,
-        borderBottomWidth: 1,
+        borderWidth: 1,
         borderColor: '#C75B4A',
         borderRadius: 8,
-        paddingHorizontal: 10,
-        marginBottom: 20,
-    },
-    button: {
-        backgroundColor: '#C75B4A',
-        borderRadius: 8,
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        alignItems: 'center',
-        marginBottom: 20,
-        width: 250,
-    },
-    buttonDisabled: {
-        backgroundColor: '#D8ABA0',
-        opacity: 0.7,
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    errorText: {
-        color: 'red',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    footer: {
-        paddingVertical: 10,
-        paddingHorizontal: 10,
-        backgroundColor: '#FDF1E7',
-        alignItems: 'center',
-        borderTopWidth: 1,
-        borderTopColor: '#E8D5C4',
-    },
-    optionalSection: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 15,
-        paddingHorizontal: 10,
-        marginTop: 10,
+        paddingHorizontal: 15,
         backgroundColor: '#FFF',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#E8D5C4',
-    },
-    optionalTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#C75B4A',
-    },
-    optionalFields: {
-        marginTop: 15,
-        padding: 15,
-        backgroundColor: '#FFF',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#E8D5C4',
     },
     optionalNote: {
         fontSize: 13,
         color: '#7A8889',
         marginBottom: 15,
         fontStyle: 'italic',
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#7A8889',
-        marginBottom: 5,
-        marginTop: 10,
-    },
-    photoSection: {
-        marginBottom: 15,
     },
     photoContainer: {
         alignItems: 'center',
@@ -512,6 +515,40 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontSize: 14,
         fontWeight: '600',
+    },
+    errorContainer: {
+        marginTop: 10,
+        marginBottom: 20,
+    },
+    errorText: {
+        color: '#FFD700',
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    footer: {
+        alignItems: 'center',
+        marginTop: 10,
+        marginBottom: 20,
+    },
+    button: {
+        backgroundColor: '#C75B4A',
+        borderRadius: 8,
+        paddingVertical: 14,
+        paddingHorizontal: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        maxWidth: 300,
+        minHeight: 50,
+    },
+    buttonDisabled: {
+        opacity: 0.6,
+    },
+    buttonText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 

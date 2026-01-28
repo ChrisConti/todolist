@@ -20,9 +20,6 @@ const BabyTab = ({ navigation }) => {
   const [userListDisplay, setUserListDisplay] = useState([]);
   const [initialLoad, setInitialLoad] = useState(true);
 
-  useEffect(() => {
-    analytics.logScreenView('BabyTab');
-  }, []);
 
   useEffect(() => {
     if (!user || !babyID) {
@@ -99,8 +96,8 @@ const BabyTab = ({ navigation }) => {
       setBabyID(null);
       
       analytics.logEvent('baby_left', {
-        babyId: babyID,
-        userId: user.uid,
+        baby_id: babyID,
+        user_id: user.uid,
         timestamp: Date.now()
       });
       

@@ -42,7 +42,7 @@ const Card = ({ task, navigation, editable }) => {
   const handleCategory = (id) => {
     if (id == 0) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>{t('ml')}</Text>;
     if (id == 3) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>{t('min')}</Text>;
-    if (id == 4) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>°</Text>;
+    if (id == 4) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>{t('celsius')}</Text>;
   };
 
   const handleImageType = () => {
@@ -142,7 +142,7 @@ const Card = ({ task, navigation, editable }) => {
         marginLeft: 8,
         marginRight: 8
       }}>
-      <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+      <View style={{ flexDirection: "row", alignItems: "flex-start", width: 95 }}>
         {handleImageType()}
         <View style={{ flexDirection: "column", marginLeft: 8, justifyContent: "flex-start" }}>
           {/* Line 1: Comment icon or empty space */}

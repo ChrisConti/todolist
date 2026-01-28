@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SectionList, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SectionList, ActivityIndicator, ScrollView } from 'react-native';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import { babiesRef, userRef } from '../config';
@@ -8,6 +8,12 @@ import Card from "../Card.js";
 import Stork from '../assets/parachute2.svg';
 import SleepingBaby from '../assets/sleepingBaby.svg';
 import analytics from '../services/analytics';
+import Biberon from '../assets/biberon-color.svg';
+import Couche from '../assets/couche-color.svg';
+import Sante from '../assets/sante-color.svg';
+import Dodo from '../assets/dodo-color.svg';
+import Thermo from '../assets/thermo-color.svg';
+import Allaitement from '../assets/allaitement-color.svg';
 
 // Force Metro rebuild - fix ReviewModal bug
 const BabyList = ({ navigation }) => {
@@ -17,6 +23,7 @@ const BabyList = ({ navigation }) => {
   const [babyName, setBabyName] = useState('');
   const [babyExist, setBabyExist] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedFilter, setSelectedFilter] = useState<number | null>(null); // null = All, 0-5 = category
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -136,13 +143,27 @@ const BabyList = ({ navigation }) => {
       .map((key) => ({ title: key, data: groupedTasks[key] }));
   };
 
-  const sections = groupTasksByDay(tasks);
+  // Filter tasks by selected category
+  const filteredTasks = selectedFilter === null
+    ? tasks
+    : tasks.filter(task => task.id === selectedFilter);
+
+  const sections = groupTasksByDay(filteredTasks);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{babyName || t('title.following')}</Text>
       </View>
+
+      {/* Filter Bar - only show when baby exists and has tasks */}
+      {babyExist && tasks.length > 0 && (
+        <FilterBar
+          selectedFilter={selectedFilter}
+          onFilterChange={setSelectedFilter}
+          t={t}
+        />
+      )}
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -169,11 +190,14 @@ const BabyList = ({ navigation }) => {
       ) : tasks.length === 0 ? (
         <EmptyState
           icon={<SleepingBaby height={150} width={150} />}
-          message={t('noTasksFound')}
           actions={[
             { label: t('task.addTask'), onPress: () => navigation.navigate('CreateTask', { babyID }) },
           ]}
         />
+      ) : filteredTasks.length === 0 ? (
+        <View style={styles.emptyFilterContainer}>
+          <Text style={styles.emptyFilterText}>{t('noTasksForFilter')}</Text>
+        </View>
       ) : (
         <SectionList
           sections={sections}
@@ -194,6 +218,51 @@ const BabyList = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       )}
+    </View>
+  );
+};
+
+const FilterBar = ({ selectedFilter, onFilterChange, t }) => {
+  const categories = [
+    { id: 0, icon: <Biberon height={30} width={30} />, color: '#34777B' },
+    { id: 5, icon: <Allaitement height={30} width={30} />, color: '#1AAAAA' },
+    { id: 3, icon: <Dodo height={30} width={30} />, color: '#E29656' },
+    { id: 1, icon: <Couche height={30} width={30} />, color: '#C75B4A' },
+    { id: 4, icon: <Thermo height={30} width={30} />, color: '#4F469F' },
+    { id: 2, icon: <Sante height={30} width={30} />, color: '#6B8DEA' },
+  ];
+
+  return (
+    <View style={styles.filterContainer}>
+      {/* All button */}
+      <TouchableOpacity
+        onPress={() => onFilterChange(null)}
+        style={[
+          styles.filterButton,
+          selectedFilter === null && styles.filterButtonSelected
+        ]}
+      >
+        <Text style={[
+          styles.filterAllText,
+          selectedFilter === null && styles.filterAllTextSelected
+        ]}>
+          All
+        </Text>
+      </TouchableOpacity>
+
+      {/* Category buttons */}
+      {categories.map((category) => (
+        <TouchableOpacity
+          key={category.id}
+          onPress={() => onFilterChange(category.id)}
+          style={[
+            styles.filterButton,
+            selectedFilter === category.id && styles.filterButtonSelected
+          ]}
+        >
+          {category.icon}
+        </TouchableOpacity>
+      ))}
     </View>
   );
 };
@@ -221,20 +290,51 @@ const EmptyState = ({ icon, message, actions }) => (
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F6F0EB' },
-  header: { 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    paddingVertical: 15, 
-    paddingHorizontal: 15, 
-    backgroundColor: '#C75B4A', 
+  header: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    backgroundColor: '#C75B4A',
     paddingTop: 50,
   },
-  headerTitle: { 
-    fontSize: 22, 
-    fontWeight: 'bold', 
-    color: '#F6F0EB', 
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#F6F0EB',
     fontFamily: 'Pacifico',
     textAlign: 'center',
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    backgroundColor: '#FDF1E7',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+  },
+  filterButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 23,
+    backgroundColor: '#FFF',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterButtonSelected: {
+    borderColor: '#C75B4A',
+    borderWidth: 3,
+  },
+  filterAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#7A8889',
+  },
+  filterAllTextSelected: {
+    color: '#C75B4A',
+    fontWeight: 'bold',
   },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FDF1E7' },
   sectionHeader: { color: '#7A8889', fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginBottom: 5, marginTop: 3 },
@@ -256,6 +356,17 @@ const styles = StyleSheet.create({
     color: '#7A8889',
     textAlign: 'center',
     marginBottom: 30,
+  },
+  emptyFilterContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 50,
+  },
+  emptyFilterText: {
+    fontSize: 16,
+    color: '#7A8889',
+    textAlign: 'center',
   },
 });
 

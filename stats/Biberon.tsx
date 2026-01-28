@@ -1,155 +1,155 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Card from '../Card';
 import { useTranslation } from 'react-i18next';
-import { useBiberonStats } from '../hooks/useTaskStatistics';
+import { useBiberonStats, useBiberonCountStats } from '../hooks/useTaskStatistics';
 import { Task } from '../types/stats';
+import StatsContainer from '../components/stats/StatsContainer';
+import SectionTitle from '../components/stats/SectionTitle';
+import BarChart from '../components/stats/charts/BarChart';
+import { STATS_CONFIG } from '../constants/statsConfig';
 
 interface BiberonProps {
   navigation: any;
   tasks: Task[];
 }
 
+type ViewMode = 'quantity' | 'count';
+
 const Biberon: React.FC<BiberonProps> = ({ navigation, tasks }) => {
   const { t } = useTranslation();
-  const { dailyStats, chartData, lastTask, isLoading, error } = useBiberonStats(tasks);
+  const [viewMode, setViewMode] = useState<ViewMode>('count');
 
-  const renderBar = (value: number, maxValue: number, color: string, isMax: boolean) => {
-    const barWidth = (value / maxValue) * 200;
-    return (
-      <View style={[styles.barContainer]}>
-        <View style={[styles.bar, { width: barWidth, backgroundColor: color, opacity: isMax ? 1 : 0.5 }]}>
-          <Text style={styles.barText}>{value ? value : ''}</Text>
-        </View>
-        {value ? <View style={[styles.arrow, { opacity: isMax ? 1 : 0.5 }]} /> : null}
-      </View>
-    );
+  const quantityStats = useBiberonStats(tasks);
+  const countStats = useBiberonCountStats(tasks);
+  const { dailyStats, chartData, lastTask, isLoading, error } = viewMode === 'quantity' ? quantityStats : countStats;
+
+  // Transform chart data for BarChart component
+  // useBiberonStats always returns ChartData (not StackedChartData)
+  const biberonChartData = chartData as import('../types/stats').ChartData;
+  const barChartData = biberonChartData.labels.map((label, index) => ({
+    label,
+    value: (biberonChartData.datasets[0].data as number[])[index],
+  }));
+
+  const formatValue = (value: number) => {
+    return viewMode === 'quantity' ? `${value} ${t('ml')}` : `${value}`;
   };
-
-  const renderChart = () => {
-    const dataValues = chartData.datasets[0].data as number[];
-    const maxValue = Math.max(...dataValues);
-    return (
-      <View style={styles.chartContainer}>
-        {chartData.labels.map((label, index) => (
-          <View key={index} style={styles.chartRow}>
-            <Text style={styles.chartLabel}>{label}</Text>
-            {renderBar(dataValues[index], maxValue, '#34777B', dataValues[index] === maxValue)}
-          </View>
-        ))}
-      </View>
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <Text>{t('common.loading')}</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
 
   return (
-    <View style={styles.container}>
-      {lastTask ? 
-        <View>
-          <View style={{ marginBottom: 20 }}>
-            <Text style={styles.titleParameter}>{t('biberon.lastTask')}</Text>
-            <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} /> 
+    <StatsContainer
+      loading={isLoading}
+      error={error}
+      hasData={!!lastTask}
+      emptyMessage={t('biberon.noTaskFound')}
+    >
+      {/* Last Task */}
+      {lastTask && (
+        <View style={styles.section}>
+          <SectionTitle>{t('biberon.lastTask')}</SectionTitle>
+          <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} />
+        </View>
+      )}
+
+      {/* Statistics */}
+      <View style={styles.section}>
+        <SectionTitle>{t('biberon.someFigures')}</SectionTitle>
+
+        {/* View Mode Selector */}
+        <View style={styles.viewModeContainer}>
+          <TouchableOpacity
+            onPress={() => setViewMode('count')}
+            style={[styles.viewModeButton, viewMode === 'count' && styles.viewModeButtonActive]}
+          >
+            <Text style={[styles.viewModeText, viewMode === 'count' && styles.viewModeTextActive]}>
+              {t('stats.count')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setViewMode('quantity')}
+            style={[styles.viewModeButton, viewMode === 'quantity' && styles.viewModeButtonActive]}
+          >
+            <Text style={[styles.viewModeText, viewMode === 'quantity' && styles.viewModeTextActive]}>
+              {t('stats.quantity')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Stats Values */}
+        <View style={styles.statsRow}>
+          <View style={styles.statsColumn}>
+            <Text style={styles.statLabel}>{t('biberon.today')}</Text>
+            <Text style={styles.statLabel}>{t('biberon.yesterday')}</Text>
+            <Text style={styles.statLabel}>{t('biberon.last7Days')}</Text>
           </View>
-          <View style={{ marginBottom: 20 }}>
-            <Text style={styles.titleParameter}>{t('biberon.someFigures')}</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-              <View>
-                <Text>{t('biberon.today')}</Text>
-                <Text>{t('biberon.yesterday')}</Text>
-                <Text>{t('biberon.last7Days')}</Text>
-              </View>
-              <View>
-                <Text>{dailyStats.today} ml</Text>
-                <Text>{dailyStats.yesterday} ml</Text>
-                <Text>{dailyStats.lastPeriod} ml</Text>
-              </View>
-            </View>
-          </View>
-          <View>
-            <Text style={styles.titleParameter}>{t('biberon.evolutionLast7Days')}</Text>
-            {renderChart()}
+          <View style={styles.statsColumn}>
+            <Text style={styles.statValue}>{formatValue(dailyStats.today as number)}</Text>
+            <Text style={styles.statValue}>{formatValue(dailyStats.yesterday as number)}</Text>
+            <Text style={styles.statValue}>{formatValue(dailyStats.lastPeriod as number)}</Text>
           </View>
         </View>
-      : 
-      <Text>{t('biberon.noTaskFound')}</Text>}
-    </View>
+      </View>
+
+      {/* Chart */}
+      <View style={styles.section}>
+        <SectionTitle>{t('biberon.evolutionLast7Days')}</SectionTitle>
+        <BarChart
+          data={barChartData}
+          color={STATS_CONFIG.COLORS.BIBERON}
+          showValues={true}
+        />
+      </View>
+    </StatsContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  section: {
+    marginBottom: STATS_CONFIG.SPACING.LARGE,
+  },
+  viewModeContainer: {
+    flexDirection: 'row',
+    backgroundColor: STATS_CONFIG.COLORS.WHITE,
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: STATS_CONFIG.SPACING.LARGE,
+    gap: 4,
+  },
+  viewModeButton: {
     flex: 1,
-    padding: 20,
-  },
-  titleParameter: {
-    color: '#7A8889',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    marginTop: 3,
-  },
-  errorText: {
-    color: '#C75B4A',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  chartContainer: {
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    alignItems: 'flex-start',
-    height: 220,
-    marginVertical: 8,
-    borderRadius: 16,
-    backgroundColor: '#FDF1E7',
-  },
-  chartRow: {
-    flexDirection: 'row',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 6,
     alignItems: 'center',
-    marginVertical: 5,
-  },
-  chartLabel: {
-    width: 50,
-    marginRight: 10,
-  },
-  barContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  bar: {
-    height: 30,
     justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
-  arrow: {
-    width: 0,
-    height: 0,
-    borderTopWidth: 15,
-    borderTopColor: 'transparent',
-    borderBottomWidth: 15,
-    borderBottomColor: 'transparent',
-    borderLeftWidth: 15,
-    borderLeftColor: '#34777B',
+  viewModeButtonActive: {
+    backgroundColor: STATS_CONFIG.COLORS.BIBERON,
   },
-  barText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-    paddingHorizontal: 5,
+  viewModeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#7A8889',
+  },
+  viewModeTextActive: {
+    color: '#FFF',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statsColumn: {
+    gap: STATS_CONFIG.SPACING.SMALL,
+  },
+  statLabel: {
+    fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
+    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+  },
+  statValue: {
+    fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
+    fontWeight: '600',
+    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
   },
 });
 

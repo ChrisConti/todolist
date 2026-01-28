@@ -111,9 +111,9 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
         await AsyncStorage.setItem(`review_prompt_count_${user.uid}`, newPromptCount.toString());
         
         analytics.logEvent('review_prompt_shown', {
-          taskCount: newCount,
-          promptNumber: newPromptCount,
-          promptsRemaining: 5 - newPromptCount,
+          task_count: newCount,
+          prompt_number: newPromptCount,
+          prompts_remaining: 5 - newPromptCount,
         });
       }
     } catch (error) {
@@ -168,10 +168,6 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
     // Vérifier si l'utilisateur n'a pas déjà reviewé
     if (!hasReviewed) {
       setShowReviewModal(true);
-      analytics.logEvent('review_modal_opened_manually', {
-        userId: user?.uid,
-        taskCount,
-      });
       log.info('Review modal opened manually from Settings', 'ReviewPromptContext');
     } else {
       log.info('User already reviewed - modal not shown', 'ReviewPromptContext');

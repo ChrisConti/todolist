@@ -4,6 +4,12 @@ import Card from '../Card';
 import { useTranslation } from 'react-i18next';
 import { useDiaperStats } from '../hooks/useTaskStatistics';
 import { Task } from '../types/stats';
+import StatsContainer from '../components/stats/StatsContainer';
+import SectionTitle from '../components/stats/SectionTitle';
+import StackedBarChart from '../components/stats/charts/StackedBarChart';
+import { BarChart } from 'react-native-chart-kit';
+import { Dimensions } from 'react-native';
+import { STATS_CONFIG } from '../constants/statsConfig';
 
 interface DiaperProps {
   navigation: any;
@@ -12,297 +18,306 @@ interface DiaperProps {
 
 const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
   const { t } = useTranslation();
-  const [selectedItem, setSelectedItem] = useState(0);
-  const { dailyStats, dailyContentStats, chartData, contentChartData, separateCharts, lastTask, isLoading, error } = useDiaperStats(tasks, t);
+  const { dailyCountStats, countChartData, dailyStats, dailyContentStats, chartData, contentChartData, lastTask, isLoading, error } = useDiaperStats(tasks, t);
 
-  const imagesDiapers = [
-    { id: 0, name: t('diapers.dur'), nameTrad: 0 },
-    { id: 1, name: t('diapers.mou'), nameTrad: 1 },
-    { id: 2, name: t('diapers.liquide'), nameTrad: 2 },
-  ];
+  const [selectedTab, setSelectedTab] = useState<'count' | 'type' | 'content'>('count');
 
-  const handleCategoryCaca = (selectedItem: number) => {
-    const diaperType = imagesDiapers[selectedItem].id;
-    const todayValue = (dailyStats.today as { [key: string]: number })[diaperType];
-    const yesterdayValue = (dailyStats.yesterday as { [key: string]: number })[diaperType];
-    const lastPeriodValue = (dailyStats.lastPeriod as { [key: string]: number })[diaperType];
-
+  const renderCountStats = () => {
     return (
-      <View key={diaperType}>
-        <Text style={styles.titleParameter}>{t('diapers.someFigures')}</Text>
-        <View style={{ marginBottom: 20, flexDirection: 'row', justifyContent: 'space-around' }}>
-          <View>
-            <Text>{t('diapers.today')}</Text>
-            <Text>{t('diapers.yesterday')}</Text>
-            <Text>{t('diapers.last7Days')}</Text>
-          </View>
-          <View>
-            <Text>{todayValue}</Text>
-            <Text>{yesterdayValue}</Text>
-            <Text>{lastPeriodValue}</Text>
-          </View>
+      <View style={styles.statsTable}>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsHeader}></Text>
+          <Text style={styles.statsHeader}>{t('diapers.generalCount')}</Text>
+        </View>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsLabel}>{t('diapers.today')}</Text>
+          <Text style={styles.statsValue}>{dailyCountStats.today}</Text>
+        </View>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsLabel}>{t('diapers.yesterday')}</Text>
+          <Text style={styles.statsValue}>{dailyCountStats.yesterday}</Text>
+        </View>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsLabel}>{t('diapers.last7Days')}</Text>
+          <Text style={styles.statsValue}>{dailyCountStats.lastPeriod}</Text>
         </View>
       </View>
     );
   };
 
-  const handleContentStats = () => {
-    const peeToday = (dailyContentStats.today as { [key: string]: number })[0];
-    const poopToday = (dailyContentStats.today as { [key: string]: number })[1];
-    const bothToday = (dailyContentStats.today as { [key: string]: number })[2];
-
-    const peeYesterday = (dailyContentStats.yesterday as { [key: string]: number })[0];
-    const poopYesterday = (dailyContentStats.yesterday as { [key: string]: number })[1];
-    const bothYesterday = (dailyContentStats.yesterday as { [key: string]: number })[2];
-
-    const peeLast7 = (dailyContentStats.lastPeriod as { [key: string]: number })[0];
-    const poopLast7 = (dailyContentStats.lastPeriod as { [key: string]: number })[1];
-    const bothLast7 = (dailyContentStats.lastPeriod as { [key: string]: number })[2];
-
+  const renderDailyStats = () => {
     return (
-      <View>
-        <Text style={styles.titleParameter}>{t('diapers.content')}</Text>
-        <View style={{ marginBottom: 20, flexDirection: 'row', justifyContent: 'space-around' }}>
-          <View>
-            <Text style={{ marginBottom: 5 }}>{t('diapers.today')}</Text>
-            <Text style={{ marginBottom: 5 }}>{t('diapers.yesterday')}</Text>
-            <Text>{t('diapers.last7Days')}</Text>
-          </View>
-          <View style={{ alignItems: 'center' }}>
-            <Text style={styles.contentLabel}>💦</Text>
-            <Text style={{ marginBottom: 5 }}>{peeToday}</Text>
-            <Text style={{ marginBottom: 5 }}>{peeYesterday}</Text>
-            <Text>{peeLast7}</Text>
-          </View>
-          <View style={{ alignItems: 'center' }}>
-            <Text style={styles.contentLabel}>💩</Text>
-            <Text style={{ marginBottom: 5 }}>{poopToday}</Text>
-            <Text style={{ marginBottom: 5 }}>{poopYesterday}</Text>
-            <Text>{poopLast7}</Text>
-          </View>
-          <View style={{ alignItems: 'center' }}>
-            <Text style={styles.contentLabel}>💦💩</Text>
-            <Text style={{ marginBottom: 5 }}>{bothToday}</Text>
-            <Text style={{ marginBottom: 5 }}>{bothYesterday}</Text>
-            <Text>{bothLast7}</Text>
-          </View>
+      <View style={styles.statsTable}>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsHeader}></Text>
+          <Text style={styles.statsHeader}>{t('diapers.dur')}</Text>
+          <Text style={styles.statsHeader}>{t('diapers.mou')}</Text>
+          <Text style={styles.statsHeader}>{t('diapers.liquide')}</Text>
+        </View>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsLabel}>{t('diapers.today')}</Text>
+          <Text style={styles.statsValue}>{(dailyStats.today as any)[0]}</Text>
+          <Text style={styles.statsValue}>{(dailyStats.today as any)[1]}</Text>
+          <Text style={styles.statsValue}>{(dailyStats.today as any)[2]}</Text>
+        </View>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsLabel}>{t('diapers.yesterday')}</Text>
+          <Text style={styles.statsValue}>{(dailyStats.yesterday as any)[0]}</Text>
+          <Text style={styles.statsValue}>{(dailyStats.yesterday as any)[1]}</Text>
+          <Text style={styles.statsValue}>{(dailyStats.yesterday as any)[2]}</Text>
+        </View>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsLabel}>{t('diapers.last7Days')}</Text>
+          <Text style={styles.statsValue}>{(dailyStats.lastPeriod as any)[0]}</Text>
+          <Text style={styles.statsValue}>{(dailyStats.lastPeriod as any)[1]}</Text>
+          <Text style={styles.statsValue}>{(dailyStats.lastPeriod as any)[2]}</Text>
         </View>
       </View>
     );
   };
 
-  const renderBar = (value: number | string, maxValue: number, color: string) => {
-    if (!value) return null;
-    const numValue = typeof value === 'string' ? 0 : value;
-    const barHeight = (numValue / maxValue) * 120;
+  const renderContentStats = () => {
     return (
-      <View style={[styles.bar, { height: barHeight, backgroundColor: color }]}>
-        <Text style={styles.barText}>{value}</Text>
+      <View style={styles.contentStatsContainer}>
+        <View style={styles.contentStatsRow}>
+          <View style={styles.contentColumn}>
+            <Text style={styles.contentLabel}></Text>
+            <Text style={styles.statsLabel}>{t('diapers.today')}</Text>
+            <Text style={styles.statsLabel}>{t('diapers.yesterday')}</Text>
+            <Text style={styles.statsLabel}>{t('diapers.last7Days')}</Text>
+          </View>
+          <View style={styles.contentColumn}>
+            <Text style={styles.contentEmoji}>💦</Text>
+            <Text style={styles.statsValue}>{(dailyContentStats.today as any)[0]}</Text>
+            <Text style={styles.statsValue}>{(dailyContentStats.yesterday as any)[0]}</Text>
+            <Text style={styles.statsValue}>{(dailyContentStats.lastPeriod as any)[0]}</Text>
+          </View>
+          <View style={styles.contentColumn}>
+            <Text style={styles.contentEmoji}>💩</Text>
+            <Text style={styles.statsValue}>{(dailyContentStats.today as any)[1]}</Text>
+            <Text style={styles.statsValue}>{(dailyContentStats.yesterday as any)[1]}</Text>
+            <Text style={styles.statsValue}>{(dailyContentStats.lastPeriod as any)[1]}</Text>
+          </View>
+          <View style={styles.contentColumn}>
+            <Text style={styles.contentEmoji}>💦💩</Text>
+            <Text style={styles.statsValue}>{(dailyContentStats.today as any)[2]}</Text>
+            <Text style={styles.statsValue}>{(dailyContentStats.yesterday as any)[2]}</Text>
+            <Text style={styles.statsValue}>{(dailyContentStats.lastPeriod as any)[2]}</Text>
+          </View>
+        </View>
       </View>
     );
   };
-
-  const renderChart = () => {
-    const stackedChartData = chartData as any;
-    const flatData = stackedChartData.data.flat().filter((v: any) => typeof v === 'number');
-    const maxValue = flatData.length > 0 ? Math.max(...flatData) : 1;
-
-    return (
-      <View style={styles.chartContainer}>
-        {stackedChartData.labels.map((label: string, index: number) => {
-          const dayData = stackedChartData.data[index];
-          const dayTotal = dayData.reduce((acc: number, val: any) => acc + (typeof val === 'number' ? val : 0), 0);
-          return (
-            <View key={index} style={styles.chartColumn}>
-              <Text style={styles.totalLabel}>{dayTotal ? dayTotal : ''}</Text>
-              {dayData.map((value: any, idx: number) => (
-                <View key={idx}>
-                  {renderBar(value, maxValue, stackedChartData.barColors[idx])}
-                </View>
-              ))}
-              <Text style={styles.chartLabel}>{label}</Text>
-            </View>
-          );
-        })}
-      </View>
-    );
-  };
-
-  const renderContentChart = () => {
-    const stackedChartData = contentChartData as any;
-    const flatData = stackedChartData.data.flat().filter((v: any) => typeof v === 'number');
-    const maxValue = flatData.length > 0 ? Math.max(...flatData) : 1;
-
-    return (
-      <View style={styles.chartContainer}>
-        {stackedChartData.labels.map((label: string, index: number) => {
-          const dayData = stackedChartData.data[index];
-          const dayTotal = dayData.reduce((acc: number, val: any) => acc + (typeof val === 'number' ? val : 0), 0);
-          return (
-            <View key={index} style={styles.chartColumn}>
-              <Text style={styles.totalLabel}>{dayTotal ? dayTotal : ''}</Text>
-              {dayData.map((value: any, idx: number) => (
-                <View key={idx}>
-                  {renderBar(value, maxValue, stackedChartData.barColors[idx])}
-                </View>
-              ))}
-              <Text style={styles.chartLabel}>{label}</Text>
-            </View>
-          );
-        })}
-      </View>
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <Text>{t('common.loading')}</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
 
   return (
-    <View style={styles.container}>
-      {lastTask ? 
-      <View>
-        <View>
-          <Text style={styles.titleParameter}>{t('diapers.lastTask')}</Text>
-          <View>
-            <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} />
+    <StatsContainer
+      loading={isLoading}
+      error={error}
+      hasData={!!lastTask}
+      emptyMessage={t('diapers.noTaskFound')}
+    >
+      {/* Last Task */}
+      {lastTask && (
+        <View style={styles.section}>
+          <SectionTitle>{t('diapers.lastTask')}</SectionTitle>
+          <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} />
+        </View>
+      )}
+
+      {/* Tab Buttons */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'count' && styles.tabButtonActive]}
+          onPress={() => setSelectedTab('count')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'count' && styles.tabTextActive]}>
+            {t('diapers.generalCount')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'type' && styles.tabButtonActive]}
+          onPress={() => setSelectedTab('type')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'type' && styles.tabTextActive]}>
+            {t('diapers.typeStats')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'content' && styles.tabButtonActive]}
+          onPress={() => setSelectedTab('content')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'content' && styles.tabTextActive]}>
+            {t('diapers.contentStats')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* General Count Tab */}
+      {selectedTab === 'count' && (
+        <>
+          <View style={styles.section}>
+            <SectionTitle>{t('diapers.someFigures')}</SectionTitle>
+            {renderCountStats()}
           </View>
-        </View>
-
-        <View>
-          {handleCategoryCaca(selectedItem)}
-        </View>
-
-        <View style={{ marginTop: 20 }}>
-          {handleContentStats()}
-        </View>
-
-        <View style={{ marginTop: 20 }}>
-          <Text style={styles.titleParameter}>{t('diapers.last7DaysStacked')}</Text>
-          {renderChart()}
-          <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
-            {imagesDiapers.map((image, index) => (
-              <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
-                <View style={{ width: 10, height: 10, backgroundColor: (chartData as any).barColors[index], marginRight: 5 }} />
-                <Text>{image.name}</Text>
-              </View>
-            ))}
+          <View style={styles.section}>
+            <SectionTitle>{t('diapers.last7DaysStacked')}</SectionTitle>
+            {(countChartData.datasets[0].data as any).length > 0 && (
+              <BarChart
+                data={countChartData}
+                width={Dimensions.get('window').width - 40}
+                height={220}
+                yAxisLabel=""
+                yAxisSuffix=""
+                chartConfig={{
+                  backgroundColor: '#FFF',
+                  backgroundGradientFrom: '#FFF',
+                  backgroundGradientTo: '#FFF',
+                  decimalPlaces: 0,
+                  color: (opacity = 1) => `rgba(199, 91, 74, ${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(122, 136, 137, ${opacity})`,
+                  barPercentage: 0.7,
+                  style: { borderRadius: 16 }
+                }}
+                style={{
+                  marginVertical: 8,
+                  borderRadius: 16
+                }}
+                showValuesOnTopOfBars={true}
+                fromZero={true}
+              />
+            )}
           </View>
-        </View>
+        </>
+      )}
 
-        <View style={{ marginTop: 20 }}>
-          <Text style={styles.titleParameter}>{t('diapers.content')} - {t('diapers.last7DaysStacked')}</Text>
-          {renderContentChart()}
-          <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
-              <View style={{ width: 10, height: 10, backgroundColor: (contentChartData as any).barColors[0], marginRight: 5 }} />
-              <Text>💦 {t('diapers.pee')}</Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
-              <View style={{ width: 10, height: 10, backgroundColor: (contentChartData as any).barColors[1], marginRight: 5 }} />
-              <Text>💩 {t('diapers.poop')}</Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 5 }}>
-              <View style={{ width: 10, height: 10, backgroundColor: (contentChartData as any).barColors[2], marginRight: 5 }} />
-              <Text>💦💩 {t('diapers.both')}</Text>
-            </View>
+      {/* Type Tab */}
+      {selectedTab === 'type' && (
+        <>
+          <View style={styles.section}>
+            <SectionTitle>{t('diapers.someFigures')}</SectionTitle>
+            {renderDailyStats()}
           </View>
-        </View>
-      </View> 
-      : 
-      <Text>{t('diapers.noTaskFound')}</Text>}      
-    </View>
+          <View style={styles.section}>
+            <SectionTitle>{t('diapers.last7DaysStacked')}</SectionTitle>
+            <StackedBarChart
+              labels={(chartData as any).labels}
+              data={(chartData as any).data}
+              barColors={(chartData as any).barColors}
+              legend={[t('diapers.dur'), t('diapers.mou'), t('diapers.liquide')]}
+            />
+          </View>
+        </>
+      )}
+
+      {/* Content Tab */}
+      {selectedTab === 'content' && (
+        <>
+          <View style={styles.section}>
+            <SectionTitle>{t('diapers.content')}</SectionTitle>
+            {renderContentStats()}
+          </View>
+          <View style={styles.section}>
+            <SectionTitle>{t('diapers.last7DaysStacked')}</SectionTitle>
+            <StackedBarChart
+              labels={(contentChartData as any).labels}
+              data={(contentChartData as any).data}
+              barColors={(contentChartData as any).barColors}
+              legend={[
+                `💦 ${t('diapers.pee')}`,
+                `💩 ${t('diapers.poop')}`,
+                `💦💩 ${t('diapers.both')}`,
+              ]}
+            />
+          </View>
+        </>
+      )}
+    </StatsContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  section: {
+    marginBottom: STATS_CONFIG.SPACING.LARGE,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: STATS_CONFIG.COLORS.WHITE,
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: STATS_CONFIG.SPACING.LARGE,
+    gap: 4,
+  },
+  tabButton: {
     flex: 1,
-    padding: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
-  titleParameter: {
+  tabButtonActive: {
+    backgroundColor: '#C75B4A',
+  },
+  tabText: {
+    fontSize: 13,
+    fontWeight: '600',
     color: '#7A8889',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    marginTop: 3,
   },
-  image: {
-    width: 30,
-    height: 30,
-    resizeMode: 'cover',
+  tabTextActive: {
+    color: '#FFF',
   },
-  imageSelected: {
-    width: 65,
-    height: 65,
-    resizeMode: 'cover',
-    borderColor: '#C75B4A',
-    borderWidth: 5,
-    borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
+  statsTable: {
+    backgroundColor: STATS_CONFIG.COLORS.WHITE,
+    borderRadius: 8,
+    padding: STATS_CONFIG.SPACING.MEDIUM,
   },
-  imageNonSelected: {
-    width: 65,
-    height: 65,
-    resizeMode: 'cover',
-    borderWidth: 5,
-    borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderColor: 'transparent',
-  },
-  chartContainer: {
+  statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    borderRadius: 16,
-    backgroundColor: '#FDF1E7',
-    paddingVertical: 10, // Add padding to avoid shrinking
+    paddingVertical: STATS_CONFIG.SPACING.SMALL,
   },
-  chartColumn: {
-    alignItems: 'center',
-    flex: 1, // Allow columns to expand
-  },
-  chartLabel: {
-    marginBottom: 5,
-  },
-  bar: {
-    width: 30,
-    marginHorizontal: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  barText: {
-    color: 'white',
-    fontSize: 12,
+  statsHeader: {
+    fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
     fontWeight: 'bold',
-  },
-  totalLabel: {
-    marginTop: 5,
-    fontWeight: 'bold',
-  },
-  errorText: {
-    color: 'red',
+    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
+    flex: 1,
     textAlign: 'center',
-    marginTop: 20,
+  },
+  statsLabel: {
+    fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
+    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    flex: 1,
+  },
+  statsValue: {
+    fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
+    fontWeight: '600',
+    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    flex: 1,
+    textAlign: 'center',
+  },
+  contentStatsContainer: {
+    backgroundColor: STATS_CONFIG.COLORS.WHITE,
+    borderRadius: 8,
+    padding: STATS_CONFIG.SPACING.MEDIUM,
+  },
+  contentStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  contentColumn: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  contentEmoji: {
+    fontSize: 18,
+    marginBottom: STATS_CONFIG.SPACING.SMALL,
   },
   contentLabel: {
-    fontSize: 18,
-    marginBottom: 5,
+    fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
     fontWeight: 'bold',
+    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
+    marginBottom: STATS_CONFIG.SPACING.SMALL,
   },
 });
 

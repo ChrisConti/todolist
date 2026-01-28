@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { calculateAge } from './utils/validation';
 import Boy from './assets/garcon.svg';
 import Girl from './assets/fille.svg';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface BabyProfileTabProps {
   babyData: {
@@ -72,7 +72,7 @@ const BabyProfileTab: React.FC<BabyProfileTabProps> = ({ babyData, onEdit }) => 
       <View style={styles.infoCardsContainer}>
         {/* Carte Âge */}
         <View style={styles.infoCard}>
-          <FontAwesome name="calendar" size={24} color="#C75B4A" style={styles.cardIcon} />
+          <MaterialCommunityIcons name="cake-variant" size={24} color="#C75B4A" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>{t('baby.age')}</Text>
           <Text style={styles.cardValue}>{calculateAge(babyData.birthDate, t)}</Text>
         </View>
@@ -94,7 +94,7 @@ const BabyProfileTab: React.FC<BabyProfileTabProps> = ({ babyData, onEdit }) => 
         {/* Carte Poids (si renseigné) */}
         {babyData.weight && (
           <View style={styles.infoCard}>
-            <FontAwesome name="balance-scale" size={24} color="#C75B4A" style={styles.cardIcon} />
+            <MaterialCommunityIcons name="scale-bathroom" size={24} color="#C75B4A" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>{t('baby.weight')}</Text>
             <Text style={styles.cardValue}>{babyData.weight} {t('baby.kg')}</Text>
           </View>
@@ -103,7 +103,7 @@ const BabyProfileTab: React.FC<BabyProfileTabProps> = ({ babyData, onEdit }) => 
         {/* Carte Taille (si renseignée) */}
         {babyData.height && (
           <View style={styles.infoCard}>
-            <FontAwesome name="arrows-v" size={24} color="#C75B4A" style={styles.cardIcon} />
+            <MaterialCommunityIcons name="tape-measure" size={24} color="#C75B4A" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>{t('baby.height')}</Text>
             <Text style={styles.cardValue}>{babyData.height} {t('baby.cm')}</Text>
           </View>

@@ -84,9 +84,6 @@ const EditBaby = ({ navigation, route }) => {
     }
   };
 
-  useEffect(() => {
-    analytics.logScreenView('EditBaby');
-  }, []);
 
   useEffect(() => {
     if (error && scrollViewRef.current) {
@@ -355,14 +352,6 @@ const EditBaby = ({ navigation, route }) => {
       const babyDoc = querySnapshot.docs[0];
       await updateDoc(babyDoc.ref, updateData);
 
-      analytics.logEvent('baby_updated', {
-        babyId: babyID,
-        userId: user.uid,
-        hasPhoto: !!photoURL,
-        hasWeight: !!weightNum,
-        hasHeight: !!heightNum,
-      });
-
       // Toast notification
       if (Platform.OS === 'android') {
         ToastAndroid.show(t('success.babyUpdated'), ToastAndroid.SHORT);
@@ -375,11 +364,6 @@ const EditBaby = ({ navigation, route }) => {
     } catch (error: any) {
       console.error('Error updating baby:', error);
       setError(error.message || t('error.general'));
-      analytics.logEvent('baby_update_failed', {
-        babyId: babyID,
-        userId: user.uid,
-        error: error.message,
-      });
     } finally {
       setLoading(false);
     }

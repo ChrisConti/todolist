@@ -1,24 +1,26 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native'
 import React from 'react'
-import { FontAwesome } from '@expo/vector-icons'; // Import FontAwesome icons
+import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons'; // Import FontAwesome icons
 
-const ItemParameter = ({ title, icon, backgroundColor, iconColor, textColor }) => {
+const ItemParameter = ({ title, icon, backgroundColor, iconColor, textColor, iconFamily }) => {
+    const IconComponent = iconFamily === 'MaterialCommunityIcons' ? MaterialCommunityIcons : FontAwesome;
+
     return (
     <View style={{
         flexDirection:"row",
         justifyContent:'space-between',
         alignItems:'center',
-            backgroundColor: backgroundColor || '#FDF1E7', 
+            backgroundColor: backgroundColor || '#FDF1E7',
             borderRadius: 4,
             paddingHorizontal: 20,
             //elevation: 3, // Android shadow
             height: 55,
             //paddingLeft:-300,
-            
+
             marginBottom:2
     }}>
       <View style={{width:'20%',  alignItems:'center', }}>
-        <FontAwesome name={icon} size={20} style={{color: iconColor || '#C75B4A'}}/>
+        <IconComponent name={icon} size={20} style={{color: iconColor || '#C75B4A'}}/>
       </View>
       <View style={{width:'80%'}}>
         <Text style={{ color: textColor || 'black'}}>

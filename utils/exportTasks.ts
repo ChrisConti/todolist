@@ -1,7 +1,8 @@
 import { Share, Platform } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import moment from 'moment';
+import i18next from 'i18next';
 
 interface Task {
   uid?: string;
@@ -13,6 +14,8 @@ interface Task {
   idCaca?: number;
   /** Type of diaper: 0 = solid, 1 = soft, 2 = liquid */
   diaperType?: number;
+  /** Content of diaper: 0 = pee, 1 = poop, 2 = both */
+  diaperContent?: number;
   boobLeft?: number;
   boobRight?: number;
   user?: string;
@@ -25,41 +28,66 @@ interface ExportOptions {
   endDate?: Date;
   babyName: string;
   tasks: Task[];
+  language?: string;
 }
 
-// Convert task type ID to label
-const getTaskLabel = (taskId: number): string => {
-  const taskLabels: { [key: number]: string } = {
-    0: 'Allaitement',
-    1: 'Biberon',
-    2: 'Couche',
-    3: 'Sommeil',
-    4: 'Santé',
-    5: 'Thermomètre',
+// Convert task type ID to label (with i18n)
+const getTaskLabel = (taskId: number, t: any): string => {
+  const taskMap: { [key: number]: string } = {
+    0: t('export.taskTypes.bottle'),
+    1: t('export.taskTypes.diaper'),
+    2: t('export.taskTypes.health'),
+    3: t('export.taskTypes.sleep'),
+    4: t('export.taskTypes.temperature'),
+    5: t('export.taskTypes.breastfeeding'),
   };
-  return taskLabels[taskId] || 'Autre';
+  return taskMap[taskId] || 'Autre';
 };
 
-// Convert diaper type ID to label
-const getDiaperLabel = (id: number): string => {
-  const diaperLabels: { [key: number]: string } = {
-    0: 'Dur',
-    1: 'Mou',
-    2: 'Liquide',
+// Convert diaper type ID to label (with i18n)
+const getDiaperTypeLabel = (id: number, t: any): string => {
+  const diaperMap: { [key: number]: string } = {
+    0: t('export.diaperType.solid'),
+    1: t('export.diaperType.soft'),
+    2: t('export.diaperType.liquid'),
   };
-  return diaperLabels[id] || '';
+  return diaperMap[id] || '';
 };
 
-// Format duration in minutes
-const formatDuration = (seconds: number): string => {
+// Convert diaper content ID to label (with i18n)
+const getDiaperContentLabel = (id: number, t: any): string => {
+  const contentMap: { [key: number]: string } = {
+    0: t('export.diaperContent.pee'),
+    1: t('export.diaperContent.poop'),
+    2: t('export.diaperContent.both'),
+  };
+  return contentMap[id] || '';
+};
+
+// Format duration (seconds to minutes or hours)
+const formatDuration = (seconds: number, language: string = 'fr'): string => {
   if (!seconds) return '';
   const minutes = Math.floor(seconds / 60);
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (language === 'en') {
+      return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
+    } else if (language === 'es') {
+      return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
+    } else {
+      return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
+    }
+  }
   return `${minutes} min`;
 };
 
 // Generate CSV content from tasks
-export const generateCSV = (options: ExportOptions): string => {
-  const { tasks, babyName, startDate, endDate } = options;
+export const generateCSV = (options: ExportOptions & { maxTasks?: number }): string => {
+  const { tasks, babyName, startDate, endDate, language = 'fr', maxTasks } = options;
+
+  // Get translation function
+  const t = i18next.getFixedT(language);
 
   // Filter tasks by date range if provided
   let filteredTasks = tasks;
@@ -73,51 +101,82 @@ export const generateCSV = (options: ExportOptions): string => {
   }
 
   // Sort tasks by date (newest first)
-  const sortedTasks = [...filteredTasks].sort((a, b) => {
+  let sortedTasks = [...filteredTasks].sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
 
-  // CSV Header
+  // Limit to maxTasks if specified
+  if (maxTasks && sortedTasks.length > maxTasks) {
+    sortedTasks = sortedTasks.slice(0, maxTasks);
+  }
+
+  // CSV Header (translated)
   const headers = [
-    'Date',
-    'Heure',
-    'Type',
-    'Détails',
-    'Sein Gauche',
-    'Sein Droit',
-    'Créé par',
-    'Commentaire',
+    t('export.headers.date'),
+    t('export.headers.time'),
+    t('export.headers.type'),
+    t('export.headers.quantity'),
+    t('export.headers.consistency'),
+    t('export.headers.content'),
+    t('export.headers.leftBreast'),
+    t('export.headers.rightBreast'),
+    t('export.headers.createdBy'),
+    t('export.headers.comment'),
   ];
 
   // Build CSV rows
   const rows = sortedTasks.map((task) => {
     const date = moment(task.date).format('DD/MM/YYYY');
     const time = moment(task.date).format('HH:mm');
-    const type = task.labelTask || getTaskLabel(task.id);
-    
-    let details = '';
-    // Support both new diaperType and legacy idCaca for backward compatibility
-    const diaperType = task.diaperType ?? task.idCaca;
-    if (task.id === 2 && diaperType !== undefined) {
-      // Diaper task
-      details = getDiaperLabel(diaperType);
+    const type = task.labelTask || getTaskLabel(task.id, t);
+
+    let quantity = '';
+    let consistency = '';
+    let content = '';
+    let leftBoob = '';
+    let rightBoob = '';
+
+    // Handle different task types
+    if (task.id === 1) {
+      // DIAPER (Couche)
+      const diaperType = task.diaperType ?? task.idCaca;
+      consistency = diaperType !== undefined ? getDiaperTypeLabel(diaperType, t) : '';
+      content = task.diaperContent !== undefined ? getDiaperContentLabel(task.diaperContent, t) : '';
+    } else if (task.id === 0) {
+      // BOTTLE (Biberon)
+      quantity = task.label ? `${task.label} ${t('ml')}` : '';
+    } else if (task.id === 3) {
+      // SLEEP (Sommeil)
+      quantity = task.label ? formatDuration(Number(task.label) * 60, language) : '';
+    } else if (task.id === 4) {
+      // TEMPERATURE (Thermomètre)
+      quantity = task.label ? `${task.label} ${t('celsius')}` : '';
+    } else if (task.id === 5) {
+      // BREASTFEEDING (Allaitement)
+      leftBoob = task.boobLeft ? formatDuration(task.boobLeft, language) : '';
+      rightBoob = task.boobRight ? formatDuration(task.boobRight, language) : '';
+      const totalMin = ((task.boobLeft || 0) + (task.boobRight || 0)) / 60;
+      quantity = totalMin > 0 ? `${Math.round(totalMin)} min` : '';
     } else if (task.label) {
-      details = String(task.label);
+      // Other tasks
+      quantity = String(task.label);
     }
 
-    const leftBoob = task.boobLeft ? formatDuration(task.boobLeft) : '';
-    const rightBoob = task.boobRight ? formatDuration(task.boobRight) : '';
     const createdBy = task.createdBy || '';
     const comment = task.comment ? `"${task.comment.replace(/"/g, '""')}"` : '';
 
-    return [date, time, type, details, leftBoob, rightBoob, createdBy, comment];
+    return [date, time, type, quantity, consistency, content, leftBoob, rightBoob, createdBy, comment];
   });
+
+  // Title and metadata (translated)
+  const periodStart = startDate ? moment(startDate).format('DD/MM/YYYY') : t('export.periodStart');
+  const periodEnd = endDate ? moment(endDate).format('DD/MM/YYYY') : t('export.periodEnd');
 
   // Combine header and rows
   const csvContent = [
-    `Exportation des tâches - ${babyName}`,
-    `Période: ${startDate ? moment(startDate).format('DD/MM/YYYY') : 'Début'} - ${endDate ? moment(endDate).format('DD/MM/YYYY') : "Aujourd'hui"}`,
-    `Total: ${sortedTasks.length} tâches`,
+    t('export.title', { babyName }),
+    t('export.period', { start: periodStart, end: periodEnd }),
+    t('export.total', { count: sortedTasks.length }),
     '',
     headers.join(','),
     ...rows.map((row) => row.join(',')),
@@ -127,24 +186,24 @@ export const generateCSV = (options: ExportOptions): string => {
 };
 
 // Export tasks to CSV file and share
-export const exportTasksToCSV = async (options: ExportOptions): Promise<void> => {
+export const exportTasksToCSV = async (options: ExportOptions & { maxTasks?: number }): Promise<void> => {
   try {
     const csvContent = generateCSV(options);
     const fileName = `tribubaby_export_${moment().format('YYYY-MM-DD_HHmm')}.csv`;
-    
+
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      // Mobile: Save to file system and share
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-      
+      // Mobile: Save to file system and share (using new File API)
+      const file = new File(Paths.document, fileName);
+
       // Write CSV content to file with UTF-8 BOM for Excel compatibility
       const utf8BOM = '\uFEFF';
-      await FileSystem.writeAsStringAsync(fileUri, utf8BOM + csvContent, {
-        encoding: FileSystem.EncodingType.UTF8,
-      });
+      await file.write(utf8BOM + csvContent);
+
+      const fileUri = file.uri;
 
       // Check if sharing is available
       const isAvailable = await Sharing.isAvailableAsync();
-      
+
       if (isAvailable) {
         // Share the file
         await Sharing.shareAsync(fileUri, {
@@ -160,7 +219,7 @@ export const exportTasksToCSV = async (options: ExportOptions): Promise<void> =>
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
-      
+
       link.setAttribute('href', url);
       link.setAttribute('download', fileName);
       link.style.visibility = 'hidden';
@@ -174,40 +233,36 @@ export const exportTasksToCSV = async (options: ExportOptions): Promise<void> =>
   }
 };
 
-// Get date range presets
-export const getDateRangePresets = () => {
+// Get date range presets (with i18n support)
+export const getDateRangePresets = (t: any) => {
   const today = new Date();
-  
+
   return {
+    last24Hours: {
+      label: t('export.periods.last24Hours'),
+      startDate: new Date(today.getTime() - 24 * 60 * 60 * 1000),
+      endDate: today,
+    },
     last7Days: {
-      label: '7 derniers jours',
+      label: t('export.periods.last7Days'),
       startDate: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000),
       endDate: today,
     },
     last30Days: {
-      label: '30 derniers jours',
+      label: t('export.periods.last30Days'),
       startDate: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000),
       endDate: today,
     },
-    last3Months: {
-      label: '3 derniers mois',
-      startDate: new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000),
+    last60Days: {
+      label: t('export.periods.last60Days'),
+      startDate: new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000),
       endDate: today,
-    },
-    thisMonth: {
-      label: 'Ce mois',
-      startDate: new Date(today.getFullYear(), today.getMonth(), 1),
-      endDate: today,
-    },
-    lastMonth: {
-      label: 'Mois dernier',
-      startDate: new Date(today.getFullYear(), today.getMonth() - 1, 1),
-      endDate: new Date(today.getFullYear(), today.getMonth(), 0),
     },
     all: {
-      label: 'Toutes les tâches',
+      label: t('export.periods.all'),
       startDate: undefined,
       endDate: undefined,
+      maxTasks: 500,
     },
   };
 };

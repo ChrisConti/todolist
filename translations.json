@@ -24,17 +24,26 @@
       "birthdate": "DD/MM/YYYY",
       "comment": "Comment",
       "code": "Enter the code",
-      "millilitres": "Milliliters",
+      "millilitres": "Oz/ml",
       "medicaments": "Medecine",
       "sleepTime": "Sleep time (min)",
       "temperature": "Temperature",
-      "weight": "Weight (kg)",
-      "height": "Height (cm)"
+      "weight": "Weight (kg/lb)",
+      "height": "Height (cm/in)"
     },
     "milkType": {
       "title": "Milk",
       "artificial": "Formula",
       "maternal": "Breast milk",
+      "other": "Other"
+    },
+    "sleepLocation": {
+      "title": "Sleep location",
+      "bed": "In bed",
+      "arms": "In arms",
+      "breastfeeding": "While breastfeeding",
+      "bottle": "While bottle feeding",
+      "bouncer": "In bouncer",
       "other": "Other"
     },
     "breastfeeding": {
@@ -43,6 +52,10 @@
     },
     "error": {
       "invalidEmail": "Please enter a valid email.",
+      "invalidCredential": "Invalid email or password.",
+      "emptyFields": "Please fill in all fields.",
+      "test": "Incorrect password.",
+      "userDocumentExists": "An account already exists. Please try logging in.",
       "shortPassword": "Password too short, minimum 6 characters.",
       "passwordNeedsNumber": "Password must contain at least one number.",
       "shortName": "Name should have at least 2 characters.",
@@ -94,6 +107,65 @@
       "photoRemoved": "Photo removed successfully!",
       "copied": "Code copied!"
     },
+    "export": {
+      "taskTypes": {
+        "bottle": "Bottle",
+        "diaper": "Diaper",
+        "health": "Health",
+        "sleep": "Sleep",
+        "temperature": "Temperature",
+        "breastfeeding": "Breastfeeding"
+      },
+      "diaperType": {
+        "solid": "Solid",
+        "soft": "Soft",
+        "liquid": "Liquid"
+      },
+      "diaperContent": {
+        "pee": "Pee",
+        "poop": "Poop",
+        "both": "Pee + Poop"
+      },
+      "headers": {
+        "date": "Date",
+        "time": "Time",
+        "type": "Type",
+        "quantity": "Quantity/Duration",
+        "consistency": "Consistency",
+        "content": "Content",
+        "leftBreast": "Left Breast",
+        "rightBreast": "Right Breast",
+        "createdBy": "Created by",
+        "comment": "Comment"
+      },
+      "title": "Tasks Export - {{babyName}}",
+      "period": "Period: {{start}} - {{end}}",
+      "total": "Total: {{count}} tasks",
+      "periodStart": "Start",
+      "periodEnd": "Today",
+      "page": {
+        "title": "Export Tasks",
+        "subtitle": "for {{babyName}}",
+        "loading": "Loading...",
+        "selectPeriod": "Select period:",
+        "tasksCount": "{{count}} task will be exported",
+        "tasksCount_plural": "{{count}} tasks will be exported",
+        "formatTitle": "Export format:",
+        "formatCSV": "CSV file (compatible with Excel, Google Sheets)",
+        "formatColumns": "Columns: Date, Time, Type, Quantity/Duration, Consistency, Content, Left Breast, Right Breast, Created by, Comment",
+        "formatLabels": "Translated labels (Bottle, Diaper, Pee, Poop, etc.)",
+        "formatEncoding": "UTF-8 encoding with BOM",
+        "exportButton": "Export to CSV",
+        "helpText": "The file will be shared via your device's share menu. You can open it in Excel, Google Sheets, Numbers or any other app."
+      },
+      "periods": {
+        "last24Hours": "Last 24 hours",
+        "last7Days": "Last 7 days",
+        "last30Days": "Last 30 days",
+        "last60Days": "Last 60 days",
+        "all": "All tasks (max 500)"
+      }
+    },
     "header": {
       "suivi": "Tracking"
     },
@@ -119,6 +191,9 @@
       "editProfile": "Edit Profile",
       "name": "Name",
       "birthdate": "Birthdate",
+      "essentialInfo": "Essential information",
+      "additionalInfo": "Additional information (optional)",
+      "optional": "Optional",
       "addPhoto": "Add photo",
       "changePhoto": "Change photo",
       "selectPhoto": "Select photo",
@@ -146,8 +221,8 @@
       "month": "month",
       "week": "week",
       "day": "day",
-      "kg": "kg",
-      "cm": "cm",
+      "kg": "kg/lb",
+      "cm": "cm/in",
       "openSettings": "Open Settings"
     },
     "task": {
@@ -158,6 +233,7 @@
       "deleteTitle": "Delete Task",
       "deleteMessage": "Are you sure you want to delete this task?"
     },
+    "noTasksForFilter": "No activities for this category",
     "diapers": {
       "dur": "Normal",
       "mou": "Soft",
@@ -171,9 +247,12 @@
       "someFigures": "Some figures",
       "today": "Today",
       "yesterday": "Yesterday",
-      "last7Days": "Last 7 days",
+      "last7Days": "7 days",
       "last7DaysStacked": "Last 7 days (Stacked)",
-      "noTaskFound": "No task found"
+      "noTaskFound": "No task found",
+      "generalCount": "Count",
+      "typeStats": "Type",
+      "contentStats": "Content"
     },
     "settings": {
       "babyOptions": "Baby Options",
@@ -200,7 +279,10 @@
       "contactUs": "Contact Us",
       "resetPasswordInstructions": "To reset your password, click on the button to receive an email.",
       "resetPassordEmailSent": "An email has been sent to reset your password.",
-      "sendEmail": "Send email"
+      "sendEmail": "Send email",
+      "changeNameDescription": "Enter your new name below. This will update your profile name across the app.",
+      "changeEmailDescription": "To change your email address, enter your new email and your current password to confirm the change.",
+      "deleteAccountWarning": "This action is permanent and cannot be undone. Enter your password to confirm account deletion. Your tasks will be anonymized in shared babies."
     },
     "title":{
       "signup": "Sign Up",
@@ -220,6 +302,11 @@
       "activities": "Activities",
       "stats": "Stats"
     },
+    "stats": {
+      "quantity": "Quantity",
+      "duration": "Duration",
+      "count": "Count"
+    },
     "enterValidName": "Please enter a valid name", 
     "modification": "Modification", 
     "nameChangedSuccess": "Your name has been successfully updated.",
@@ -232,11 +319,11 @@
     "deletedUser": "Deleted User",
     "accountDeletionFailed": "Account deletion failed. Please try again.",
     "reauthenticationError": "Error during reauthentication: {{message}}", 
-    "email": "Email", 
+    "email": "Email",
     "password": "Password",
-    "ml": "ml", 
-    "min": "min", 
-    "celsius": "°C",
+    "ml": "oz/ml",
+    "min": "min",
+    "celsius": "°F/°C",
     "Name": "Name", 
     "Liste d'utilisateur": "User List", 
     "Partager le bébé": "Share the baby", 
@@ -409,7 +496,7 @@
       "birthdate": "JJ/MM/AAAA",
       "comment": "Commentaire",
       "code": "Entrez le code",
-      "millilitres": "Millilitres",
+      "millilitres": "Mililitres",
       "medicaments": "Médicaments",
       "sleepTime": "Temps de sommeil (min)",
       "temperature": "Température",
@@ -422,12 +509,25 @@
       "maternal": "Maternel",
       "other": "Autre"
     },
+    "sleepLocation": {
+      "title": "Lieu de sommeil",
+      "bed": "Dans son lit",
+      "arms": "Dans les bras",
+      "breastfeeding": "Pendant l'allaitement",
+      "bottle": "Au biberon",
+      "bouncer": "Sur un transat",
+      "other": "Autre"
+    },
     "breastfeeding": {
       "timer": "Timer",
       "manual": "Manuel"
     },
     "error": {
       "invalidEmail": "Veuillez entrer un email valide.",
+      "invalidCredential": "Email ou mot de passe incorrect.",
+      "emptyFields": "Veuillez remplir tous les champs.",
+      "test": "Mot de passe incorrect.",
+      "userDocumentExists": "Un compte existe déjà. Veuillez vous connecter.",
       "shortPassword": "Mot de passe trop court, minimum 6 caractères.",
       "passwordNeedsNumber": "Le mot de passe doit contenir au moins un chiffre.",
       "shortName": "Le nom doit comporter au moins 2 caractères.",
@@ -479,6 +579,65 @@
       "photoRemoved": "Photo supprimée avec succès!",
       "copied": "Code copié!"
     },
+    "export": {
+      "taskTypes": {
+        "bottle": "Biberon",
+        "diaper": "Couche",
+        "health": "Santé",
+        "sleep": "Sommeil",
+        "temperature": "Thermomètre",
+        "breastfeeding": "Allaitement"
+      },
+      "diaperType": {
+        "solid": "Dur",
+        "soft": "Mou",
+        "liquid": "Liquide"
+      },
+      "diaperContent": {
+        "pee": "Pipi",
+        "poop": "Caca",
+        "both": "Pipi + Caca"
+      },
+      "headers": {
+        "date": "Date",
+        "time": "Heure",
+        "type": "Type",
+        "quantity": "Quantité/Durée",
+        "consistency": "Consistance",
+        "content": "Contenu",
+        "leftBreast": "Sein Gauche",
+        "rightBreast": "Sein Droit",
+        "createdBy": "Créé par",
+        "comment": "Commentaire"
+      },
+      "title": "Exportation des tâches - {{babyName}}",
+      "period": "Période: {{start}} - {{end}}",
+      "total": "Total: {{count}} tâches",
+      "periodStart": "Début",
+      "periodEnd": "Aujourd'hui",
+      "page": {
+        "title": "Exporter les tâches",
+        "subtitle": "pour {{babyName}}",
+        "loading": "Chargement...",
+        "selectPeriod": "Sélectionnez la période :",
+        "tasksCount": "{{count}} tâche sera exportée",
+        "tasksCount_plural": "{{count}} tâches seront exportées",
+        "formatTitle": "Format d'export :",
+        "formatCSV": "Fichier CSV (compatible Excel, Google Sheets)",
+        "formatColumns": "Colonnes : Date, Heure, Type, Quantité/Durée, Consistance, Contenu, Sein Gauche, Sein Droit, Créé par, Commentaire",
+        "formatLabels": "Labels traduits (Biberon, Couche, Pipi, Caca, etc.)",
+        "formatEncoding": "Encodage UTF-8 avec BOM",
+        "exportButton": "Exporter vers CSV",
+        "helpText": "Le fichier sera partagé via le menu de partage de votre appareil. Vous pourrez l'ouvrir dans Excel, Google Sheets, Numbers ou toute autre application."
+      },
+      "periods": {
+        "last24Hours": "Dernières 24h",
+        "last7Days": "7 derniers jours",
+        "last30Days": "30 derniers jours",
+        "last60Days": "60 derniers jours",
+        "all": "Toutes les tâches (max 500)"
+      }
+    },
     "header": {
       "suivi": "Suivi"
     },
@@ -504,6 +663,9 @@
       "editProfile": "Modifier le profil",
       "name": "Nom",
       "birthdate": "Date de naissance",
+      "essentialInfo": "Informations essentielles",
+      "additionalInfo": "Informations complémentaires (optionnel)",
+      "optional": "Optionnel",
       "addPhoto": "Ajouter une photo",
       "changePhoto": "Changer la photo",
       "selectPhoto": "Sélectionner une photo",
@@ -537,12 +699,13 @@
     },
     "task": {
       "createdBy": "Créé par",
-      "date": "En date du", 
+      "date": "En date du",
       "whenTask": "Quand ?",
       "addTask": "Ajouter une activité",
       "deleteTitle": "Supprimer la tâche",
       "deleteMessage": "Êtes-vous sûr de vouloir supprimer cette tâche ?"
     },
+    "noTasksForFilter": "Aucune activité pour cette catégorie",
     "diapers": {
       "dur": "Normal",
       "mou": "Mou",
@@ -556,9 +719,12 @@
       "someFigures": "Quelques chiffres",
       "today": "Aujourd'hui",
       "yesterday": "Hier",
-      "last7Days": "Les 7 derniers jours",
+      "last7Days": "7 jours",
       "last7DaysStacked": "Les 7 derniers jours (Stacked)",
-      "noTaskFound": "Aucune tâche trouvée"
+      "noTaskFound": "Aucune tâche trouvée",
+      "generalCount": "Comptage",
+      "typeStats": "Type",
+      "contentStats": "Contenu"
     },
     "settings": {
       "babyOptions": "Options de bébé",
@@ -585,7 +751,10 @@
       "contactUs": "Nous contacter",
       "resetPasswordInstructions": "Pour réinitialiser votre mot de passe, cliquez sur le bouton pour recevoir un email.",
       "sendEmail": "Envoyer un email",
-      "resetPassordEmailSent": "Un email a été envoyé pour réinitialiser votre mot de passe."
+      "resetPassordEmailSent": "Un email a été envoyé pour réinitialiser votre mot de passe.",
+      "changeNameDescription": "Entrez votre nouveau nom ci-dessous. Cela mettra à jour votre nom de profil dans toute l'application.",
+      "changeEmailDescription": "Pour changer votre adresse email, entrez votre nouvel email et votre mot de passe actuel pour confirmer le changement.",
+      "deleteAccountWarning": "Cette action est permanente et ne peut pas être annulée. Entrez votre mot de passe pour confirmer la suppression de votre compte. Vos tâches seront anonymisées dans les bébés partagés."
     },
     "enterValidName": "Veuillez entrer un nom valide", 
     "modification": "Modification", 
@@ -627,6 +796,11 @@
       "babyStats": "Statistiques du bébé",
       "activities": "Activités",
       "stats": "Stats"
+    },
+    "stats": {
+      "quantity": "Quantité",
+      "duration": "Durée",
+      "count": "Comptage"
     },
     "conditions":{
       "label": "En cliquant sur valider, vous acceptez nos ",
@@ -804,14 +978,25 @@
         "maternal": "Materna",
         "other": "Otra"
       },
+      "sleepLocation": {
+        "title": "Lugar de sueño",
+        "bed": "En su cama",
+        "arms": "En brazos",
+        "breastfeeding": "Durante la lactancia",
+        "bottle": "Con biberón",
+        "bouncer": "En hamaca",
+        "other": "Otro"
+      },
       "breastfeeding": {
         "timer": "Timer",
         "manual": "Manual"
       },
       "error": {
-      },
-      "error": {
         "invalidEmail": "Por favor, introduce un correo electrónico válido.",
+        "invalidCredential": "Correo o contraseña incorrectos.",
+        "emptyFields": "Por favor, rellena todos los campos.",
+        "test": "Contraseña incorrecta.",
+        "userDocumentExists": "Ya existe una cuenta. Por favor, inicia sesión.",
         "shortPassword": "Contraseña demasiado corta, mínimo 6 caracteres.",
         "passwordNeedsNumber": "La contraseña debe contener al menos un número.",
         "shortName": "El nombre debe tener al menos 2 caracteres.",
@@ -862,6 +1047,65 @@
         "photoRemoved": "¡Foto eliminada con éxito!",
         "copied": "¡Código copiado!"
       },
+      "export": {
+        "taskTypes": {
+          "bottle": "Biberón",
+          "diaper": "Pañal",
+          "health": "Salud",
+          "sleep": "Sueño",
+          "temperature": "Termómetro",
+          "breastfeeding": "Lactancia"
+        },
+        "diaperType": {
+          "solid": "Duro",
+          "soft": "Blando",
+          "liquid": "Líquido"
+        },
+        "diaperContent": {
+          "pee": "Pipí",
+          "poop": "Caca",
+          "both": "Pipí + Caca"
+        },
+        "headers": {
+          "date": "Fecha",
+          "time": "Hora",
+          "type": "Tipo",
+          "quantity": "Cantidad/Duración",
+          "consistency": "Consistencia",
+          "content": "Contenido",
+          "leftBreast": "Pecho Izquierdo",
+          "rightBreast": "Pecho Derecho",
+          "createdBy": "Creado por",
+          "comment": "Comentario"
+        },
+        "title": "Exportación de tareas - {{babyName}}",
+        "period": "Período: {{start}} - {{end}}",
+        "total": "Total: {{count}} tareas",
+        "periodStart": "Inicio",
+        "periodEnd": "Hoy",
+        "page": {
+          "title": "Exportar tareas",
+          "subtitle": "para {{babyName}}",
+          "loading": "Cargando...",
+          "selectPeriod": "Seleccione el período:",
+          "tasksCount": "{{count}} tarea será exportada",
+          "tasksCount_plural": "{{count}} tareas serán exportadas",
+          "formatTitle": "Formato de exportación:",
+          "formatCSV": "Archivo CSV (compatible con Excel, Google Sheets)",
+          "formatColumns": "Columnas: Fecha, Hora, Tipo, Cantidad/Duración, Consistencia, Contenido, Pecho Izquierdo, Pecho Derecho, Creado por, Comentario",
+          "formatLabels": "Etiquetas traducidas (Biberón, Pañal, Pipí, Caca, etc.)",
+          "formatEncoding": "Codificación UTF-8 con BOM",
+          "exportButton": "Exportar a CSV",
+          "helpText": "El archivo se compartirá a través del menú de compartir de su dispositivo. Podrá abrirlo en Excel, Google Sheets, Numbers o cualquier otra aplicación."
+        },
+        "periods": {
+          "last24Hours": "Últimas 24h",
+          "last7Days": "Últimos 7 días",
+          "last30Days": "Últimos 30 días",
+          "last60Days": "Últimos 60 días",
+          "all": "Todas las tareas (máx 500)"
+        }
+      },
       "header": {
         "suivi": "Seguimiento"
       },
@@ -887,6 +1131,9 @@
         "editProfile": "Editar perfil",
         "name": "Nombre",
         "birthdate": "Fecha de nacimiento",
+        "essentialInfo": "Información esencial",
+        "additionalInfo": "Información adicional (opcional)",
+        "optional": "Opcional",
         "addPhoto": "Añadir foto",
         "changePhoto": "Cambiar foto",
         "selectPhoto": "Seleccionar foto",
@@ -926,6 +1173,7 @@
         "deleteTitle": "Eliminar tarea",
         "deleteMessage": "¿Estás seguro de que quieres eliminar esta tarea?"
       },
+      "noTasksForFilter": "No hay actividades para esta categoría",
       "diapers": {
         "dur": "Normal",
         "mou": "Suave",
@@ -939,9 +1187,12 @@
         "someFigures": "Algunas cifras",
         "today": "Hoy",
         "yesterday": "Ayer",
-        "last7Days": "Últimos 7 días",
+        "last7Days": "7 días",
         "last7DaysStacked": "Últimos 7 días (Apilados)",
-        "noTaskFound": "No se encontró ninguna tarea"
+        "noTaskFound": "No se encontró ninguna tarea",
+        "generalCount": "Conteo",
+        "typeStats": "Tipo",
+        "contentStats": "Contenido"
       },
       "settings": {
         "babyOptions": "Opciones de bebé",
@@ -968,7 +1219,10 @@
         "contactUs": "Contáctenos",
         "resetPasswordInstructions": "Para restablecer tu contraseña, haz clic en el botón para recibir un correo electrónico.",
         "sendEmail": "Enviar correo",
-        "resetPassordEmailSent": "Se ha enviado un correo electrónico para restablecer tu contraseña."
+        "resetPassordEmailSent": "Se ha enviado un correo electrónico para restablecer tu contraseña.",
+        "changeNameDescription": "Ingresa tu nuevo nombre a continuación. Esto actualizará tu nombre de perfil en toda la aplicación.",
+        "changeEmailDescription": "Para cambiar tu dirección de correo electrónico, ingresa tu nuevo correo y tu contraseña actual para confirmar el cambio.",
+        "deleteAccountWarning": "Esta acción es permanente y no se puede deshacer. Ingresa tu contraseña para confirmar la eliminación de tu cuenta. Tus tareas serán anonimizadas en los bebés compartidos."
       },
       "enterValidName": "Por favor, introduce un nombre válido", 
       "enterValidEmail": "Por favor, introduce un correo válido", 
@@ -1006,6 +1260,11 @@
         "babyStats": "Estadísticas del bebé",
         "activities": "Actividades",
         "stats": "Estadísticas"
+      },
+      "stats": {
+        "quantity": "Cantidad",
+        "duration": "Duración",
+        "count": "Recuento"
       },
       "conditions":{
         "label": "Al hacer clic en validar, acepta nuestros ",

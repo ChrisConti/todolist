@@ -22,12 +22,11 @@ const UpdateTask = ({ route, navigation }) => {
   const { user, babyID, userInfo } = useContext(AuthentificationUserContext);
 
   useEffect(() => {
-    analytics.logScreenView('UpdateTask');
     loadTimers();
-    
+
     // Écouter les changements d'état de l'app
     const subscription = AppState.addEventListener('change', handleAppStateChange);
-    
+
     return () => {
       subscription?.remove();
       clearInterval(interval1.current);
@@ -43,6 +42,7 @@ const UpdateTask = ({ route, navigation }) => {
   const [milkType, setMilkType] = useState<string | null>(task.milkType || null);
   const [diaperContent, setDiaperContent] = useState<number | null>(task.diaperContent ?? null); // 0=pee, 1=poop, 2=both
   const [diaperType, setDiaperType] = useState<number | null>(task.diaperType ?? task.idCaca ?? null); // 0=normal, 1=soft, 2=liquid
+  const [sleepLocation, setSleepLocation] = useState<string | null>(task.sleepLocation || null); // bed, arms, breastfeeding, bottle, bouncer, other
   const [selectedDate, setSelectedDate] = useState(task.date ? new Date(task.date) : new Date());
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
 
@@ -173,6 +173,7 @@ const UpdateTask = ({ route, navigation }) => {
               boobRight: breastfeedingMode === 'manual' ? manualMinutesRight * 60 : timer2,
               breastfeedingMode: selectedImage === 5 ? breastfeedingMode : null,
               milkType: selectedImage === 0 ? milkType : null,
+              sleepLocation: selectedImage === 3 ? sleepLocation : null,
               // NE PAS MODIFIER user et createdBy - garder les valeurs originales
               comment: note,
             };
@@ -197,15 +198,9 @@ const UpdateTask = ({ route, navigation }) => {
 
         await updateDoc(doc(db, 'Baby', document.id), { tasks });
       });
-      
+
       console.log('Task updated successfully');
-      
-      analytics.logEvent('task_updated', {
-        taskId: selectedImage,
-        hasNote: !!note,
-        userId: user.uid
-      });
-      
+
       // Nettoyer les timers sauvegardés
       await AsyncStorage.removeItem(`timer1_updatetask_${task.uid}`);
       await AsyncStorage.removeItem(`timer2_updatetask_${task.uid}`);
@@ -220,12 +215,6 @@ const UpdateTask = ({ route, navigation }) => {
         t('error.title'),
         t('error.taskUpdateFailed') || 'Unable to update task. Please try again.'
       );
-      
-      analytics.logEvent('task_update_failed', {
-        taskId: selectedImage,
-        userId: user.uid,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
     }
   };
 
@@ -252,12 +241,7 @@ const UpdateTask = ({ route, navigation }) => {
                 await updateDoc(doc(db, 'Baby', document.id), { tasks: updatedTasks });
               });
               await Promise.all(updatePromises);
-              
-              analytics.logEvent('task_deleted', {
-                taskId: task.id,
-                userId: user.uid
-              });
-              
+
               // Nettoyer les timers sauvegardés
               await AsyncStorage.removeItem(`timer1_updatetask_${task.uid}`);
               await AsyncStorage.removeItem(`timer2_updatetask_${task.uid}`);
@@ -272,12 +256,6 @@ const UpdateTask = ({ route, navigation }) => {
                 t('error.title'),
                 t('error.taskDeleteFailed') || 'Unable to delete task. Please try again.'
               );
-              
-              analytics.logEvent('task_delete_failed', {
-                taskId: task.id,
-                userId: user.uid,
-                error: error instanceof Error ? error.message : 'Unknown error'
-              });
             }
           },
         },
@@ -555,7 +533,10 @@ const UpdateTask = ({ route, navigation }) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
-        <ScrollView>
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 120 }}
+          showsVerticalScrollIndicator={true}
+        >
           {/* Image Picker */}
           <View style={styles.imagePicker}>
             {handleImageType(task.id)}
@@ -665,6 +646,101 @@ const UpdateTask = ({ route, navigation }) => {
                     diaperContent === 2 && styles.milkTypeTextSelected
                   ]}>
                     💦💩 {t('diapers.both')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Sleep Location - Only for sleep (id === 3) */}
+          {selectedImage === 3 && (
+            <View style={{ paddingTop: 30, alignSelf: 'center', width: 280 }}>
+              <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                {t('sleepLocation.title')}
+              </Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8 }}>
+                <TouchableOpacity
+                  onPress={() => setSleepLocation(sleepLocation === 'bed' ? null : 'bed')}
+                  style={[
+                    styles.sleepLocationButton,
+                    sleepLocation === 'bed' && styles.sleepLocationButtonSelected
+                  ]}
+                >
+                  <Text style={[
+                    styles.sleepLocationText,
+                    sleepLocation === 'bed' && styles.sleepLocationTextSelected
+                  ]}>
+                    🛏️ {t('sleepLocation.bed')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setSleepLocation(sleepLocation === 'arms' ? null : 'arms')}
+                  style={[
+                    styles.sleepLocationButton,
+                    sleepLocation === 'arms' && styles.sleepLocationButtonSelected
+                  ]}
+                >
+                  <Text style={[
+                    styles.sleepLocationText,
+                    sleepLocation === 'arms' && styles.sleepLocationTextSelected
+                  ]}>
+                    🤱 {t('sleepLocation.arms')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setSleepLocation(sleepLocation === 'breastfeeding' ? null : 'breastfeeding')}
+                  style={[
+                    styles.sleepLocationButton,
+                    sleepLocation === 'breastfeeding' && styles.sleepLocationButtonSelected
+                  ]}
+                >
+                  <Text style={[
+                    styles.sleepLocationText,
+                    sleepLocation === 'breastfeeding' && styles.sleepLocationTextSelected
+                  ]}>
+                    🤱 {t('sleepLocation.breastfeeding')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setSleepLocation(sleepLocation === 'bottle' ? null : 'bottle')}
+                  style={[
+                    styles.sleepLocationButton,
+                    sleepLocation === 'bottle' && styles.sleepLocationButtonSelected
+                  ]}
+                >
+                  <Text style={[
+                    styles.sleepLocationText,
+                    sleepLocation === 'bottle' && styles.sleepLocationTextSelected
+                  ]}>
+                    🍼 {t('sleepLocation.bottle')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setSleepLocation(sleepLocation === 'bouncer' ? null : 'bouncer')}
+                  style={[
+                    styles.sleepLocationButton,
+                    sleepLocation === 'bouncer' && styles.sleepLocationButtonSelected
+                  ]}
+                >
+                  <Text style={[
+                    styles.sleepLocationText,
+                    sleepLocation === 'bouncer' && styles.sleepLocationTextSelected
+                  ]}>
+                    🪑 {t('sleepLocation.bouncer')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setSleepLocation(sleepLocation === 'other' ? null : 'other')}
+                  style={[
+                    styles.sleepLocationButton,
+                    sleepLocation === 'other' && styles.sleepLocationButtonSelected
+                  ]}
+                >
+                  <Text style={[
+                    styles.sleepLocationText,
+                    sleepLocation === 'other' && styles.sleepLocationTextSelected
+                  ]}>
+                    {t('sleepLocation.other')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -949,6 +1025,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   milkTypeTextSelected: {
+    color: '#F6F0EB',
+  },
+  sleepLocationButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#C75B4A',
+    backgroundColor: 'transparent',
+    width: '48%',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  sleepLocationButtonSelected: {
+    backgroundColor: '#C75B4A',
+  },
+  sleepLocationText: {
+    color: '#C75B4A',
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  sleepLocationTextSelected: {
     color: '#F6F0EB',
   },
   modeButton: {

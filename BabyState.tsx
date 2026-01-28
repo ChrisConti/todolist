@@ -86,8 +86,8 @@ const BabyState = ({ navigation }) => {
       
       // Log analytics event for leaving baby
       analytics.logEvent('baby_left', {
-        babyId: babyID,
-        userId: user.uid,
+        baby_id: babyID,
+        user_id: user.uid,
         timestamp: Date.now()
       });
       

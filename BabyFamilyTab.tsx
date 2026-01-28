@@ -33,8 +33,8 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
     Clipboard.setString(text);
     
     analytics.logEvent('baby_code_copied', {
-      babyId: babyID,
-      userId: currentUserId,
+      baby_id: babyID,
+      user_id: currentUserId,
     });
     
     // Utiliser ToastAndroid sur Android, toast personnalisé sur iOS

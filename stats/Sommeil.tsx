@@ -1,18 +1,27 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Card from '../Card';
 import { useTranslation } from 'react-i18next';
-import { useSommeilStats } from '../hooks/useTaskStatistics';
+import { useSommeilStats, useSommeilCountStats } from '../hooks/useTaskStatistics';
 import { Task } from '../types/stats';
+import StatsContainer from '../components/stats/StatsContainer';
+import SectionTitle from '../components/stats/SectionTitle';
+import { STATS_CONFIG } from '../constants/statsConfig';
 
 interface SommeilProps {
   navigation: any;
   tasks: Task[];
 }
 
+type ViewMode = 'duration' | 'count';
+
 const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
   const { t } = useTranslation();
-  const { dailyStats, chartData, lastTask, isLoading, error } = useSommeilStats(tasks);
+  const [viewMode, setViewMode] = useState<ViewMode>('count');
+
+  const durationStats = useSommeilStats(tasks);
+  const countStats = useSommeilCountStats(tasks);
+  const { dailyStats, chartData, lastTask, isLoading, error } = viewMode === 'duration' ? durationStats : countStats;
 
   const formatDuration = (minutes: number) => {
     if (minutes < 60) {
@@ -25,27 +34,43 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
 
   const renderBar = (value: number, maxValue: number, color: string, isMax: boolean) => {
     if (value === 0) return null;
-    const barHeight = (value / maxValue) * 200;
+    const barHeight = (value / maxValue) * STATS_CONFIG.BAR_MAX_HEIGHT * 1.5;
     return (
-      <View style={[styles.bar, { height: barHeight, backgroundColor: color, opacity: isMax ? 1 : 0.5 }]} />
+      <View style={[styles.bar, {
+        height: barHeight,
+        backgroundColor: color,
+        opacity: isMax ? STATS_CONFIG.BAR_OPACITY_MAX : STATS_CONFIG.BAR_OPACITY_NON_MAX
+      }]}>
+        {viewMode === 'count' && value > 0 && (
+          <Text style={styles.barValue}>{value}</Text>
+        )}
+      </View>
     );
   };
 
   const renderChart = () => {
-    const dataValues = chartData.datasets[0].data as number[];
+    const sommeilChartData = chartData as import('../types/stats').ChartData;
+    const dataValues = sommeilChartData.datasets[0].data as number[];
     const maxValue = Math.max(...dataValues);
-    const yAxisLabels = [maxValue, maxValue / 2, 0].map(formatDuration);
+
+    // Format Y-axis labels based on view mode (only show in duration mode)
+    const yAxisLabels = viewMode === 'duration'
+      ? [maxValue, maxValue / 2, 0].map(formatDuration)
+      : [];
+
     return (
       <View style={styles.chartContainer}>
-        <View style={styles.yAxis}>
-          {yAxisLabels.map((label, index) => (
-            <Text key={index} style={styles.yAxisLabel}>{label}</Text>
-          ))}
-        </View>
+        {viewMode === 'duration' && (
+          <View style={styles.yAxis}>
+            {yAxisLabels.map((label, index) => (
+              <Text key={index} style={styles.yAxisLabel}>{label}</Text>
+            ))}
+          </View>
+        )}
         <View style={styles.chartContent}>
           {chartData.labels.map((label, index) => (
             <View key={index} style={styles.chartColumn}>
-              {renderBar(dataValues[index], maxValue, '#E29656', dataValues[index] === maxValue)}
+              {renderBar(dataValues[index], maxValue, STATS_CONFIG.COLORS.SLEEP, dataValues[index] === maxValue)}
               <Text style={styles.chartLabel}>{label}</Text>
             </View>
           ))}
@@ -54,87 +79,137 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
     );
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <Text>{t('common.loading')}</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
+  const formatValue = (value: number) => {
+    return viewMode === 'duration' ? formatDuration(value) : `${value}`;
+  };
 
   return (
-    <View style={styles.container}>
-      {lastTask ? 
-        <View>
-          <View style={{ marginBottom: 20 }}>
-            <Text style={styles.titleParameter}>{t('sommeil.lastTask')}</Text>
-            <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} /> 
+    <StatsContainer
+      loading={isLoading}
+      error={error}
+      hasData={!!lastTask}
+      emptyMessage={t('sommeil.noTaskFound')}
+    >
+      {/* Last Task */}
+      {lastTask && (
+        <View style={styles.section}>
+          <SectionTitle>{t('sommeil.lastTask')}</SectionTitle>
+          <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} />
+        </View>
+      )}
+
+      {/* Statistics */}
+      <View style={styles.section}>
+        <SectionTitle>{t('sommeil.someFigures')}</SectionTitle>
+
+        {/* View Mode Selector */}
+        <View style={styles.viewModeContainer}>
+          <TouchableOpacity
+            onPress={() => setViewMode('count')}
+            style={[styles.viewModeButton, viewMode === 'count' && styles.viewModeButtonActive]}
+          >
+            <Text style={[styles.viewModeText, viewMode === 'count' && styles.viewModeTextActive]}>
+              {t('stats.count')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setViewMode('duration')}
+            style={[styles.viewModeButton, viewMode === 'duration' && styles.viewModeButtonActive]}
+          >
+            <Text style={[styles.viewModeText, viewMode === 'duration' && styles.viewModeTextActive]}>
+              {t('stats.duration')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Stats Values */}
+        <View style={styles.statsRow}>
+          <View style={styles.statsColumn}>
+            <Text style={styles.statLabel}>{t('sommeil.today')}</Text>
+            <Text style={styles.statLabel}>{t('sommeil.yesterday')}</Text>
+            <Text style={styles.statLabel}>{t('sommeil.last7Days')}</Text>
           </View>
-          <View style={{ marginBottom: 20 }}>
-            <Text style={styles.titleParameter}>{t('sommeil.someFigures')}</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-              <View>
-                <Text>{t('sommeil.today')}</Text>
-                <Text>{t('sommeil.yesterday')}</Text>
-                <Text>{t('sommeil.last7Days')}</Text>
-              </View>
-              <View>
-                <Text>{formatDuration(dailyStats.today as number)}</Text>
-                <Text>{formatDuration(dailyStats.yesterday as number)}</Text>
-                <Text>{formatDuration(dailyStats.lastPeriod as number)}</Text>
-              </View>
-            </View>
-          </View>
-          <View style={{}}>
-            <Text style={styles.titleParameter}>{t('sommeil.evolutionLast7Days')}</Text>
-            {renderChart()}
+          <View style={styles.statsColumn}>
+            <Text style={styles.statValue}>{formatValue(dailyStats.today as number)}</Text>
+            <Text style={styles.statValue}>{formatValue(dailyStats.yesterday as number)}</Text>
+            <Text style={styles.statValue}>{formatValue(dailyStats.lastPeriod as number)}</Text>
           </View>
         </View>
-      : 
-      <Text>{t('sommeil.noTaskFound')}</Text>}
-    </View>
+      </View>
+
+      {/* Chart */}
+      <View style={styles.section}>
+        <SectionTitle>{t('sommeil.evolutionLast7Days')}</SectionTitle>
+        {renderChart()}
+      </View>
+    </StatsContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  section: {
+    marginBottom: STATS_CONFIG.SPACING.LARGE,
+  },
+  viewModeContainer: {
+    flexDirection: 'row',
+    backgroundColor: STATS_CONFIG.COLORS.WHITE,
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: STATS_CONFIG.SPACING.LARGE,
+    gap: 4,
+  },
+  viewModeButton: {
     flex: 1,
-    padding: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
-  titleParameter: {
+  viewModeButtonActive: {
+    backgroundColor: STATS_CONFIG.COLORS.SLEEP,
+  },
+  viewModeText: {
+    fontSize: 13,
+    fontWeight: '600',
     color: '#7A8889',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    marginTop: 3,
   },
-  errorText: {
-    color: '#C75B4A',
-    fontSize: 14,
-    textAlign: 'center',
+  viewModeTextActive: {
+    color: '#FFF',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statsColumn: {
+    gap: STATS_CONFIG.SPACING.SMALL,
+  },
+  statLabel: {
+    fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
+    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+  },
+  statValue: {
+    fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
+    fontWeight: '600',
+    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
   },
   chartContainer: {
     flexDirection: 'row',
     height: 220,
-    marginVertical: 28,
+    marginVertical: STATS_CONFIG.SPACING.LARGE + 8,
     borderRadius: 16,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: STATS_CONFIG.COLORS.BACKGROUND,
+    paddingVertical: STATS_CONFIG.SPACING.MEDIUM,
   },
   yAxis: {
     justifyContent: 'space-between',
     marginRight: 8,
+    paddingLeft: STATS_CONFIG.SPACING.SMALL,
   },
   yAxisLabel: {
-    fontSize: 12,
-    color: '#7A8889',
+    fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
+    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
   },
   chartContent: {
     flexDirection: 'row',
@@ -147,13 +222,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   chartLabel: {
-    marginTop: 5,
+    marginTop: STATS_CONFIG.SPACING.SMALL,
+    fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
+    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
   },
   bar: {
     width: 35,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     alignItems: 'center',
-
+    borderRadius: 4,
+  },
+  barValue: {
+    color: STATS_CONFIG.COLORS.WHITE,
+    fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
+    fontWeight: 'bold',
   },
 });
 

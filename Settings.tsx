@@ -74,23 +74,23 @@ const Settings = ({ navigation }) => {
           </View>
           <View>
             <TouchableOpacity onPress={() => navigation.navigate('ChangeName')}>
-              <ItemParameter title={t('settings.myName')} icon="user" />
+              <ItemParameter title={t('settings.myName')} icon="account-edit" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('ChangeEmail')}>
-              <ItemParameter title={t('settings.myEmail')} icon="envelope" />
+              <ItemParameter title={t('settings.myEmail')} icon="email-edit" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('ChangePassword')}>
-              <ItemParameter title={t('settings.myPassword')} icon="lock" />
+              <ItemParameter title={t('settings.myPassword')} icon="lock-reset" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
                 navigation.navigate('DeleteAccount');
               }}
             >
-              <ItemParameter title={t('settings.deleteAccount')} icon="user" />
+              <ItemParameter title={t('settings.deleteAccount')} icon="account-remove" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleSignOut}>
-              <ItemParameter title={t('settings.signOut')} icon="arrow-right" />
+              <ItemParameter title={t('settings.signOut')} icon="logout" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
           </View>
         </View>
@@ -102,9 +102,10 @@ const Settings = ({ navigation }) => {
           <View>
             {!hasReviewed && (
               <TouchableOpacity onPress={showReviewModalManually}>
-                <ItemParameter 
-                  title={t('settings.rateApp')} 
-                  icon="star" 
+                <ItemParameter
+                  title={t('settings.rateApp')}
+                  icon="star"
+                  iconFamily="MaterialCommunityIcons"
                   backgroundColor="#C75B4A"
                   iconColor="#FFD700"
                   textColor="white"
@@ -112,22 +113,23 @@ const Settings = ({ navigation }) => {
               </TouchableOpacity>
             )}
             <TouchableOpacity onPress={handleFeedback}>
-              <ItemParameter 
-                title={t('settings.feedback')} 
-                icon="lightbulb-o"
+              <ItemParameter
+                title={t('settings.feedback')}
+                icon="lightbulb-on"
+                iconFamily="MaterialCommunityIcons"
                 backgroundColor="#C75B4A"
                 iconColor="#FFD700"
                 textColor="white"
               />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
-              <ItemParameter title={t('settings.privacyPolicy')} icon="arrow-circle-right" />
+              <ItemParameter title={t('settings.privacyPolicy')} icon="shield-lock" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('TermsOfUse')}>
-              <ItemParameter title={t('settings.termsOfUse')} icon="arrow-circle-right" />
+              <ItemParameter title={t('settings.termsOfUse')} icon="file-document" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleContactUs}>
-              <ItemParameter title={t('settings.contactUs')} icon="phone" />
+              <ItemParameter title={t('settings.contactUs')} icon="email" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
             
           </View>

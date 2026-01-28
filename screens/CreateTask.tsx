@@ -42,6 +42,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const [milkType, setMilkType] = useState<string | null>(null);
   const [diaperContent, setDiaperContent] = useState<number | null>(null); // 0=pee, 1=poop, 2=both
   const [diaperType, setDiaperType] = useState<number | null>(null); // 0=normal, 1=soft, 2=liquid
+  const [sleepLocation, setSleepLocation] = useState<string | null>(null); // bed, arms, breastfeeding, bottle, bouncer, other
   const [selectedDate, setSelectedDate] = useState(new Date());
   const uniqueId = uuid.v4();
   const [timer1, setTimer1] = useState(0);
@@ -208,6 +209,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         boobRight: breastfeedingMode === 'manual' ? manualMinutesRight * 60 : timer2,
         breastfeedingMode: selectedImage === 5 ? breastfeedingMode : null,
         milkType: selectedImage === 0 ? milkType : null,
+        sleepLocation: selectedImage === 3 ? sleepLocation : null,
         user: user.uid,
         createdBy: userInfo?.username || 'Unknown',
         comment: note,
@@ -221,11 +223,11 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
       
       // Track task creation
       analytics.logEvent('task_created', {
-        taskType: returnLabel(selectedImage),
-        taskId: selectedImage,
-        hasLabel: !!label,
-        hasNote: !!note,
-        userId: user.uid
+        task_type: returnLabel(selectedImage),
+        task_id: selectedImage,
+        has_label: !!label,
+        has_note: !!note,
+        user_id: user.uid
       });
       
       // Incrémente le compteur et affiche la modal si besoin
@@ -252,10 +254,10 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
       Alert.alert(t('error.title'), errorMessage);
       
       analytics.logEvent('task_creation_failed', {
-        taskType: returnLabel(selectedImage),
-        taskId: selectedImage,
-        userId: user.uid,
-        errorCode: error.code || 'unknown',
+        task_type: returnLabel(selectedImage),
+        task_id: selectedImage,
+        user_id: user.uid,
+        error_code: error.code || 'unknown',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -541,7 +543,11 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <View style={{ flex: 1, backgroundColor: '#FDF1E7', alignItems: 'center', paddingTop: 10, }}>
-          <ScrollView keyboardShouldPersistTaps="handled">
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingBottom: 100 }}
+            showsVerticalScrollIndicator={true}
+          >
             {/* Image picker */}
             <View style={{ flexDirection: 'row' }}>
               {images.map((image, index) => (
@@ -664,6 +670,101 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                         diaperContent === 2 && styles.milkTypeTextSelected
                       ]}>
                         💦💩 {t('diapers.both')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+              {/* Sleep Location - Only for sleep (id === 3) */}
+              {selectedImage === 3 && (
+                <View style={{ paddingTop: 30, alignSelf: 'center', width: 280 }}>
+                  <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                    {t('sleepLocation.title')}
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8 }}>
+                    <TouchableOpacity
+                      onPress={() => setSleepLocation(sleepLocation === 'bed' ? null : 'bed')}
+                      style={[
+                        styles.sleepLocationButton,
+                        sleepLocation === 'bed' && styles.sleepLocationButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.sleepLocationText,
+                        sleepLocation === 'bed' && styles.sleepLocationTextSelected
+                      ]}>
+                        🛏️ {t('sleepLocation.bed')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setSleepLocation(sleepLocation === 'arms' ? null : 'arms')}
+                      style={[
+                        styles.sleepLocationButton,
+                        sleepLocation === 'arms' && styles.sleepLocationButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.sleepLocationText,
+                        sleepLocation === 'arms' && styles.sleepLocationTextSelected
+                      ]}>
+                        🤱 {t('sleepLocation.arms')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setSleepLocation(sleepLocation === 'breastfeeding' ? null : 'breastfeeding')}
+                      style={[
+                        styles.sleepLocationButton,
+                        sleepLocation === 'breastfeeding' && styles.sleepLocationButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.sleepLocationText,
+                        sleepLocation === 'breastfeeding' && styles.sleepLocationTextSelected
+                      ]}>
+                        🤱 {t('sleepLocation.breastfeeding')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setSleepLocation(sleepLocation === 'bottle' ? null : 'bottle')}
+                      style={[
+                        styles.sleepLocationButton,
+                        sleepLocation === 'bottle' && styles.sleepLocationButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.sleepLocationText,
+                        sleepLocation === 'bottle' && styles.sleepLocationTextSelected
+                      ]}>
+                        🍼 {t('sleepLocation.bottle')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setSleepLocation(sleepLocation === 'bouncer' ? null : 'bouncer')}
+                      style={[
+                        styles.sleepLocationButton,
+                        sleepLocation === 'bouncer' && styles.sleepLocationButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.sleepLocationText,
+                        sleepLocation === 'bouncer' && styles.sleepLocationTextSelected
+                      ]}>
+                        🪑 {t('sleepLocation.bouncer')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setSleepLocation(sleepLocation === 'other' ? null : 'other')}
+                      style={[
+                        styles.sleepLocationButton,
+                        sleepLocation === 'other' && styles.sleepLocationButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.sleepLocationText,
+                        sleepLocation === 'other' && styles.sleepLocationTextSelected
+                      ]}>
+                        {t('sleepLocation.other')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -802,23 +903,23 @@ const styles = StyleSheet.create({
   },
   imageSelected: {
     width: 60,
-                height: 60,
-                resizeMode: 'cover',
-                borderColor: '#C75B4A',
-                borderWidth:5,
-                borderRadius:60, 
-                justifyContent:'center',
-                alignItems:'center'
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFF',
+    borderColor: '#C75B4A',
+    borderWidth: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   imageNonSelected: {
     width: 60,
-                height: 60,
-                resizeMode: 'cover',
-                borderWidth:5,
-                borderRadius:60, 
-                justifyContent:'center',
-                alignItems:'center',
-                borderColor: 'transparent'
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFF',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   inputComment: {
     height: 100,
@@ -914,6 +1015,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   milkTypeTextSelected: {
+    color: '#F6F0EB',
+  },
+  sleepLocationButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#C75B4A',
+    backgroundColor: 'transparent',
+    width: '48%',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  sleepLocationButtonSelected: {
+    backgroundColor: '#C75B4A',
+  },
+  sleepLocationText: {
+    color: '#C75B4A',
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  sleepLocationTextSelected: {
     color: '#F6F0EB',
   },
   modeButton: {

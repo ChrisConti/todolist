@@ -17,13 +17,11 @@ const JoinBaby = ({ navigation }) => {
 
   // Log screen view when the component is mounted
   useEffect(() => {
-    analytics.logScreenView('JoinBaby');
-    
     // Auto-focus on the input field
     const timer = setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -31,10 +29,6 @@ const JoinBaby = ({ navigation }) => {
     const trimmedBabyID = babyIDPaste.trim();
     if (!trimmedBabyID) {
       setError(t('error.enterCode'));
-      analytics.logEvent('baby_join_error', {
-        errorType: 'empty_code',
-        userId: user.uid
-      });
       return;
     }
 
@@ -44,10 +38,6 @@ const JoinBaby = ({ navigation }) => {
 
       if (querySnapshot.empty) {
         setError(t('error.invalidCode'));
-        analytics.logEvent('baby_join_error', {
-          errorType: 'invalid_code',
-          userId: user.uid
-        });
         return;
       }
 
@@ -76,10 +66,10 @@ const JoinBaby = ({ navigation }) => {
         }
 
         analytics.logEvent('baby_joined', {
-          babyId: trimmedBabyID,
-          babyName: babyData.name,
-          babyType: babyData.type,
-          userId: user.uid,
+          baby_id: trimmedBabyID,
+          baby_name: babyData.name,
+          baby_type: babyData.type,
+          user_id: user.uid,
           timestamp: Date.now()
         });
       });
@@ -89,12 +79,6 @@ const JoinBaby = ({ navigation }) => {
     } catch (error) {
       console.error('Error updating document:', error);
       setError(t('error.updateFailed'));
-
-      analytics.logEvent('baby_join_error', {
-        errorType: 'update_failed',
-        userId: user.uid,
-        error: error.message
-      });
     }
   };
 

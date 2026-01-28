@@ -67,45 +67,41 @@ const ChangeEmail = ({ route, navigation }) => {
   }
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
-          <TextInput
-            ref={inputRef}
-            style={styles.input}
-            placeholder={t('email')}
-            keyboardType="email-address"
-            autoComplete="email"
-            autoCapitalize="none"
-            clearButtonMode="always"
-            value={email}
-            onChangeText={(text) => setEmail(text)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder={t('password')}
-            secureTextEntry
-            autoComplete="current-password"
-            value={password}
-            onChangeText={(text) => setPassword(text)}
-          />
+        <View style={styles.container}>
+          <View style={styles.content}>
+            <Text style={styles.description}>
+              {t('settings.changeEmailDescription')}
+            </Text>
 
-          <View
-            style={{
-              position: 'absolute',
-              bottom: 10,
-              left: 0,
-              right: 0,
-              backgroundColor: 'transparent',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              flexDirection: 'column',
-            }}
-          >
+            <TextInput
+              ref={inputRef}
+              style={styles.input}
+              placeholder={t('email')}
+              keyboardType="email-address"
+              autoComplete="email"
+              autoCapitalize="none"
+              clearButtonMode="always"
+              value={email}
+              onChangeText={(text) => setEmail(text)}
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder={t('password')}
+              secureTextEntry
+              autoComplete="current-password"
+              value={password}
+              onChangeText={(text) => setPassword(text)}
+            />
+          </View>
+
+          <View style={styles.footer}>
             <Text style={styles.errorText}>{userError}</Text>
             <TouchableOpacity style={styles.button} onPress={updateUserEmail}>
               <Text style={styles.buttonText}>{t('validate')}</Text>
@@ -122,8 +118,37 @@ export default ChangeEmail;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
     backgroundColor: '#FDF1E7',
+  },
+  content: {
+    padding: 20,
+  },
+  description: {
+    fontSize: 15,
+    color: '#666',
+    marginBottom: 30,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  input: {
+    width: '100%',
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#C75B4A',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    backgroundColor: '#FFF',
+    marginBottom: 20,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 10,
+    left: 0,
+    right: 0,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    flexDirection: 'column',
   },
   button: {
     backgroundColor: '#C75B4A',
@@ -135,23 +160,14 @@ const styles = StyleSheet.create({
     width: 250,
   },
   buttonText: {
-    color: 'white',
+    color: '#F6F0EB',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  input: {
-    width: '100%',
-    height: 50,
-    borderBottomWidth: 1,
-    borderColor: '#C75B4A',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 20,
-    backgroundColor: '',
   },
   errorText: {
-    color: 'red',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#C75B4A',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 10,
   },
 });

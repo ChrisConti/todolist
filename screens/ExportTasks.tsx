@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { query, where, getDocs } from 'firebase/firestore';
@@ -9,16 +9,15 @@ import analytics from '../services/analytics';
 import moment from 'moment';
 
 const ExportTasks = ({ navigation }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, babyID } = useContext(AuthentificationUserContext);
   const [loading, setLoading] = useState(false);
   const [babyData, setBabyData] = useState(null);
-  const [selectedPeriod, setSelectedPeriod] = useState('last30Days');
+  const [selectedPeriod, setSelectedPeriod] = useState('last7Days');
 
-  const datePresets = getDateRangePresets();
+  const datePresets = useMemo(() => getDateRangePresets(t), [t]);
 
   useEffect(() => {
-    analytics.logScreenView('ExportTasks');
     fetchBabyData();
   }, [babyID]);
 
@@ -55,21 +54,31 @@ const ExportTasks = ({ navigation }) => {
 
     setLoading(true);
 
+    // Track export button click
+    analytics.logEvent('export_button_clicked', {
+      period: selectedPeriod,
+      task_count: babyData.tasks.length,
+      baby_id: babyID,
+      user_id: user.uid,
+    });
+
     try {
       const preset = datePresets[selectedPeriod];
-      
+
       await exportTasksToCSV({
         tasks: babyData.tasks,
         babyName: babyData.name,
         startDate: preset.startDate,
         endDate: preset.endDate,
+        language: i18n.language,
+        maxTasks: preset.maxTasks,
       });
 
       analytics.logEvent('tasks_exported', {
         period: selectedPeriod,
-        taskCount: babyData.tasks.length,
-        babyId: babyID,
-        userId: user.uid,
+        task_count: babyData.tasks.length,
+        baby_id: babyID,
+        user_id: user.uid,
       });
 
       Alert.alert(
@@ -82,42 +91,16 @@ const ExportTasks = ({ navigation }) => {
         t('error.title'),
         t('error.exportFailed')
       );
-      
-      analytics.logEvent('export_failed', {
-        error: error.message,
-        userId: user.uid,
-      });
     } finally {
       setLoading(false);
     }
   };
 
-  const getFilteredTaskCount = () => {
-    if (!babyData || !babyData.tasks) return 0;
-
-    const preset = datePresets[selectedPeriod];
-    if (!preset.startDate && !preset.endDate) {
-      return babyData.tasks.length;
-    }
-
-    return babyData.tasks.filter((task) => {
-      const taskDate = new Date(task.date);
-      if (preset.startDate && taskDate < preset.startDate) return false;
-      if (preset.endDate && taskDate > preset.endDate) return false;
-      return true;
-    }).length;
-  };
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Exporter les tâches</Text>
-        <Text style={styles.subtitle}>
-          {babyData ? `pour ${babyData.name}` : 'Chargement...'}
-        </Text>
-
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Sélectionnez la période :</Text>
+          <Text style={styles.sectionTitle}>{t('export.page.selectPeriod')}</Text>
           
           {Object.entries(datePresets).map(([key, value]) => (
             <TouchableOpacity
@@ -148,17 +131,8 @@ const ExportTasks = ({ navigation }) => {
           ))}
         </View>
 
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>
-            📊 {getFilteredTaskCount()} tâche{getFilteredTaskCount() > 1 ? 's' : ''} seront exportées
-          </Text>
-        </View>
-
         <View style={styles.formatInfo}>
-          <Text style={styles.formatTitle}>Format d'export :</Text>
-          <Text style={styles.formatText}>• Fichier CSV (compatible Excel, Google Sheets)</Text>
-          <Text style={styles.formatText}>• Colonnes : Date, Heure, Type, Détails, Durée, Créé par, Commentaire</Text>
-          <Text style={styles.formatText}>• Encodage UTF-8 avec BOM</Text>
+          <Text style={styles.formatText}>{t('export.page.formatCSV')}</Text>
         </View>
 
         <TouchableOpacity
@@ -170,14 +144,13 @@ const ExportTasks = ({ navigation }) => {
             <ActivityIndicator color="#FFF" />
           ) : (
             <Text style={styles.exportButtonText}>
-              📥 Exporter vers CSV
+              📥 {t('export.page.exportButton')}
             </Text>
           )}
         </TouchableOpacity>
 
         <Text style={styles.helpText}>
-          Le fichier sera partagé via le menu de partage de votre appareil.
-          Vous pourrez l'ouvrir dans Excel, Google Sheets, Numbers ou toute autre application.
+          {t('export.page.helpText')}
         </Text>
       </View>
     </ScrollView>
@@ -191,17 +164,6 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#666',
-    marginBottom: 30,
   },
   section: {
     marginBottom: 25,
@@ -223,15 +185,15 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   periodButtonSelected: {
-    borderColor: '#FF6B6B',
-    backgroundColor: '#FFF5F5',
+    borderColor: '#C75B4A',
+    backgroundColor: '#FDF1E7',
   },
   radioOuter: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#FF6B6B',
+    borderColor: '#C75B4A',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -240,7 +202,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#C75B4A',
   },
   periodTextContainer: {
     flex: 1,
@@ -251,7 +213,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   periodTextSelected: {
-    color: '#FF6B6B',
+    color: '#C75B4A',
     fontWeight: '600',
   },
   periodSubtext: {
@@ -259,54 +221,32 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 3,
   },
-  infoBox: {
-    backgroundColor: '#E3F2FD',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 25,
-    borderLeftWidth: 4,
-    borderLeftColor: '#2196F3',
-  },
-  infoText: {
-    fontSize: 16,
-    color: '#1976D2',
-    fontWeight: '600',
-  },
   formatInfo: {
     backgroundColor: '#F5F5F5',
     padding: 15,
     borderRadius: 12,
     marginBottom: 25,
-  },
-  formatTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
+    alignItems: 'center',
   },
   formatText: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 4,
   },
   exportButton: {
-    backgroundColor: '#FF6B6B',
-    padding: 18,
-    borderRadius: 12,
+    backgroundColor: '#C75B4A',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     alignItems: 'center',
     marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   exportButtonDisabled: {
-    backgroundColor: '#CCC',
+    backgroundColor: '#D8ABA0',
+    opacity: 0.7,
   },
   exportButtonText: {
-    color: '#FFF',
-    fontSize: 18,
+    color: 'white',
+    fontSize: 16,
     fontWeight: 'bold',
   },
   helpText: {

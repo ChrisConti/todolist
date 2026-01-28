@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, GestureResponderEvent, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, GestureResponderEvent, TouchableWithoutFeedback, Keyboard, ActivityIndicator } from 'react-native';
 import Logo from './assets/logo.svg';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from './config';
@@ -12,6 +12,7 @@ const ConnectionScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userError, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { user, setUser, babyID, setBabyID } = useContext(AuthentificationUserContext);
   const { t } = useTranslation();
 
@@ -23,15 +24,9 @@ const ConnectionScreen = ({ navigation }) => {
 
   } , []);
 
-  const handleLogin = () => {
-    navigation.navigate('Home');
-  };
-
-  const handleCreateAccount = () => {
-    navigation.navigate('CreateAccount');
-  };
-
   function handleConnection(event: GestureResponderEvent): void {
+    setLoading(true);
+    setError('');
     if (email !== '' && password !== '') {
       signInWithEmailAndPassword(auth, email, password)
         .then(async (userCredential) => {
@@ -61,14 +56,17 @@ const ConnectionScreen = ({ navigation }) => {
             } else {
               console.log('✅ User document exists');
             }
-          } catch (firestoreError) {
+          } catch (firestoreError: any) {
             console.error('❌ Error checking/creating User document:', firestoreError);
             // Continue anyway - don't block login
+            // Note: Si le document existe déjà, c'est géré par le check au-dessus
           }
           
           setUser(user);
+          setLoading(false);
         })
         .catch((error) => {
+          setLoading(false);
           if (error.code === 'auth/invalid-credential') {
             setError(t('error.invalidCredential'));
           } else if (error.code === 'auth/wrong-password') {
@@ -80,18 +78,9 @@ const ConnectionScreen = ({ navigation }) => {
           }
         });
     } else {
+      setLoading(false);
       setError(t('error.emptyFields'));
     }
-  }
-
-  function onHandleForgetPassword() {
-    sendPasswordResetEmail(auth, email)
-      .then(() => {
-        console.log('success');
-      })
-      .catch((error) => {
-        console.error(error);
-      });
   }
 
   return (
@@ -110,6 +99,7 @@ const ConnectionScreen = ({ navigation }) => {
           autoCapitalize="none"
           value={email}
           onChangeText={setEmail}
+          editable={!loading}
         />
 
         <TextInput
@@ -119,28 +109,47 @@ const ConnectionScreen = ({ navigation }) => {
           autoComplete="current-password"
           value={password}
           onChangeText={setPassword}
+          editable={!loading}
         />
-        <TouchableOpacity style={{marginLeft: 180}} onPress={() => navigation.navigate('PasswordForgotten')}>
-          <Text style={{ color: '#F6F0EB' }}>{t('forgotPassword')}</Text>
+        <TouchableOpacity
+          style={styles.forgotPasswordLink}
+          onPress={() => navigation.navigate('PasswordForgotten')}
+          disabled={loading}
+        >
+          <Text style={styles.forgotPasswordText}>{t('forgotPassword')}</Text>
         </TouchableOpacity>
 
-        <View style={{ marginBottom: 5 }}>
-          <Text style={styles.errorText}>{userError}</Text>
-        </View>
+        {userError !== '' && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{userError}</Text>
+          </View>
+        )}
 
-        <TouchableOpacity style={styles.button} onPress={handleConnection}>
-          <Text style={styles.buttonText}>{t('button.login')}</Text>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleConnection}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#7A8889" />
+          ) : (
+            <Text style={styles.buttonText}>{t('button.login')}</Text>
+          )}
         </TouchableOpacity>
 
-        <View style={{ marginBottom: 5 }}>
-          <Text style={{ color: '#F6F0EB' }}>{t('noAccount')}</Text>
+        <View style={styles.signupPrompt}>
+          <Text style={styles.signupPromptText}>{t('noAccount')}</Text>
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={() => {
-          setError('');
-          navigation.navigate('SignIn');
-        }}>
-          <Text style={styles.buttonText}>{t('button.signup')}</Text>
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() => {
+            setError('');
+            navigation.navigate('SignIn');
+          }}
+          disabled={loading}
+        >
+          <Text style={styles.secondaryButtonText}>{t('button.signup')}</Text>
         </TouchableOpacity>
       </View>
     </TouchableWithoutFeedback>
@@ -164,7 +173,7 @@ const styles = StyleSheet.create({
     color: '#F6F0EB',
     marginLeft: 25,
     fontFamily: 'Pacifico',
-    paddingLeft:30
+    paddingLeft: 30,
   },
   input: {
     width: '100%',
@@ -173,8 +182,27 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 8,
     paddingHorizontal: 10,
-    marginBottom: 20,
+    marginBottom: 10,
     backgroundColor: '#FDF1E7',
+  },
+  forgotPasswordLink: {
+    alignSelf: 'flex-end',
+    marginBottom: 20,
+  },
+  forgotPasswordText: {
+    color: '#F6F0EB',
+    fontSize: 14,
+  },
+  errorContainer: {
+    marginBottom: 15,
+    width: '100%',
+    paddingHorizontal: 10,
+  },
+  errorText: {
+    color: '#FFD700',
+    fontSize: 16,
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   button: {
     backgroundColor: '#FDF1E7',
@@ -182,19 +210,42 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 20,
     width: 200,
+    minHeight: 48,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: '#7A8889',
     fontSize: 16,
     fontWeight: 'bold',
-    fontFamily: 'Pacifico'
+    fontFamily: 'Pacifico',
   },
-  errorText: {
-    color: 'red',
+  signupPrompt: {
+    marginBottom: 10,
+  },
+  signupPromptText: {
+    color: '#F6F0EB',
+    fontSize: 14,
+  },
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#FDF1E7',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    width: 200,
+  },
+  secondaryButtonText: {
+    color: '#FDF1E7',
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: 'Pacifico',
   },
 });
 

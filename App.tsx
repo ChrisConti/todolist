@@ -39,6 +39,7 @@ import { useTranslation } from 'react-i18next';
 import { log } from './utils/logger';
 import { APP_INIT_TIMEOUT } from './utils/constants';
 import { Ionicons } from '@expo/vector-icons';
+import BabyHeadIcon from './components/BabyHeadIcon';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -213,14 +214,15 @@ function TabNavigator() {
       id={undefined}
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+          if (route.name === 'Baby') {
+            return <BabyHeadIcon width={size} height={size} color={color} />;
+          }
 
+          let iconName;
           if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Baby') {
-            iconName = focused ? 'person' : 'person-outline';
+            iconName = focused ? 'albums' : 'albums-outline';
           } else if (route.name === 'Statistics') {
-            iconName = focused ? 'stats-chart' : 'stats-chart-outline';
+            iconName = focused ? 'pie-chart' : 'pie-chart-outline';
           } else if (route.name === 'Settings') {
             iconName = focused ? 'settings' : 'settings-outline';
           }
@@ -392,14 +394,14 @@ function MainStack() {
           headerBackTitle: ''
         }}
       />
-      <Stack.Screen 
-        name="ExportTasks" 
-        component={ExportTasks} 
+      <Stack.Screen
+        name="ExportTasks"
+        component={ExportTasks}
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
-          headerTitle: 'Exporter les tâches',
+          headerTitle: t('export.page.title'),
           headerBackTitle: ''
         }}
       />
