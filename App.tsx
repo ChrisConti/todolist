@@ -2,12 +2,13 @@ import React, { useContext, useEffect, useState } from 'react';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { I18nextProvider } from 'react-i18next';
-import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Platform } from 'react-native';
 import i18n from './i18n';
 import ErrorBoundary from './components/ErrorBoundary';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import BabyList from './screens/Home';
 import Connection from './Connection';
 import SignIn from './SignIn';
@@ -18,6 +19,7 @@ import Baby from './Baby';
 import BabyState from './BabyState';
 import BabyTab from './BabyTab';
 import EditBaby from './EditBaby';
+import EditBabyPhoto from './screens/EditBabyPhoto';
 import ChangeName from './screens/ChangeName';
 import ChangeEmail from './screens/ChangeEmail';
 import DeleteAccount from './screens/DeleteAccount';
@@ -29,7 +31,7 @@ import AuthentificationUserProvider, { AuthentificationUserContext } from './Con
 import { ReviewPromptProvider } from './Context/ReviewPromptContext';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './config';
-import { Pacifico_400Regular } from '@expo-google-fonts/pacifico';
+import { useFonts, Pacifico_400Regular } from '@expo-google-fonts/pacifico';
 import PrivacyPolicy from './screens/PrivacyPolicy';
 import TermsOfUse from './screens/TermsOfUse';
 import AnalyticsTest from './screens/AnalyticsTest';
@@ -40,6 +42,8 @@ import { log } from './utils/logger';
 import { APP_INIT_TIMEOUT } from './utils/constants';
 import { Ionicons } from '@expo/vector-icons';
 import BabyHeadIcon from './components/BabyHeadIcon';
+import { trackFirstOpen } from './utils/firstOpenTracker';
+import { configureGoogleSignIn } from './utils/socialAuth';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -49,8 +53,11 @@ SplashScreen.preventAutoHideAsync();
 function RootNavigator() {
   const { user, setUser } = useContext(AuthentificationUserContext);
   const [isLoading, setIsLoading] = useState(true);
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-  
+
+  const [fontsLoaded] = useFonts({
+    Pacifico: Pacifico_400Regular,
+  });
+
   useEffect(() => {
     async function loadResourcesAndDataAsync() {
       const timeoutId = setTimeout(() => {
@@ -62,12 +69,14 @@ function RootNavigator() {
 
       try {
         log.info('Starting initialization...', 'App.tsx');
-        
-        // Load fonts
-        log.debug('Loading fonts...', 'App.tsx');
-        await Font.loadAsync({ Pacifico: Pacifico_400Regular });
-        log.debug('Fonts loaded successfully', 'App.tsx');
-        setFontsLoaded(true);
+
+        // Configure Google Sign-In
+        configureGoogleSignIn();
+
+        // Track first open for download statistics
+        trackFirstOpen().catch(err => {
+          log.error('First open tracking failed (non-critical)', 'App.tsx', err);
+        });
 
         // Check authentication state with improved handling
         log.debug('Setting up authentication listener...', 'App.tsx');
@@ -135,17 +144,19 @@ function RootNavigator() {
   }
 
   return (
-    <I18nextProvider i18n={i18n}>
-      <NavigationContainer>
-        {isLoading ? (
-          <AuthStack /> //loader a mettre
-        ) : !user ? (
-          <AuthStack />
-        ) : (
-          <MainStack />
-        )}
-      </NavigationContainer>
-    </I18nextProvider>
+    <SafeAreaProvider>
+      <I18nextProvider i18n={i18n}>
+        <NavigationContainer>
+          {isLoading ? (
+            <AuthStack /> //loader a mettre
+          ) : !user ? (
+            <AuthStack />
+          ) : (
+            <MainStack />
+          )}
+        </NavigationContainer>
+      </I18nextProvider>
+    </SafeAreaProvider>
   );
 }
 
@@ -164,7 +175,7 @@ function AuthStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A',  },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22 },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
           headerTitle: t('title.signup'),
           headerBackTitle: ''
         }}
@@ -175,7 +186,7 @@ function AuthStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22 },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
           headerTitle: t('title.passwordForgotten'),
           headerBackTitle: ''
         }}
@@ -186,7 +197,7 @@ function AuthStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22 },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
           headerTitle: 'Politique de Confidentialité',
           headerBackTitle: ''
         }}
@@ -197,7 +208,7 @@ function AuthStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22 },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
           headerTitle: t('termsOfUse.title'),
           headerBackTitle: ''
         }}
@@ -208,7 +219,8 @@ function AuthStack() {
 
 function TabNavigator() {
   const { t } = useTranslation();
-  
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       id={undefined}
@@ -234,8 +246,8 @@ function TabNavigator() {
         tabBarStyle: {
           backgroundColor: '#FDF1E7',
           borderTopColor: '#E8D5C4',
-          height: 80,
-          paddingBottom: 10,
+          height: Platform.OS === 'android' ? 80 + insets.bottom : 80,
+          paddingBottom: Platform.OS === 'android' ? insets.bottom + 10 : 10,
           paddingTop: 10,
         },
         headerShown: false,
@@ -301,7 +313,7 @@ function MainStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('title.updateTask'),
           headerBackTitle: ''
         }}
@@ -312,7 +324,7 @@ function MainStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('title.addBaby'),
           headerBackTitle: ''
         }}
@@ -323,29 +335,40 @@ function MainStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('title.myBaby'),
           headerBackTitle: ''
         }}
       />
-      <Stack.Screen 
-        name="EditBaby" 
-        component={EditBaby} 
+      <Stack.Screen
+        name="EditBaby"
+        component={EditBaby}
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('baby.editProfile'),
           headerBackTitle: ''
         }}
       />
-      <Stack.Screen 
+      <Stack.Screen
+        name="EditBabyPhoto"
+        component={EditBabyPhoto}
+        options={{
+          headerStyle: { backgroundColor: '#C75B4A' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitle: t('baby.editPhoto'),
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen
         name="ChangeName" 
         component={ChangeName}
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('title.changeName'),
           headerBackTitle: ''
         }}
@@ -356,7 +379,7 @@ function MainStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('title.changeEmail'),
           headerBackTitle: ''
         }}
@@ -378,7 +401,7 @@ function MainStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('title.deleteAccount'),
           headerBackTitle: ''
         }}
@@ -389,7 +412,7 @@ function MainStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('title.changePassword'),
           headerBackTitle: ''
         }}
@@ -400,7 +423,7 @@ function MainStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('export.page.title'),
           headerBackTitle: ''
         }}
@@ -411,7 +434,7 @@ function MainStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('title.joinBaby'),
           headerBackTitle: ''
         }}
@@ -422,7 +445,7 @@ function MainStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22 },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
           headerTitle: 'Politique de Confidentialité',
           headerBackTitle: ''
         }}
@@ -433,7 +456,7 @@ function MainStack() {
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontFamily: 'Pacifico', fontSize:22 },
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
           headerTitle: t('termsOfUse.title'),
           headerBackTitle: ''
         }}
@@ -460,7 +483,6 @@ const styles = StyleSheet.create({
   },
 
   headerTitleStyle: {
-    fontWeight: 'bold',
     fontFamily: 'Pacifico',
     fontSize: 22,
   },

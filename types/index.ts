@@ -5,6 +5,10 @@ export interface UserInfo {
   username: string;
   email: string;
   createdAt?: string;
+  deleted?: boolean;
+  deletedAt?: string;
+  provider?: 'email' | 'google' | 'apple';
+  photoURL?: string;
 }
 
 export interface Task {
@@ -51,4 +55,6 @@ export interface AuthUserContextType {
   setUserInfo: (info: UserInfo | null) => void;
   usersList: string[];
   setUsersList: (list: string[]) => void;
+  selectedCategoryFilter: number | null;
+  setSelectedCategoryFilter: (filter: number | null) => void;
 }
