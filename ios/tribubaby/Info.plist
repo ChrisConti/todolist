@@ -36,6 +36,12 @@
 				<string>exp+todolist</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.347055639005-1ja73rp7a3khmhpfss04eert79tpc8cq</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>16</string>

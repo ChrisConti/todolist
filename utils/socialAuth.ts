@@ -10,6 +10,7 @@ import {
 import { auth, db } from '../config';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { log } from './logger';
+import i18next from 'i18next';
 
 /**
  * Configure Google Sign-In
@@ -34,7 +35,14 @@ export const signInWithGoogle = async () => {
     await GoogleSignin.hasPlayServices();
 
     // Get user info from Google
-    const { idToken } = await GoogleSignin.signIn();
+    const userInfo = await GoogleSignin.signIn();
+    log.info(`Google Sign-In response: ${JSON.stringify(userInfo)}`, 'socialAuth');
+
+    const idToken = userInfo.data?.idToken;
+
+    if (!idToken) {
+      throw new Error('No ID token received from Google');
+    }
 
     // Create Firebase credential
     const googleCredential = GoogleAuthProvider.credential(idToken);
@@ -77,16 +85,16 @@ export const signInWithGoogle = async () => {
         else if (methods.includes('apple.com')) providerName = 'Apple';
 
         Alert.alert(
-          'Compte existant',
-          `Un compte existe déjà avec cet email.\nVeuillez vous connecter avec: ${providerName}`,
-          [{ text: 'OK' }]
+          i18next.t('socialAuth.existingAccountTitle'),
+          i18next.t('socialAuth.existingAccountMessage', { provider: providerName }),
+          [{ text: i18next.t('socialAuth.ok') }]
         );
       }
     } else {
       Alert.alert(
-        'Erreur de connexion',
-        'Impossible de se connecter avec Google. Veuillez réessayer.',
-        [{ text: 'OK' }]
+        i18next.t('socialAuth.connectionErrorTitle'),
+        i18next.t('socialAuth.googleConnectionError'),
+        [{ text: i18next.t('socialAuth.ok') }]
       );
     }
 
@@ -106,9 +114,9 @@ export const signInWithApple = async () => {
     const isAvailable = await AppleAuthentication.isAvailableAsync();
     if (!isAvailable) {
       Alert.alert(
-        'Non disponible',
-        'La connexion avec Apple n\'est disponible que sur iOS 13+',
-        [{ text: 'OK' }]
+        i18next.t('socialAuth.appleNotAvailableTitle'),
+        i18next.t('socialAuth.appleNotAvailableMessage'),
+        [{ text: i18next.t('socialAuth.ok') }]
       );
       return;
     }
@@ -175,16 +183,16 @@ export const signInWithApple = async () => {
         else if (methods.includes('google.com')) providerName = 'Google';
 
         Alert.alert(
-          'Compte existant',
-          `Un compte existe déjà avec cet email.\nVeuillez vous connecter avec: ${providerName}`,
-          [{ text: 'OK' }]
+          i18next.t('socialAuth.existingAccountTitle'),
+          i18next.t('socialAuth.existingAccountMessage', { provider: providerName }),
+          [{ text: i18next.t('socialAuth.ok') }]
         );
       }
     } else {
       Alert.alert(
-        'Erreur de connexion',
-        'Impossible de se connecter avec Apple. Veuillez réessayer.',
-        [{ text: 'OK' }]
+        i18next.t('socialAuth.connectionErrorTitle'),
+        i18next.t('socialAuth.appleConnectionError'),
+        [{ text: i18next.t('socialAuth.ok') }]
       );
     }
 

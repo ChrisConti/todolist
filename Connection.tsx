@@ -9,6 +9,8 @@ import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
 import { signInWithGoogle, signInWithApple } from './utils/socialAuth';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import { Ionicons } from '@expo/vector-icons';
+import GoogleLogo from './assets/GoogleLogo';
 
 const ConnectionScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -138,23 +140,33 @@ const ConnectionScreen = ({ navigation }) => {
             <Text style={styles.logoText}>Tribu Baby</Text>
 
         {/* Social Auth Buttons */}
-        {appleAuthAvailable && (
-          <TouchableOpacity
-            style={[styles.socialButton, styles.appleButton]}
-            onPress={handleAppleSignIn}
-            disabled={loading}
-          >
-            <Text style={styles.socialButtonText}>🍎  Continuer avec Apple</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.socialAuthSection}>
+          <View style={styles.socialButtonsContainer}>
+            <TouchableOpacity
+              style={styles.socialButtonRect}
+              onPress={handleGoogleSignIn}
+              disabled={loading}
+            >
+              <GoogleLogo size={24} />
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.socialButton, styles.googleButton]}
-          onPress={handleGoogleSignIn}
-          disabled={loading}
-        >
-          <Text style={styles.socialButtonText}>🔵  Continuer avec Google</Text>
-        </TouchableOpacity>
+            {appleAuthAvailable && (
+              <TouchableOpacity
+                style={styles.socialButtonRect}
+                onPress={handleAppleSignIn}
+                disabled={loading}
+              >
+                <Ionicons name="logo-apple" size={26} color="#000000" />
+              </TouchableOpacity>
+            )}
+          </View>
+          <Text style={styles.socialAuthText}>
+            {appleAuthAvailable
+              ? t('socialAuth.signInWithGoogleOrApple')
+              : t('socialAuth.signInWithGoogle')
+            }
+          </Text>
+        </View>
 
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
@@ -328,25 +340,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Pacifico',
   },
-  socialButton: {
+  socialAuthSection: {
     width: '100%',
-    height: 50,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  socialButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 16,
+  },
+  socialButtonRect: {
+    width: 93,
+    height: 47,
     borderRadius: 8,
-    paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
-    flexDirection: 'row',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  appleButton: {
-    backgroundColor: '#000000',
-  },
-  googleButton: {
-    backgroundColor: '#FFFFFF',
-  },
-  socialButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+  socialAuthText: {
+    color: '#F6F0EB',
+    fontSize: 14,
+    textAlign: 'center',
   },
   divider: {
     flexDirection: 'row',

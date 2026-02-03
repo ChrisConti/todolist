@@ -1,10 +1,9 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { db, userRef } from '../config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
-import { KEYBOARD_CONFIG } from '../utils/constants';
 
 const ChangeName = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -13,12 +12,16 @@ const ChangeName = ({ route, navigation }) => {
   const [userError, setError] = useState('');
   const inputRef = useRef<TextInput>(null);
 
+  const isReadOnly = userInfo?.provider !== 'email';
+
   const queryResult = query(userRef, where('userId', '==', user.uid));
 
   // Log screen view when the component is mounted
   useEffect(() => {
-    setTimeout(() => inputRef.current?.focus(), 100);
-  }, []);
+    if (!isReadOnly) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [isReadOnly]);
 
   const onHandleModification = async () => {
     if (!name) {
@@ -56,37 +59,42 @@ const ChangeName = ({ route, navigation }) => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={KEYBOARD_CONFIG.BEHAVIOR}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
+      style={{ flex: 1, backgroundColor: '#FDF1E7' }}
+      behavior="padding"
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
-          <View style={styles.content}>
-            <Text style={styles.description}>
-              {t('settings.changeNameDescription')}
-            </Text>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ padding: 20, paddingBottom: 20 }}
+      >
+        <Text style={styles.description}>
+          {isReadOnly
+            ? t('settings.changeNameReadOnly', { provider: userInfo?.provider === 'google' ? 'Google' : 'Apple' })
+            : t('settings.changeNameDescription')
+          }
+        </Text>
 
-            <TextInput
-              ref={inputRef}
-              style={styles.input}
-              placeholder={t('name')}
-              keyboardType="default"
-              autoCapitalize="words"
-              clearButtonMode="always"
-              value={name}
-              onChangeText={(text) => setName(text)}
-            />
-          </View>
+        <TextInput
+          ref={inputRef}
+          style={[styles.input, isReadOnly && styles.inputReadOnly]}
+          placeholder={t('name')}
+          keyboardType="default"
+          autoCapitalize="words"
+          clearButtonMode="always"
+          value={name}
+          onChangeText={(text) => setName(text)}
+          editable={!isReadOnly}
+        />
+      </ScrollView>
 
-          <View style={styles.footer}>
-            <Text style={styles.errorText}>{userError}</Text>
-            <TouchableOpacity style={styles.button} onPress={onHandleModification}>
-              <Text style={styles.buttonText}>{t('validate')}</Text>
-            </TouchableOpacity>
-          </View>
+      {!isReadOnly && (
+        <View style={styles.footer}>
+          <Text style={styles.errorText}>{userError}</Text>
+          <TouchableOpacity style={styles.button} onPress={onHandleModification}>
+            <Text style={styles.buttonText}>{t('validate')}</Text>
+          </TouchableOpacity>
         </View>
-      </TouchableWithoutFeedback>
+      )}
     </KeyboardAvoidingView>
   );
 };
@@ -94,13 +102,6 @@ const ChangeName = ({ route, navigation }) => {
 export default ChangeName;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FDF1E7',
-  },
-  content: {
-    padding: 20,
-  },
   description: {
     fontSize: 15,
     color: '#666',
@@ -118,15 +119,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     marginBottom: 20,
   },
+  inputReadOnly: {
+    backgroundColor: '#F5F5F5',
+    borderColor: '#DDD',
+    color: '#666',
+  },
   footer: {
-    position: 'absolute',
-    bottom: 10,
-    left: 0,
-    right: 0,
-    backgroundColor: 'transparent',
+    backgroundColor: '#FDF1E7',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    paddingBottom: Platform.select({
+      ios: 20,
+      android: 10,
+    }),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(199, 91, 74, 0.1)',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    flexDirection: 'column',
   },
   button: {
     backgroundColor: '#C75B4A',

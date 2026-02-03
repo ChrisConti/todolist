@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Modal, Lin
 // import * as Sentry from '@sentry/react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scrollview';
 import React, { useContext, useEffect, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ItemParameter from './ItemParameter.js';
 import { auth, userRef } from './config.js';
 import AuthentificationUserProvider, { AuthentificationUserContext } from './Context/AuthentificationContext';
@@ -14,10 +15,14 @@ import { useReviewPrompt } from './Context/ReviewPromptContext';
 import Lolipop from './assets/lolipop.svg';
 
 const Settings = ({ navigation }) => {
-  const { user, setUser, babyID, setBabyID, setUserInfo } = useContext(AuthentificationUserContext);
+  const { user, setUser, babyID, setBabyID, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
   const { showReviewModalManually, hasReviewed } = useReviewPrompt();
+  const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
   const { t } = useTranslation();
+
+  // Get provider info
+  const provider = userInfo?.provider || 'email';
 
   useEffect(() => {
     analytics.logScreenView('Settings');
@@ -36,7 +41,7 @@ const Settings = ({ navigation }) => {
   };
 
   const handleContactUs = () => {
-    const email = "tribubabytracker@gmail.com";
+    const email = "support@tribubaby.com";
     const subject = 'Contact Tribu baby';
     const body = 'Hi there, I would like to...';
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -44,7 +49,7 @@ const Settings = ({ navigation }) => {
   };
 
   const handleFeedback = () => {
-    const email = "tribubabytracker@gmail.com";
+    const email = "support@tribubaby.com";
     const subject = 'Feedback';
     const body = 'Hi, I would like to suggest...';
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -63,7 +68,7 @@ const Settings = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top - 10, 0) }]}>
         <Text style={styles.headerTitle}>{t('title.settings') || 'Réglages'}</Text>
       </View>
       
@@ -79,9 +84,11 @@ const Settings = ({ navigation }) => {
             <TouchableOpacity onPress={() => navigation.navigate('ChangeEmail')}>
               <ItemParameter title={t('settings.myEmail')} icon="email-edit" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('ChangePassword')}>
-              <ItemParameter title={t('settings.myPassword')} icon="lock-reset" iconFamily="MaterialCommunityIcons" />
-            </TouchableOpacity>
+            {provider === 'email' && (
+              <TouchableOpacity onPress={() => navigation.navigate('ChangePassword')}>
+                <ItemParameter title={t('settings.myPassword')} icon="lock-reset" iconFamily="MaterialCommunityIcons" />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               onPress={() => {
                 navigation.navigate('DeleteAccount');
@@ -170,18 +177,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FDF1E7',
   },
-  header: { 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    paddingVertical: 15, 
-    paddingHorizontal: 15, 
-    backgroundColor: '#C75B4A', 
-    paddingTop: 50,
+  header: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 0,
+    paddingHorizontal: 15,
+    backgroundColor: '#C75B4A',
   },
-  headerTitle: { 
-    fontSize: 22, 
-    fontWeight: 'bold', 
-    color: '#F6F0EB', 
+  headerTitle: {
+    fontSize: 22,
+    color: '#F6F0EB',
     fontFamily: 'Pacifico',
     textAlign: 'center',
   },
