@@ -11,7 +11,7 @@ import './Analytics.css';
 type ModalType = 'accounts' | 'babies' | 'accountsWithoutBaby' | 'deletedAccounts' | 'babies1Task' | 'babies5Tasks' | 'babies30Tasks' | 'babies100Tasks' | 'babiesMultipleParents' | 'babiesActiveRecently' | null;
 
 export const Analytics: React.FC = () => {
-  const [preset, setPreset] = useState<PresetRange>('today');
+  const [preset, setPreset] = useState<PresetRange>('all');
   const [dateRange, setDateRange] = useState<DateRange>({
     start: null,
     end: null,
