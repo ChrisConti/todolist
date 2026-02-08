@@ -10,8 +10,8 @@ import {
   Title,
   Tooltip,
   Legend,
-  ChartOptions,
 } from 'chart.js';
+import type { ChartOptions } from 'chart.js';
 import { Line, Pie, Bar } from 'react-chartjs-2';
 import type { User, Baby } from '../types';
 import './Charts.css';

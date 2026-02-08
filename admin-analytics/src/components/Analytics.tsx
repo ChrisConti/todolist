@@ -418,7 +418,7 @@ export const Analytics: React.FC = () => {
             </div>
 
             <div className="conversion-card">
-              <div className="conversion-label">Bébés → Engagement fort (>30 tâches)</div>
+              <div className="conversion-label">Bébés → Engagement fort (&gt;30 tâches)</div>
               <div className="conversion-value">
                 {metrics.totalBabies > 0
                   ? `${Math.round((metrics.babiesWithMoreThan30Tasks / metrics.totalBabies) * 100)}%`
