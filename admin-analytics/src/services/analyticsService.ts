@@ -282,6 +282,74 @@ export const getAnalyticsMetrics = async (dateRange: DateRange): Promise<Analyti
       };
     }
 
+    // Calculate task distribution by baby age
+    let taskDistributionByAge;
+    const ageRanges = {
+      '0-1 mois': { min: 0, max: 30, totalTasks: 0, biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
+      '1-3 mois': { min: 31, max: 90, totalTasks: 0, biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
+      '3-6 mois': { min: 91, max: 180, totalTasks: 0, biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
+      '6-12 mois': { min: 181, max: 365, totalTasks: 0, biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
+      '12-18 mois': { min: 366, max: 545, totalTasks: 0, biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
+      '18+ mois': { min: 546, max: Infinity, totalTasks: 0, biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
+    };
+
+    babies.forEach(baby => {
+      if (!baby.birthDate || !baby.tasks) return;
+
+      // Parse birth date (can be DD/MM/YYYY or ISO format)
+      let birthDate: Date;
+      if (baby.birthDate.includes('/')) {
+        const [day, month, year] = baby.birthDate.split('/').map(Number);
+        birthDate = new Date(year, month - 1, day);
+      } else {
+        birthDate = new Date(baby.birthDate);
+      }
+
+      if (isNaN(birthDate.getTime())) return;
+
+      baby.tasks.forEach(task => {
+        if (!task.date) return;
+
+        const taskDate = new Date(task.date);
+        if (isNaN(taskDate.getTime())) return;
+
+        // Calculate age in days at the time of the task
+        const ageInDays = Math.floor((taskDate.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (ageInDays < 0) return; // Skip tasks before birth
+
+        // Find the age range
+        for (const [, range] of Object.entries(ageRanges)) {
+          if (ageInDays >= range.min && ageInDays <= range.max) {
+            range.totalTasks++;
+            const type = task.labelTask;
+            if (type === 'biberon') range.biberon++;
+            else if (type === 'couche') range.couche++;
+            else if (type === 'Sante') range.sante++;
+            else if (type === 'sommeil') range.sommeil++;
+            else if (type === 'thermo') range.temperature++;
+            else if (type === 'allaitement') range.allaitement++;
+            break;
+          }
+        }
+      });
+    });
+
+    // Convert to percentage format
+    taskDistributionByAge = {} as { [key: string]: any };
+    Object.entries(ageRanges).forEach(([rangeName, data]) => {
+      if (data.totalTasks > 0) {
+        taskDistributionByAge![rangeName] = {
+          totalTasks: data.totalTasks,
+          biberon: data.biberon,
+          couche: data.couche,
+          sante: data.sante,
+          sommeil: data.sommeil,
+          temperature: data.temperature,
+          allaitement: data.allaitement,
+        };
+      }
+    });
+
     // Calculate previous period metrics for trends (if date range is specified)
     let previousPeriod;
     if (dateRange.start && dateRange.end) {
@@ -347,6 +415,7 @@ export const getAnalyticsMetrics = async (dateRange: DateRange): Promise<Analyti
       previousPeriod,
       averageStats,
       taskDistribution,
+      taskDistributionByAge,
     };
   } catch (error) {
     console.error('Error fetching analytics:', error);

@@ -77,6 +77,18 @@ export interface AnalyticsMetrics {
     temperature: { count: number; percentage: number };
     allaitement: { count: number; percentage: number };
   };
+  // Task distribution by baby age
+  taskDistributionByAge?: {
+    [ageRange: string]: {
+      totalTasks: number;
+      biberon: number;
+      couche: number;
+      sante: number;
+      sommeil: number;
+      temperature: number;
+      allaitement: number;
+    };
+  };
 }
 
 export interface BabyStats {
