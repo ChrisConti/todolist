@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, GestureResponderEvent, TouchableWithoutFeedback, Keyboard, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, GestureResponderEvent, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import Logo from './assets/logo.svg';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from './config';
@@ -7,12 +7,17 @@ import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 // import * as Sentry from '@sentry/react-native';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
+import { signInWithGoogle, signInWithApple } from './utils/socialAuth';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import { Ionicons } from '@expo/vector-icons';
+import GoogleLogo from './assets/GoogleLogo';
 
 const ConnectionScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userError, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [appleAuthAvailable, setAppleAuthAvailable] = useState(false);
   const { user, setUser, babyID, setBabyID } = useContext(AuthentificationUserContext);
   const { t } = useTranslation();
 
@@ -22,7 +27,45 @@ const ConnectionScreen = ({ navigation }) => {
       navigation.navigate('Home');
     }
 
+    // Check if Apple Sign-In is available (iOS 13+)
+    const checkAppleAuth = async () => {
+      const available = await AppleAuthentication.isAvailableAsync();
+      setAppleAuthAvailable(available);
+    };
+    checkAppleAuth();
   } , []);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const user = await signInWithGoogle();
+      if (user) {
+        setUser(user);
+      }
+    } catch (error) {
+      console.error('Google Sign-In failed', error);
+      // Error already handled in signInWithGoogle
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const user = await signInWithApple();
+      if (user) {
+        setUser(user);
+      }
+    } catch (error) {
+      console.error('Apple Sign-In failed', error);
+      // Error already handled in signInWithApple
+    } finally {
+      setLoading(false);
+    }
+  };
 
   function handleConnection(event: GestureResponderEvent): void {
     setLoading(true);
@@ -84,11 +127,51 @@ const ConnectionScreen = ({ navigation }) => {
   }
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
-        <View style={styles.logoContainer}>
-          <Logo height={200} width={200} />
-          <Text style={styles.logoText}>Tribu Baby</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: '#C75B4A' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        style={{ flex: 1, backgroundColor: '#C75B4A' }}
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.container}>
+            <Text style={styles.logoText}>Tribu Baby</Text>
+
+        {/* Social Auth Buttons */}
+        <View style={styles.socialAuthSection}>
+          <View style={styles.socialButtonsContainer}>
+            <TouchableOpacity
+              style={styles.socialButtonRect}
+              onPress={handleGoogleSignIn}
+              disabled={loading}
+            >
+              <GoogleLogo size={24} />
+            </TouchableOpacity>
+
+            {appleAuthAvailable && (
+              <TouchableOpacity
+                style={styles.socialButtonRect}
+                onPress={handleAppleSignIn}
+                disabled={loading}
+              >
+                <Ionicons name="logo-apple" size={26} color="#000000" />
+              </TouchableOpacity>
+            )}
+          </View>
+          <Text style={styles.socialAuthText}>
+            {appleAuthAvailable
+              ? t('socialAuth.signInWithGoogleOrApple')
+              : t('socialAuth.signInWithGoogle')
+            }
+          </Text>
+        </View>
+
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>ou</Text>
+          <View style={styles.dividerLine} />
         </View>
 
         <TextInput
@@ -106,6 +189,9 @@ const ConnectionScreen = ({ navigation }) => {
           style={styles.input}
           placeholder={t('placeholder.password')}
           secureTextEntry
+          autoCorrect={false}
+          autoCapitalize="none"
+          textContentType="password"
           autoComplete="current-password"
           value={password}
           onChangeText={setPassword}
@@ -141,39 +227,48 @@ const ConnectionScreen = ({ navigation }) => {
           <Text style={styles.signupPromptText}>{t('noAccount')}</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => {
-            setError('');
-            navigation.navigate('SignIn');
-          }}
-          disabled={loading}
-        >
-          <Text style={styles.secondaryButtonText}>{t('button.signup')}</Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableWithoutFeedback>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => {
+                setError('');
+                navigation.navigate('SignIn');
+              }}
+              disabled={loading}
+            >
+              <Text style={styles.secondaryButtonText}>{t('button.signup')}</Text>
+            </TouchableOpacity>
+
+            <View style={styles.logoContainer}>
+              <Logo height={120} width={120} />
+            </View>
+          </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  scrollContainer: {
+    flexGrow: 1,
     padding: 20,
-    backgroundColor: '#C75B4A',
+    paddingTop: 60,
+    paddingBottom: 40,
+    justifyContent: 'center',
+  },
+  container: {
+    alignItems: 'center',
+    width: '100%',
   },
   logoContainer: {
-    marginBottom: 30,
+    marginTop: 40,
+    alignItems: 'center',
   },
   logoText: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 32,
     color: '#F6F0EB',
-    marginLeft: 25,
     fontFamily: 'Pacifico',
-    paddingLeft: 30,
+    textAlign: 'center',
+    marginBottom: 40,
   },
   input: {
     width: '100%',
@@ -221,7 +316,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#7A8889',
     fontSize: 16,
-    fontWeight: 'bold',
     fontFamily: 'Pacifico',
   },
   signupPrompt: {
@@ -244,7 +338,54 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     color: '#FDF1E7',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'Pacifico',
+  },
+  socialAuthSection: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  socialButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 16,
+  },
+  socialButtonRect: {
+    width: 93,
+    height: 47,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  socialAuthText: {
+    color: '#F6F0EB',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+    width: '100%',
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#F6F0EB',
+    opacity: 0.3,
+  },
+  dividerText: {
+    color: '#F6F0EB',
+    paddingHorizontal: 10,
+    fontSize: 14,
     fontFamily: 'Pacifico',
   },
 });

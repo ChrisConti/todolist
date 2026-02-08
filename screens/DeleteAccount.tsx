@@ -1,26 +1,31 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDocs, query, where, arrayRemove, updateDoc, deleteDoc } from 'firebase/firestore';
 import { babiesRef, userRef } from '../config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
-import { getAuth, reauthenticateWithCredential, EmailAuthProvider, deleteUser, signOut } from 'firebase/auth';
-import { KEYBOARD_CONFIG } from '../utils/constants';
+import { getAuth, reauthenticateWithCredential, EmailAuthProvider, deleteUser, signOut, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import * as AppleAuthentication from 'expo-apple-authentication';
 
 const DeleteAccount = ({ route, navigation }) => {
   const { t } = useTranslation();
-  const { user, setUser, babyID, setBabyID, setUserInfo } = useContext(AuthentificationUserContext);
+  const { user, setUser, babyID, setBabyID, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
   const [password, setPassword] = useState('');
   const [userError, setError] = useState('');
   const inputRef = useRef<TextInput>(null);
 
+  const provider = userInfo?.provider || 'email';
+
   useEffect(() => {
-    setTimeout(() => inputRef.current?.focus(), 100);
-  }, []);
+    if (provider === 'email') {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [provider]);
 
   const deleteAccount = async () => {
-    if (!password) {
+    if (provider === 'email' && !password) {
       setError(t('enterValidPassword'));
       return;
     }
@@ -29,10 +34,42 @@ const DeleteAccount = ({ route, navigation }) => {
     await handleAccountDeletion();
   };
 
+  const reauthenticateUser = async (currentUser: any) => {
+    if (provider === 'email') {
+      // Email/Password reauthentication
+      const credential = EmailAuthProvider.credential(currentUser.email, password);
+      await reauthenticateWithCredential(currentUser, credential);
+    } else if (provider === 'google') {
+      // Google reauthentication
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo.data?.idToken;
+
+      if (!idToken) {
+        throw new Error('No ID token received from Google');
+      }
+
+      const googleCredential = GoogleAuthProvider.credential(idToken);
+      await reauthenticateWithCredential(currentUser, googleCredential);
+    } else if (provider === 'apple') {
+      // Apple reauthentication
+      const appleCredential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+      const { identityToken } = appleCredential;
+      const appleProvider = new OAuthProvider('apple.com');
+      const credential = appleProvider.credential({ idToken: identityToken! });
+      await reauthenticateWithCredential(currentUser, credential);
+    }
+  };
+
   const handleAccountDeletion = async () => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
-    
+
     if (!currentUser || !user) {
       Alert.alert(t('error.title'), t('error.notAuthenticated'));
       return;
@@ -40,11 +77,17 @@ const DeleteAccount = ({ route, navigation }) => {
 
     // Réauthentifier l'utilisateur
     try {
-      const credential = EmailAuthProvider.credential(currentUser.email, password);
-      await reauthenticateWithCredential(currentUser, credential);
+      await reauthenticateUser(currentUser);
     } catch (error) {
       console.error('Reauthentication failed:', error);
-      setError(t('incorrectPassword') || 'Incorrect password');
+      if (provider === 'email') {
+        setError(t('incorrectPassword') || 'Incorrect password');
+      } else {
+        Alert.alert(
+          'Erreur',
+          `Impossible de vous réauthentifier avec ${provider === 'google' ? 'Google' : 'Apple'}. Veuillez réessayer.`
+        );
+      }
       return;
     }
 
@@ -64,16 +107,16 @@ const DeleteAccount = ({ route, navigation }) => {
             const userId = currentUser.uid;
             
             try {
-              console.log('🗑️ Starting account deletion for user:', userId);
-              
+              console.log('🗑️ Starting account anonymization for user:', userId);
+
               // 1. Anonymiser les tâches dans tous les bébés
               const babiesWithUser = query(babiesRef, where('user', 'array-contains', userId));
               const babySnapshot = await getDocs(babiesWithUser);
-              
+
               for (const babyDoc of babySnapshot.docs) {
                 const babyData = babyDoc.data();
                 const tasks = babyData.tasks || [];
-                
+
                 // Anonymiser les tâches créées par cet utilisateur
                 const anonymizedTasks = tasks.map(task => {
                   if (task.user === userId) {
@@ -85,24 +128,32 @@ const DeleteAccount = ({ route, navigation }) => {
                   }
                   return task;
                 });
-                
-                // Retirer l'userId de l'array user[] et mettre à jour les tâches
+
+                // NE PAS retirer l'userId de l'array user[], juste mettre à jour les tâches
                 await updateDoc(babyDoc.ref, {
-                  user: arrayRemove(userId),
                   tasks: anonymizedTasks
                 });
               }
-              
+
               console.log('✅ Tasks anonymized in all babies');
-              
-              // 2. Supprimer le document User de Firestore
+
+              // 2. Anonymiser le document User (ne pas supprimer)
               const userQuery = query(userRef, where('userId', '==', userId));
               const userSnapshot = await getDocs(userQuery);
-              
-              const deleteUserPromises = userSnapshot.docs.map(doc => deleteDoc(doc.ref));
-              await Promise.all(deleteUserPromises);
-              
-              console.log('✅ User document deleted from Firestore');
+
+              const anonymizedEmail = `deleted_${Date.now()}_${userId.slice(0, 8)}@deleted.tribubaby.app`;
+
+              const anonymizeUserPromises = userSnapshot.docs.map(doc =>
+                updateDoc(doc.ref, {
+                  email: anonymizedEmail,
+                  username: t('deletedUser') || 'Utilisateur supprimé',
+                  deleted: true,
+                  deletedAt: new Date().toISOString()
+                })
+              );
+              await Promise.all(anonymizeUserPromises);
+
+              console.log('✅ User document anonymized in Firestore');
               
               // 3. Nettoyer AsyncStorage (toutes les données utilisateur)
               await AsyncStorage.removeItem(`task_created_count_${userId}`);
@@ -128,9 +179,9 @@ const DeleteAccount = ({ route, navigation }) => {
               setUser(null);
               setBabyID(null);
               setUserInfo(null);
-              
-              console.log('✅ User account fully deleted and anonymized');
-              
+
+              console.log('✅ User account fully anonymized');
+
               // 6. Navigation vers l'écran de connexion
               navigation.navigate('Connection');
               
@@ -149,36 +200,49 @@ const DeleteAccount = ({ route, navigation }) => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={KEYBOARD_CONFIG.BEHAVIOR}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
+      style={{ flex: 1, backgroundColor: '#FDF1E7' }}
+      behavior="padding"
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
-          <View style={styles.content}>
-            <Text style={styles.description}>
-              {t('settings.deleteAccountWarning')}
-            </Text>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ padding: 20, paddingBottom: 20 }}
+      >
+        <Text style={styles.description}>
+          {t('settings.deleteAccountWarning')}
+        </Text>
 
+        {provider === 'email' ? (
+          <>
+            <Text style={styles.instruction}>
+              {t('settings.deleteAccountPasswordInstruction')}
+            </Text>
             <TextInput
               ref={inputRef}
               style={styles.input}
               placeholder={t('password')}
               secureTextEntry
+              autoCorrect={false}
+              autoCapitalize="none"
+              textContentType="password"
               autoComplete="current-password"
               value={password}
               onChangeText={(text) => setPassword(text)}
             />
-          </View>
+          </>
+        ) : (
+          <Text style={styles.instruction}>
+            {t('settings.deleteAccountReauthInstruction', { provider: provider === 'google' ? 'Google' : 'Apple' })}
+          </Text>
+        )}
+      </ScrollView>
 
-          <View style={styles.footer}>
-            <Text style={styles.errorText}>{userError}</Text>
-            <TouchableOpacity style={styles.button} onPress={deleteAccount}>
-              <Text style={styles.buttonText}>{t('validate')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
+      <View style={styles.footer}>
+        <Text style={styles.errorText}>{userError}</Text>
+        <TouchableOpacity style={styles.button} onPress={deleteAccount}>
+          <Text style={styles.buttonText}>{t('validate')}</Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 };
@@ -186,18 +250,17 @@ const DeleteAccount = ({ route, navigation }) => {
 export default DeleteAccount;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FDF1E7',
-  },
-  content: {
-    padding: 20,
-  },
   description: {
     fontSize: 15,
     color: '#666',
     marginBottom: 30,
     lineHeight: 22,
+    textAlign: 'center',
+  },
+  instruction: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 15,
     textAlign: 'center',
   },
   input: {
@@ -211,14 +274,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   footer: {
-    position: 'absolute',
-    bottom: 10,
-    left: 0,
-    right: 0,
-    backgroundColor: 'transparent',
+    backgroundColor: '#FDF1E7',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    paddingBottom: Platform.select({
+      ios: 20,
+      android: 10,
+    }),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(199, 91, 74, 0.1)',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    flexDirection: 'column',
   },
   button: {
     backgroundColor: '#C75B4A',

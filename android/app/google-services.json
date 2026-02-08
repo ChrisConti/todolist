@@ -1,0 +1,91 @@
+{
+  "project_info": {
+    "project_number": "347055639005",
+    "firebase_url": "https://babylist-ae85f-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "babylist-ae85f",
+    "storage_bucket": "babylist-ae85f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:347055639005:android:c6685e02280e787f33ce34",
+        "android_client_info": {
+          "package_name": "com.tribubaby.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "347055639005-pfgnj9r2lijq1octda69b55s5om0l565.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tribubaby.app",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "347055639005-grq9l4efqt9ctbccbm77jitq1rqorcjh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDn-UbsLtprp1YItTuwcXqxCXj6TtxVunQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "347055639005-grq9l4efqt9ctbccbm77jitq1rqorcjh.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "347055639005-1ja73rp7a3khmhpfss04eert79tpc8cq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.tribubaby.tribubaby"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:347055639005:android:8ad8259c78f3cff733ce34",
+        "android_client_info": {
+          "package_name": "com.tribubaby.tribubaby"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "347055639005-grq9l4efqt9ctbccbm77jitq1rqorcjh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDn-UbsLtprp1YItTuwcXqxCXj6TtxVunQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "347055639005-grq9l4efqt9ctbccbm77jitq1rqorcjh.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "347055639005-1ja73rp7a3khmhpfss04eert79tpc8cq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.tribubaby.tribubaby"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

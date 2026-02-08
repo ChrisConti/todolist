@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "347055639005",
+    "firebase_url": "https://babylist-ae85f-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "babylist-ae85f",
+    "storage_bucket": "babylist-ae85f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:347055639005:android:8ad8259c78f3cff733ce34",
+        "android_client_info": {
+          "package_name": "com.tribubaby.tribubaby"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "347055639005-s5hovbtkigagj3vba4i7p7pjv0am7vdu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDn-UbsLtprp1YItTuwcXqxCXj6TtxVunQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "347055639005-s5hovbtkigagj3vba4i7p7pjv0am7vdu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

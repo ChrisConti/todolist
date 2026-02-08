@@ -17,6 +17,18 @@
       "validate": "Validate",
       "delete": "Delete"
     },
+    "socialAuth": {
+      "signInWithGoogleOrApple": "Sign in with Google or Apple",
+      "signInWithGoogle": "Sign in with Google",
+      "existingAccountTitle": "Existing Account",
+      "existingAccountMessage": "An account already exists with this email.\nPlease sign in with: {{provider}}",
+      "connectionErrorTitle": "Connection Error",
+      "googleConnectionError": "Unable to connect with Google. Please try again.",
+      "appleConnectionError": "Unable to connect with Apple. Please try again.",
+      "appleNotAvailableTitle": "Not Available",
+      "appleNotAvailableMessage": "Sign in with Apple is only available on iOS 13+",
+      "ok": "OK"
+    },
     "placeholder": {
       "email": "Email",
       "password": "Password",
@@ -90,6 +102,7 @@
       "invalidWeight": "Weight must be between 0.1 and 50 kg",
       "invalidHeight": "Height must be between 20 and 200 cm",
       "photoUploadFailed": "Failed to upload photo. Please try again.",
+      "uploadPhoto": "Error uploading photo",
       "galleryPermission": "Permission to access gallery is required!",
       "cameraPermission": "Permission to access camera is required!"
     },
@@ -189,6 +202,11 @@
       "family": "Family",
       "edit": "Edit",
       "editProfile": "Edit Profile",
+      "editPhoto": "Edit Photo",
+      "photoUpdated": "Photo updated successfully",
+      "removePhotoConfirm": "Are you sure you want to remove this photo?",
+      "remove": "Remove",
+      "photoRemoved": "Photo removed successfully!",
       "name": "Name",
       "birthdate": "Birthdate",
       "essentialInfo": "Essential information",
@@ -282,7 +300,11 @@
       "sendEmail": "Send email",
       "changeNameDescription": "Enter your new name below. This will update your profile name across the app.",
       "changeEmailDescription": "To change your email address, enter your new email and your current password to confirm the change.",
-      "deleteAccountWarning": "This action is permanent and cannot be undone. Enter your password to confirm account deletion. Your tasks will be anonymized in shared babies."
+      "deleteAccountWarning": "This action is permanent and cannot be undone. Enter your password to confirm account deletion. Your tasks will be anonymized in shared babies.",
+      "changeNameReadOnly": "Your name comes from your {{provider}} account and cannot be modified here.",
+      "changeEmailReadOnly": "Your email comes from your {{provider}} account and cannot be modified here.",
+      "deleteAccountPasswordInstruction": "Enter your password to confirm deletion:",
+      "deleteAccountReauthInstruction": "You will need to reconnect with {{provider}} to confirm the deletion of your account."
     },
     "title":{
       "signup": "Sign Up",
@@ -393,7 +415,7 @@
     "privacyPolicy": {
             "title": "Privacy Policy",
             "identity": "Identity of the Data Controller",
-            "identityText": "The Tribu Baby application is managed by Christopher Continente, application manager and independent developer. For any questions regarding personal data, you can contact: tribubabytracker@gmail.com.",
+            "identityText": "The Tribu Baby application is managed by Christopher Continente, application manager and independent developer. For any questions regarding personal data, you can contact: support@tribubaby.com.",
             "dataCollection": "Collection and Use of Personal Data",
             "dataCollectionText": "Tribu Baby collects personal data to provide an optimal user experience. The data collected includes:",
             "identificationInfo": "Identification information (name, email, postal code, etc.).",
@@ -421,7 +443,7 @@
             "rectifyData": "Rectify or delete your data.",
             "opposeProcessing": "Oppose or limit processing.",
             "dataPortability": "Data portability.",
-            "contact": "To exercise these rights, contact us at: tribubabytracker@gmail.com.",
+            "contact": "To exercise these rights, contact us at: support@tribubaby.com.",
             "dataSecurity": "Data Security",
             "dataSecurityText": "We implement technical and organizational measures to protect your data against unauthorized access.",
             "dataRetention": "Data Retention",
@@ -434,7 +456,7 @@
       "identification": "Identification",
       "identificationText": "The Tribu Baby application is published by:",
       "name": "Name: Christopher Continente, independent developer",
-      "contact": "Contact: tribubabytracker@gmail.com",
+      "contact": "Contact: support@tribubaby.com",
       "hosting": "Hosting",
       "hostingText": "The application and its data are hosted by:",
       "host": "Host: Firebase (Google LLC)",
@@ -459,7 +481,7 @@
       "responsibility": "Responsibility",
       "responsibilityText": "Tribu Baby cannot be held responsible in case of a problem related to an incompatible device or a malfunction beyond its control. The User is responsible for the use of their account.",
       "applicableLaw": "Applicable Law",
-      "applicableLawText": "These Terms are subject to French law. In case of dispute, an amicable solution will be preferred before any legal action. You can contact us at: tribubabytracker@gmail.com."
+      "applicableLawText": "These Terms are subject to French law. In case of dispute, an amicable solution will be preferred before any legal action. You can contact us at: support@tribubaby.com."
     },
     "validateOnly": "Validate",
     "Par":"Made by",
@@ -488,6 +510,18 @@
       "submit": "Valider",
       "validate": "Valider",
       "delete": "Supprimer"
+    },
+    "socialAuth": {
+      "signInWithGoogleOrApple": "S'identifier avec Google ou Apple",
+      "signInWithGoogle": "S'identifier avec Google",
+      "existingAccountTitle": "Compte existant",
+      "existingAccountMessage": "Un compte existe déjà avec cet email.\nVeuillez vous connecter avec: {{provider}}",
+      "connectionErrorTitle": "Erreur de connexion",
+      "googleConnectionError": "Impossible de se connecter avec Google. Veuillez réessayer.",
+      "appleConnectionError": "Impossible de se connecter avec Apple. Veuillez réessayer.",
+      "appleNotAvailableTitle": "Non disponible",
+      "appleNotAvailableMessage": "La connexion avec Apple n'est disponible que sur iOS 13+",
+      "ok": "OK"
     },
     "placeholder": {
       "email": "Email",
@@ -562,6 +596,7 @@
       "invalidWeight": "Le poids doit être entre 0.1 et 50 kg",
       "invalidHeight": "La taille doit être entre 20 et 200 cm",
       "photoUploadFailed": "Échec du téléchargement de la photo. Veuillez réessayer.",
+      "uploadPhoto": "Erreur lors du téléchargement de la photo",
       "galleryPermission": "L'autorisation d'accès à la galerie est requise !",
       "cameraPermission": "L'autorisation d'accès à la caméra est requise !"
     },
@@ -661,6 +696,11 @@
       "family": "Famille",
       "edit": "Modifier",
       "editProfile": "Modifier le profil",
+      "editPhoto": "Modifier la photo",
+      "photoUpdated": "Photo mise à jour avec succès",
+      "removePhotoConfirm": "Êtes-vous sûr de vouloir supprimer cette photo ?",
+      "remove": "Supprimer",
+      "photoRemoved": "Photo supprimée avec succès!",
       "name": "Nom",
       "birthdate": "Date de naissance",
       "essentialInfo": "Informations essentielles",
@@ -754,7 +794,11 @@
       "resetPassordEmailSent": "Un email a été envoyé pour réinitialiser votre mot de passe.",
       "changeNameDescription": "Entrez votre nouveau nom ci-dessous. Cela mettra à jour votre nom de profil dans toute l'application.",
       "changeEmailDescription": "Pour changer votre adresse email, entrez votre nouvel email et votre mot de passe actuel pour confirmer le changement.",
-      "deleteAccountWarning": "Cette action est permanente et ne peut pas être annulée. Entrez votre mot de passe pour confirmer la suppression de votre compte. Vos tâches seront anonymisées dans les bébés partagés."
+      "deleteAccountWarning": "Cette action est permanente et ne peut pas être annulée. Entrez votre mot de passe pour confirmer la suppression de votre compte. Vos tâches seront anonymisées dans les bébés partagés.",
+      "changeNameReadOnly": "Votre nom provient de votre compte {{provider}} et ne peut pas être modifié ici.",
+      "changeEmailReadOnly": "Votre email provient de votre compte {{provider}} et ne peut pas être modifié ici.",
+      "deleteAccountPasswordInstruction": "Entrez votre mot de passe pour confirmer la suppression :",
+      "deleteAccountReauthInstruction": "Vous devrez vous reconnecter avec {{provider}} pour confirmer la suppression de votre compte."
     },
     "enterValidName": "Veuillez entrer un nom valide", 
     "modification": "Modification", 
@@ -861,7 +905,7 @@
   "privacyPolicy": {
             "title": "Politique de Confidentialité",
             "identity": "Identité du Responsable de Traitement",
-            "identityText": "L’application Tribu Baby est gérée par Christopher Continente, responsable de l’application et développeur indépendant. Pour toute question relative aux données personnelles, vous pouvez contacter : tribubabytracker@gmail.com.",
+            "identityText": "L’application Tribu Baby est gérée par Christopher Continente, responsable de l’application et développeur indépendant. Pour toute question relative aux données personnelles, vous pouvez contacter : support@tribubaby.com.",
             "dataCollection": "Collecte et Utilisation des Données Personnelles",
             "dataCollectionText": "Tribu Baby collecte des données personnelles pour offrir une expérience utilisateur optimale. Les données collectées incluent :",
             "identificationInfo": "Informations d’identification (nom, email, code postal, etc.).",
@@ -889,7 +933,7 @@
             "rectifyData": "Rectification ou suppression de vos données.",
             "opposeProcessing": "Opposition ou limitation au traitement.",
             "dataPortability": "Portabilité de vos données.",
-            "contact": "Pour exercer ces droits, contactez-nous à : tribubabytracker@gmail.com.",
+            "contact": "Pour exercer ces droits, contactez-nous à : support@tribubaby.com.",
             "dataSecurity": "Sécurité des Données",
             "dataSecurityText": "Nous mettons en place des mesures techniques et organisationnelles pour protéger vos données contre tout accès non autorisé.",
             "dataRetention": "Durée de Conservation",
@@ -902,7 +946,7 @@
       "identification": "Identification",
       "identificationText": "L’application Tribu Baby est éditée par :",
       "name": "Nom : Christopher Continente, développeur indépendant",
-      "contact": "Contact : tribubabytracker@gmail.com",
+      "contact": "Contact : support@tribubaby.com",
       "hosting": "Hébergement",
       "hostingText": "L’application et ses données sont hébergées par :",
       "host": "Hébergeur : Firebase (Google LLC)",
@@ -927,7 +971,7 @@
       "responsibility": "Responsabilité",
       "responsibilityText": "Tribu Baby ne saurait être tenu responsable en cas de problème lié à un appareil incompatible ou à un dysfonctionnement hors de son contrôle. L’utilisateur est responsable de l’utilisation de son compte.",
       "applicableLaw": "Loi Applicable",
-      "applicableLawText": "Les présentes CGU sont soumises au droit français. En cas de litige, une solution amiable sera privilégiée avant tout recours judiciaire. Vous pouvez nous contacter à : tribubabytracker@gmail.com."
+      "applicableLawText": "Les présentes CGU sont soumises au droit français. En cas de litige, une solution amiable sera privilégiée avant tout recours judiciaire. Vous pouvez nous contacter à : support@tribubaby.com."
     },
     "validateOnly": "Valider",
     "Par":"Fait par",
@@ -957,6 +1001,18 @@
         "submit": "Enviar",
         "validate": "Validar",
         "delete": "Eliminar"
+      },
+      "socialAuth": {
+        "signInWithGoogleOrApple": "Iniciar sesión con Google o Apple",
+        "signInWithGoogle": "Iniciar sesión con Google",
+        "existingAccountTitle": "Cuenta existente",
+        "existingAccountMessage": "Ya existe una cuenta con este correo.\nPor favor inicia sesión con: {{provider}}",
+        "connectionErrorTitle": "Error de conexión",
+        "googleConnectionError": "No se pudo conectar con Google. Por favor intenta de nuevo.",
+        "appleConnectionError": "No se pudo conectar con Apple. Por favor intenta de nuevo.",
+        "appleNotAvailableTitle": "No disponible",
+        "appleNotAvailableMessage": "Iniciar sesión con Apple solo está disponible en iOS 13+",
+        "ok": "OK"
       },
       "placeholder": {
         "email": "Correo electrónico",
@@ -1030,6 +1086,7 @@
         "invalidWeight": "El peso debe estar entre 0.1 y 50 kg",
         "invalidHeight": "La altura debe estar entre 20 y 200 cm",
         "photoUploadFailed": "Error al subir la foto. Por favor, inténtelo de nuevo.",
+        "uploadPhoto": "Error al subir la foto",
         "galleryPermission": "¡Se requiere permiso para acceder a la galería!",
         "cameraPermission": "¡Se requiere permiso para acceder a la cámara!"
       },
@@ -1129,6 +1186,11 @@
         "family": "Familia",
         "edit": "Editar",
         "editProfile": "Editar perfil",
+        "editPhoto": "Editar foto",
+        "photoUpdated": "Foto actualizada con éxito",
+        "removePhotoConfirm": "¿Estás seguro de que quieres eliminar esta foto?",
+        "remove": "Eliminar",
+        "photoRemoved": "¡Foto eliminada con éxito!",
         "name": "Nombre",
         "birthdate": "Fecha de nacimiento",
         "essentialInfo": "Información esencial",
@@ -1222,7 +1284,11 @@
         "resetPassordEmailSent": "Se ha enviado un correo electrónico para restablecer tu contraseña.",
         "changeNameDescription": "Ingresa tu nuevo nombre a continuación. Esto actualizará tu nombre de perfil en toda la aplicación.",
         "changeEmailDescription": "Para cambiar tu dirección de correo electrónico, ingresa tu nuevo correo y tu contraseña actual para confirmar el cambio.",
-        "deleteAccountWarning": "Esta acción es permanente y no se puede deshacer. Ingresa tu contraseña para confirmar la eliminación de tu cuenta. Tus tareas serán anonimizadas en los bebés compartidos."
+        "deleteAccountWarning": "Esta acción es permanente y no se puede deshacer. Ingresa tu contraseña para confirmar la eliminación de tu cuenta. Tus tareas serán anonimizadas en los bebés compartidos.",
+        "changeNameReadOnly": "Tu nombre proviene de tu cuenta {{provider}} y no se puede modificar aquí.",
+        "changeEmailReadOnly": "Tu correo proviene de tu cuenta {{provider}} y no se puede modificar aquí.",
+        "deleteAccountPasswordInstruction": "Ingresa tu contraseña para confirmar la eliminación:",
+        "deleteAccountReauthInstruction": "Deberás reconectarte con {{provider}} para confirmar la eliminación de tu cuenta."
       },
       "enterValidName": "Por favor, introduce un nombre válido", 
       "enterValidEmail": "Por favor, introduce un correo válido", 
@@ -1322,7 +1388,7 @@
       "privacyPolicy": {
         "title": "Política de Privacidad",
         "identity": "Identidad del Responsable del Tratamiento",
-        "identityText": "La aplicación Tribu Baby está gestionada por Christopher Continente, responsable de la aplicación y desarrollador independiente. Para cualquier pregunta relacionada con los datos personales, puede contactar: tribubabytracker@gmail.com.",
+        "identityText": "La aplicación Tribu Baby está gestionada por Christopher Continente, responsable de la aplicación y desarrollador independiente. Para cualquier pregunta relacionada con los datos personales, puede contactar: support@tribubaby.com.",
         "dataCollection": "Recopilación y Uso de Datos Personales",
         "dataCollectionText": "Tribu Baby recopila datos personales para ofrecer una experiencia de usuario óptima. Los datos recopilados incluyen:",
         "identificationInfo": "Información de identificación (nombre, correo electrónico, código postal, etc.).",
@@ -1350,7 +1416,7 @@
         "rectifyData": "Rectificar o eliminar sus datos.",
         "opposeProcessing": "Oponerse o limitar el tratamiento.",
         "dataPortability": "Portabilidad de los datos.",
-        "contact": "Para ejercer estos derechos, contáctenos en: tribubabytracker@gmail.com.",
+        "contact": "Para ejercer estos derechos, contáctenos en: support@tribubaby.com.",
         "dataSecurity": "Seguridad de los Datos",
         "dataSecurityText": "Implementamos medidas técnicas y organizativas para proteger sus datos contra el acceso no autorizado.",
         "dataRetention": "Duración de la Conservación",
@@ -1364,7 +1430,7 @@
       "identification": "Identificación",
       "identificationText": "La aplicación Tribu Baby está editada por:",
       "name": "Nombre: Christopher Continente, desarrollador independiente",
-      "contact": "Contacto: tribubabytracker@gmail.com",
+      "contact": "Contacto: support@tribubaby.com",
       "hosting": "Alojamiento",
       "hostingText": "La aplicación y sus datos están alojados por:",
       "host": "Anfitrión: Firebase (Google LLC)",
@@ -1389,7 +1455,7 @@
           "responsibility": "Responsabilidad",
           "responsibilityText": "Tribu Baby no se hace responsable en caso de un problema relacionado con un dispositivo incompatible o un mal funcionamiento fuera de su control. El Usuario es responsable del uso de su cuenta.",
           "applicableLaw": "Ley Aplicable",
-          "applicableLawText": "Estas CGU están sujetas a la ley francesa. En caso de disputa, se preferirá una solución amistosa antes de cualquier acción legal. Puede contactarnos en: tribubabytracker@gmail.com."
+          "applicableLawText": "Estas CGU están sujetas a la ley francesa. En caso de disputa, se preferirá una solución amistosa antes de cualquier acción legal. Puede contactarnos en: support@tribubaby.com."
         },
         "validateOnly": "Validar",
         "Par":"Hecho por"
