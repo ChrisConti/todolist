@@ -5,20 +5,24 @@ import './TaskDistributionByAge.css';
 
 interface TaskDistributionByAgeProps {
   distributionByAge: {
-    [ageRange: string]: {
-      totalTasks: number;
-      biberon: number;
-      couche: number;
-      sante: number;
-      sommeil: number;
-      temperature: number;
-      allaitement: number;
+    totalBabies: number;
+    ranges: {
+      [ageRange: string]: {
+        totalTasks: number;
+        babyCount: number;
+        biberon: number;
+        couche: number;
+        sante: number;
+        sommeil: number;
+        temperature: number;
+        allaitement: number;
+      };
     };
   };
 }
 
 export const TaskDistributionByAge: React.FC<TaskDistributionByAgeProps> = ({ distributionByAge }) => {
-  const ageRanges = Object.keys(distributionByAge);
+  const ageRanges = Object.keys(distributionByAge.ranges);
 
   if (ageRanges.length === 0) {
     return null;
@@ -26,7 +30,7 @@ export const TaskDistributionByAge: React.FC<TaskDistributionByAgeProps> = ({ di
 
   // Calculate percentages for each age range
   const getPercentages = (ageRange: string) => {
-    const data = distributionByAge[ageRange];
+    const data = distributionByAge.ranges[ageRange];
     const total = data.totalTasks;
     return {
       biberon: Math.round((data.biberon / total) * 100),
@@ -99,15 +103,15 @@ export const TaskDistributionByAge: React.FC<TaskDistributionByAgeProps> = ({ di
             const label = context.dataset.label || '';
             const value = context.parsed.y || 0;
             const ageRange = context.label;
-            const data = distributionByAge[ageRange];
+            const data = distributionByAge.ranges[ageRange];
             const taskType = ['biberon', 'couche', 'sante', 'sommeil', 'temperature', 'allaitement'][context.datasetIndex];
             const count = data[taskType as keyof typeof data] as number;
             return `${label}: ${value}% (${count} tâches)`;
           },
           footer: (items) => {
             const ageRange = items[0].label;
-            const total = distributionByAge[ageRange].totalTasks;
-            return `Total: ${total} tâches`;
+            const data = distributionByAge.ranges[ageRange];
+            return `Total: ${data.totalTasks} tâches • ${data.babyCount} bébés`;
           },
         },
       },
@@ -146,13 +150,18 @@ export const TaskDistributionByAge: React.FC<TaskDistributionByAgeProps> = ({ di
 
         <div className="age-details-grid">
           {ageRanges.map((ageRange) => {
-            const data = distributionByAge[ageRange];
+            const data = distributionByAge.ranges[ageRange];
             const percentages = getPercentages(ageRange);
 
             return (
               <div key={ageRange} className="age-range-card">
                 <div className="age-range-header">
-                  <h4>{ageRange}</h4>
+                  <h4>
+                    {ageRange}
+                    <span className="age-baby-count">
+                      ({data.babyCount} bébé{data.babyCount > 1 ? 's' : ''} / {distributionByAge.totalBabies})
+                    </span>
+                  </h4>
                   <span className="age-range-total">{data.totalTasks} tâches</span>
                 </div>
 

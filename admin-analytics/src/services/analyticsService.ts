@@ -285,12 +285,12 @@ export const getAnalyticsMetrics = async (dateRange: DateRange): Promise<Analyti
     // Calculate task distribution by baby age
     let taskDistributionByAge;
     const ageRanges = {
-      '0-1 mois': { min: 0, max: 30, totalTasks: 0, biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
-      '1-3 mois': { min: 31, max: 90, totalTasks: 0, biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
-      '3-6 mois': { min: 91, max: 180, totalTasks: 0, biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
-      '6-12 mois': { min: 181, max: 365, totalTasks: 0, biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
-      '12-18 mois': { min: 366, max: 545, totalTasks: 0, biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
-      '18+ mois': { min: 546, max: Infinity, totalTasks: 0, biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
+      '0-1 mois': { min: 0, max: 30, totalTasks: 0, babyIds: new Set<string>(), biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
+      '1-3 mois': { min: 31, max: 90, totalTasks: 0, babyIds: new Set<string>(), biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
+      '3-6 mois': { min: 91, max: 180, totalTasks: 0, babyIds: new Set<string>(), biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
+      '6-12 mois': { min: 181, max: 365, totalTasks: 0, babyIds: new Set<string>(), biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
+      '12-18 mois': { min: 366, max: 545, totalTasks: 0, babyIds: new Set<string>(), biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
+      '18+ mois': { min: 546, max: Infinity, totalTasks: 0, babyIds: new Set<string>(), biberon: 0, couche: 0, sante: 0, sommeil: 0, temperature: 0, allaitement: 0 },
     };
 
     babies.forEach(baby => {
@@ -321,6 +321,7 @@ export const getAnalyticsMetrics = async (dateRange: DateRange): Promise<Analyti
         for (const [, range] of Object.entries(ageRanges)) {
           if (ageInDays >= range.min && ageInDays <= range.max) {
             range.totalTasks++;
+            range.babyIds.add(baby.id); // Track unique babies
             const type = task.labelTask;
             if (type === 'biberon') range.biberon++;
             else if (type === 'couche') range.couche++;
@@ -335,11 +336,12 @@ export const getAnalyticsMetrics = async (dateRange: DateRange): Promise<Analyti
     });
 
     // Convert to percentage format
-    taskDistributionByAge = {} as { [key: string]: any };
+    const ranges: { [key: string]: any } = {};
     Object.entries(ageRanges).forEach(([rangeName, data]) => {
       if (data.totalTasks > 0) {
-        taskDistributionByAge![rangeName] = {
+        ranges[rangeName] = {
           totalTasks: data.totalTasks,
+          babyCount: data.babyIds.size,
           biberon: data.biberon,
           couche: data.couche,
           sante: data.sante,
@@ -349,6 +351,13 @@ export const getAnalyticsMetrics = async (dateRange: DateRange): Promise<Analyti
         };
       }
     });
+
+    if (Object.keys(ranges).length > 0) {
+      taskDistributionByAge = {
+        totalBabies: babies.length,
+        ranges,
+      };
+    }
 
     // Calculate previous period metrics for trends (if date range is specified)
     let previousPeriod;

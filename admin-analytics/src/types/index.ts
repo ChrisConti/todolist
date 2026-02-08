@@ -79,14 +79,18 @@ export interface AnalyticsMetrics {
   };
   // Task distribution by baby age
   taskDistributionByAge?: {
-    [ageRange: string]: {
-      totalTasks: number;
-      biberon: number;
-      couche: number;
-      sante: number;
-      sommeil: number;
-      temperature: number;
-      allaitement: number;
+    totalBabies: number;
+    ranges: {
+      [ageRange: string]: {
+        totalTasks: number;
+        babyCount: number;
+        biberon: number;
+        couche: number;
+        sante: number;
+        sommeil: number;
+        temperature: number;
+        allaitement: number;
+      };
     };
   };
 }
