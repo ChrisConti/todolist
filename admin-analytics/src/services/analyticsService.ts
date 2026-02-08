@@ -1,4 +1,4 @@
-import { getDocs } from 'firebase/firestore';
+import { getDocsFromServer } from 'firebase/firestore';
 import { usersRef, babiesRef, appInstallsRef } from '../config/firebase';
 import type { AnalyticsMetrics, DateRange, User, Baby } from '../types';
 
@@ -14,8 +14,9 @@ interface AppInstall {
 export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: string): Promise<AnalyticsMetrics> => {
   try {
     // ALWAYS fetch all data (CreatedDate is a string, not Timestamp, so we can't query on it)
-    const usersSnapshot = await getDocs(usersRef);
-    const babiesSnapshot = await getDocs(babiesRef);
+    // Use getDocsFromServer to bypass cache and get fresh data after deletions
+    const usersSnapshot = await getDocsFromServer(usersRef);
+    const babiesSnapshot = await getDocsFromServer(babiesRef);
 
     const allUsers: User[] = usersSnapshot.docs.map(doc => ({
       userId: doc.id,
@@ -30,7 +31,7 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
     // Fetch installs (may not exist yet)
     let allInstalls: AppInstall[] = [];
     try {
-      const installsSnapshot = await getDocs(appInstallsRef);
+      const installsSnapshot = await getDocsFromServer(appInstallsRef);
       allInstalls = installsSnapshot.docs.map(doc => doc.data() as AppInstall);
     } catch (installsError) {
       console.warn('AppInstalls collection not accessible (may not exist yet):', installsError);
@@ -444,7 +445,8 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
  * Get all users (for listing)
  */
 export const getAllUsers = async (): Promise<User[]> => {
-  const snapshot = await getDocs(usersRef);
+  // Use getDocsFromServer to bypass cache and get fresh data after deletions
+  const snapshot = await getDocsFromServer(usersRef);
   return snapshot.docs.map(doc => ({
     userId: doc.id,
     ...doc.data()
@@ -455,7 +457,8 @@ export const getAllUsers = async (): Promise<User[]> => {
  * Get all babies (for listing)
  */
 export const getAllBabies = async (searchTerm?: string): Promise<Baby[]> => {
-  const snapshot = await getDocs(babiesRef);
+  // Use getDocsFromServer to bypass cache and get fresh data after deletions
+  const snapshot = await getDocsFromServer(babiesRef);
   let babies = snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
