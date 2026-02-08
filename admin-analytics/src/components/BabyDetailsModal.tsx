@@ -220,26 +220,39 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
   };
 
   const handleDeleteBaby = async () => {
-    if (!baby) return;
+    if (!baby) {
+      console.error('No baby to delete');
+      return;
+    }
+
+    console.log('Starting deletion for baby:', baby.id, baby.name);
 
     try {
       setIsDeleting(true);
       const babyDocRef = doc(db, 'Baby', baby.id);
+      console.log('Deleting document at path:', `Baby/${baby.id}`);
+
       await deleteDoc(babyDocRef);
+      console.log('Baby deleted successfully from Firestore');
 
       // Close the confirmation dialog
       setShowDeleteConfirm(false);
 
       // Notify parent to refresh data
       if (onBabyDeleted) {
-        onBabyDeleted();
+        console.log('Calling onBabyDeleted callback');
+        await onBabyDeleted();
       }
 
       // Close the modal
       onClose();
-    } catch (error) {
+
+      alert(`${baby.name} a été supprimé avec succès !`);
+    } catch (error: any) {
       console.error('Error deleting baby:', error);
-      alert('Erreur lors de la suppression du bébé. Veuillez réessayer.');
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      alert(`Erreur lors de la suppression: ${error.message}\nCode: ${error.code || 'unknown'}`);
     } finally {
       setIsDeleting(false);
     }
