@@ -57,6 +57,14 @@ export const Analytics: React.FC = () => {
     setIsBabyModalOpen(true);
   };
 
+  const handleBabyDeleted = async () => {
+    // Close the list modal to prevent showing stale data
+    setModalType(null);
+    setModalData([]);
+    // Reload all metrics
+    await loadMetrics();
+  };
+
   const renderTrend = (current: number, previous?: number) => {
     if (!previous || !metrics?.previousPeriod) return null;
 
@@ -558,7 +566,7 @@ export const Analytics: React.FC = () => {
         isOpen={isBabyModalOpen}
         onClose={() => setIsBabyModalOpen(false)}
         baby={selectedBaby}
-        onBabyDeleted={loadMetrics}
+        onBabyDeleted={handleBabyDeleted}
       />
     </div>
   );
