@@ -262,7 +262,14 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
     <div className="baby-modal-overlay" onClick={onClose}>
       <div className="baby-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="baby-modal-header">
-          <h2>👶 {baby.name}</h2>
+          <div className="baby-header-content">
+            {baby.profilePhoto && (
+              <div className="baby-profile-photo">
+                <img src={baby.profilePhoto} alt={baby.name} />
+              </div>
+            )}
+            <h2>👶 {baby.name}</h2>
+          </div>
           <button className="close-btn" onClick={onClose}>✕</button>
         </div>
 

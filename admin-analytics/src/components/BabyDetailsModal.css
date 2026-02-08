@@ -34,6 +34,28 @@
   border-radius: 12px 12px 0 0;
 }
 
+.baby-header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.baby-profile-photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.baby-profile-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .baby-modal-header h2 {
   margin: 0;
   font-size: 28px;
