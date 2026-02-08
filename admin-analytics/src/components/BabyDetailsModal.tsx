@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Line, Pie } from 'react-chartjs-2';
+import { doc, deleteDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
 import type { Baby } from '../types';
 import type { ChartOptions } from 'chart.js';
 import './BabyDetailsModal.css';
@@ -8,9 +10,13 @@ interface BabyDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   baby: Baby | null;
+  onBabyDeleted?: () => void;
 }
 
-export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onClose, baby }) => {
+export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onClose, baby, onBabyDeleted }) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   if (!isOpen || !baby) return null;
 
   // Calculate age from birthdate
@@ -213,6 +219,32 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
     link.click();
   };
 
+  const handleDeleteBaby = async () => {
+    if (!baby) return;
+
+    try {
+      setIsDeleting(true);
+      const babyDocRef = doc(db, 'Baby', baby.id);
+      await deleteDoc(babyDocRef);
+
+      // Close the confirmation dialog
+      setShowDeleteConfirm(false);
+
+      // Notify parent to refresh data
+      if (onBabyDeleted) {
+        onBabyDeleted();
+      }
+
+      // Close the modal
+      onClose();
+    } catch (error) {
+      console.error('Error deleting baby:', error);
+      alert('Erreur lors de la suppression du bébé. Veuillez réessayer.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="baby-modal-overlay" onClick={onClose}>
       <div className="baby-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -349,9 +381,52 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
               <button className="action-btn" onClick={exportBabyData}>
                 📥 Exporter toutes les données (CSV)
               </button>
+              <button className="action-btn delete-btn" onClick={() => setShowDeleteConfirm(true)}>
+                🗑️ Supprimer ce bébé
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Delete Confirmation Dialog */}
+        {showDeleteConfirm && (
+          <div className="delete-confirm-overlay" onClick={() => setShowDeleteConfirm(false)}>
+            <div className="delete-confirm-dialog" onClick={(e) => e.stopPropagation()}>
+              <div className="delete-confirm-header">
+                <h3>⚠️ Confirmation de suppression</h3>
+              </div>
+              <div className="delete-confirm-body">
+                <p>
+                  Êtes-vous sûr de vouloir supprimer <strong>{baby.name}</strong> ?
+                </p>
+                <p className="delete-warning">
+                  Cette action est irréversible et supprimera :
+                </p>
+                <ul className="delete-warning-list">
+                  <li>Toutes les informations du bébé</li>
+                  <li>Les {totalTasks} tâches enregistrées</li>
+                  <li>Toutes les données associées</li>
+                </ul>
+              </div>
+              <div className="delete-confirm-footer">
+                <button
+                  className="cancel-delete-btn"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                >
+                  Annuler
+                </button>
+                <button
+                  className="confirm-delete-btn"
+                  onClick={handleDeleteBaby}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Suppression...' : 'Supprimer définitivement'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

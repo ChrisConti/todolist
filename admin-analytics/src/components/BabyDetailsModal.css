@@ -201,6 +201,131 @@
   transform: translateY(-1px);
 }
 
+/* Delete button styling */
+.action-btn.delete-btn {
+  background: #ef4444;
+}
+
+.action-btn.delete-btn:hover {
+  background: #dc2626;
+}
+
+/* Delete confirmation dialog */
+.delete-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 20px;
+}
+
+.delete-confirm-dialog {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.delete-confirm-header {
+  padding: 24px 24px 16px 24px;
+  border-bottom: 2px solid #fee;
+  background: #fef2f2;
+  border-radius: 12px 12px 0 0;
+}
+
+.delete-confirm-header h3 {
+  margin: 0;
+  color: #dc2626;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-confirm-body {
+  padding: 24px;
+}
+
+.delete-confirm-body p {
+  margin: 0 0 16px 0;
+  color: #1a202c;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.delete-confirm-body p strong {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.delete-warning {
+  color: #ef4444;
+  font-weight: 600;
+  margin-bottom: 8px !important;
+}
+
+.delete-warning-list {
+  margin: 0;
+  padding-left: 24px;
+  list-style: disc;
+}
+
+.delete-warning-list li {
+  margin: 6px 0;
+  color: #718096;
+  font-size: 14px;
+}
+
+.delete-confirm-footer {
+  padding: 16px 24px 24px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.cancel-delete-btn,
+.confirm-delete-btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.cancel-delete-btn {
+  background: #f3f4f6;
+  color: #1a202c;
+}
+
+.cancel-delete-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.confirm-delete-btn {
+  background: #dc2626;
+  color: white;
+}
+
+.confirm-delete-btn:hover:not(:disabled) {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.cancel-delete-btn:disabled,
+.confirm-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .baby-charts-grid {
     grid-template-columns: 1fr;
@@ -216,5 +341,14 @@
 
   .overview-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .delete-confirm-footer {
+    flex-direction: column-reverse;
+  }
+
+  .cancel-delete-btn,
+  .confirm-delete-btn {
+    width: 100%;
   }
 }

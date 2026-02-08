@@ -558,6 +558,7 @@ export const Analytics: React.FC = () => {
         isOpen={isBabyModalOpen}
         onClose={() => setIsBabyModalOpen(false)}
         baby={selectedBaby}
+        onBabyDeleted={loadMetrics}
       />
     </div>
   );
