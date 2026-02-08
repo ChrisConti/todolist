@@ -17,6 +17,7 @@ export const Analytics: React.FC = () => {
     start: null,
     end: null,
   });
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,16 +30,16 @@ export const Analytics: React.FC = () => {
 
   useEffect(() => {
     loadMetrics();
-  }, [dateRange]);
+  }, [dateRange, searchTerm]);
 
   const loadMetrics = async () => {
     try {
       setLoading(true);
       setError(null);
       const [data, users, babies] = await Promise.all([
-        getAnalyticsMetrics(dateRange),
+        getAnalyticsMetrics(dateRange, searchTerm),
         getAllUsers(),
-        getAllBabies(),
+        getAllBabies(searchTerm),
       ]);
       setMetrics(data);
       setAllUsers(users);
@@ -78,7 +79,7 @@ export const Analytics: React.FC = () => {
 
     try {
       const allUsers = await getAllUsers();
-      const allBabies = await getAllBabies();
+      const allBabies = await getAllBabies(searchTerm);
 
       // Create a map of userId to email for quick lookup
       const userEmailMap = new Map<string, string>();
@@ -269,6 +270,25 @@ export const Analytics: React.FC = () => {
         preset={preset}
         onPresetChange={setPreset}
       />
+
+      <div className="search-container">
+        <input
+          type="text"
+          className="baby-search-input"
+          placeholder="🔍 Rechercher un bébé par nom..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        {searchTerm && (
+          <button
+            className="clear-search-btn"
+            onClick={() => setSearchTerm('')}
+            title="Effacer la recherche"
+          >
+            ✕
+          </button>
+        )}
+      </div>
 
       {loading && <div className="loading-overlay">Actualisation...</div>}
 

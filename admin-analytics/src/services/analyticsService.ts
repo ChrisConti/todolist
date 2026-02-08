@@ -11,7 +11,7 @@ interface AppInstall {
 /**
  * Get analytics metrics for a given date range
  */
-export const getAnalyticsMetrics = async (dateRange: DateRange): Promise<AnalyticsMetrics> => {
+export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: string): Promise<AnalyticsMetrics> => {
   try {
     // ALWAYS fetch all data (CreatedDate is a string, not Timestamp, so we can't query on it)
     const usersSnapshot = await getDocs(usersRef);
@@ -72,6 +72,14 @@ export const getAnalyticsMetrics = async (dateRange: DateRange): Promise<Analyti
 
         return babyDate >= dateRange.start! && babyDate <= dateRange.end!;
       });
+    }
+
+    // Filter by baby name if search term is provided
+    if (searchTerm && searchTerm.trim() !== '') {
+      const lowerSearchTerm = searchTerm.toLowerCase().trim();
+      babies = babies.filter(b =>
+        b.name && b.name.toLowerCase().includes(lowerSearchTerm)
+      );
     }
 
     // Calculate metrics
@@ -446,10 +454,20 @@ export const getAllUsers = async (): Promise<User[]> => {
 /**
  * Get all babies (for listing)
  */
-export const getAllBabies = async (): Promise<Baby[]> => {
+export const getAllBabies = async (searchTerm?: string): Promise<Baby[]> => {
   const snapshot = await getDocs(babiesRef);
-  return snapshot.docs.map(doc => ({
+  let babies = snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
   } as Baby));
+
+  // Filter by baby name if search term is provided
+  if (searchTerm && searchTerm.trim() !== '') {
+    const lowerSearchTerm = searchTerm.toLowerCase().trim();
+    babies = babies.filter(b =>
+      b.name && b.name.toLowerCase().includes(lowerSearchTerm)
+    );
+  }
+
+  return babies;
 };
