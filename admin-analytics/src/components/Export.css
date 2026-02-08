@@ -1,0 +1,116 @@
+.export h2 {
+  margin: 0 0 24px 0;
+  color: #1a202c;
+  font-size: 28px;
+}
+
+.export-card {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.export-card h3 {
+  margin: 0 0 20px 0;
+  color: #1a202c;
+  font-size: 20px;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.checkbox-label:hover {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+
+.checkbox-label input[type='checkbox'] {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox-label span {
+  font-weight: 600;
+  color: #1a202c;
+  flex: 1;
+}
+
+.checkbox-hint {
+  flex: 1;
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #718096;
+}
+
+.error-box {
+  background: #fee;
+  color: #c33;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #fcc;
+  margin-bottom: 16px;
+}
+
+.export-button {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #C75B4A 0%, #E06854 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.export-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.export-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.export-info {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.export-info h4 {
+  margin: 0 0 12px 0;
+  color: #1a202c;
+  font-size: 16px;
+}
+
+.export-info ul {
+  margin: 0;
+  padding-left: 24px;
+  color: #718096;
+  font-size: 14px;
+}
+
+.export-info li {
+  margin-bottom: 6px;
+}
