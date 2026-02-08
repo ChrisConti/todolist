@@ -53,12 +53,12 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
   const totalTasks = tasks.length;
 
   const taskTypes: { [key: string]: { count: number; label: string; icon: string } } = {
-    '0': { count: 0, label: 'Biberons', icon: '🍼' },
-    '1': { count: 0, label: 'Couches', icon: '💩' },
-    '2': { count: 0, label: 'Santé', icon: '💊' },
-    '3': { count: 0, label: 'Sommeil', icon: '😴' },
-    '4': { count: 0, label: 'Température', icon: '🌡️' },
-    '5': { count: 0, label: 'Allaitement', icon: '🤱' },
+    'biberon': { count: 0, label: 'Biberons', icon: '🍼' },
+    'couche': { count: 0, label: 'Couches', icon: '💩' },
+    'Sante': { count: 0, label: 'Santé', icon: '💊' },
+    'sommeil': { count: 0, label: 'Sommeil', icon: '😴' },
+    'thermo': { count: 0, label: 'Température', icon: '🌡️' },
+    'allaitement': { count: 0, label: 'Allaitement', icon: '🤱' },
   };
 
   let bottlesMl = 0;
@@ -74,15 +74,15 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
     }
 
     // Calculate specifics
-    if (type === '0' && task.label) {
+    if (type === 'biberon' && task.label) {
       bottlesMl += Number(task.label) || 0;
-    } else if (type === '3' && task.label) {
+    } else if (type === 'sommeil' && task.label) {
       sleepHours += Number(task.label) || 0;
-    } else if (type === '5') {
+    } else if (type === 'allaitement') {
       const left = task.boobLeft || 0;
       const right = task.boobRight || 0;
       breastfeedingHours += (left + right) / 60;
-    } else if (type === '4' && task.label) {
+    } else if (type === 'thermo' && task.label) {
       tempSum += Number(task.label) || 0;
       tempCount++;
     }

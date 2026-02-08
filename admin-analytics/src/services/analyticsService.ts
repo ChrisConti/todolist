@@ -177,12 +177,12 @@ export const getAnalyticsMetrics = async (dateRange: DateRange): Promise<Analyti
       };
 
       const taskTypeMap: { [key: string]: string } = {
-        '0': 'Biberon',
-        '1': 'Couche',
-        '2': 'Santé',
-        '3': 'Sommeil',
-        '4': 'Température',
-        '5': 'Allaitement',
+        'biberon': 'Biberon',
+        'couche': 'Couche',
+        'Sante': 'Santé',
+        'sommeil': 'Sommeil',
+        'thermo': 'Température',
+        'allaitement': 'Allaitement',
       };
 
       babies.forEach(baby => {
