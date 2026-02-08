@@ -227,6 +227,61 @@ export const getAnalyticsMetrics = async (dateRange: DateRange): Promise<Analyti
       };
     }
 
+    // Calculate global task distribution
+    let taskDistribution;
+    const globalTaskCounts = {
+      biberon: 0,
+      couche: 0,
+      sante: 0,
+      sommeil: 0,
+      temperature: 0,
+      allaitement: 0,
+    };
+
+    let globalTotalTasks = 0;
+    babies.forEach(baby => {
+      baby.tasks?.forEach(task => {
+        globalTotalTasks++;
+        const type = task.labelTask;
+        if (type === 'biberon') globalTaskCounts.biberon++;
+        else if (type === 'couche') globalTaskCounts.couche++;
+        else if (type === 'Sante') globalTaskCounts.sante++;
+        else if (type === 'sommeil') globalTaskCounts.sommeil++;
+        else if (type === 'thermo') globalTaskCounts.temperature++;
+        else if (type === 'allaitement') globalTaskCounts.allaitement++;
+      });
+    });
+
+    if (globalTotalTasks > 0) {
+      taskDistribution = {
+        totalTasks: globalTotalTasks,
+        biberon: {
+          count: globalTaskCounts.biberon,
+          percentage: Math.round((globalTaskCounts.biberon / globalTotalTasks) * 100),
+        },
+        couche: {
+          count: globalTaskCounts.couche,
+          percentage: Math.round((globalTaskCounts.couche / globalTotalTasks) * 100),
+        },
+        sante: {
+          count: globalTaskCounts.sante,
+          percentage: Math.round((globalTaskCounts.sante / globalTotalTasks) * 100),
+        },
+        sommeil: {
+          count: globalTaskCounts.sommeil,
+          percentage: Math.round((globalTaskCounts.sommeil / globalTotalTasks) * 100),
+        },
+        temperature: {
+          count: globalTaskCounts.temperature,
+          percentage: Math.round((globalTaskCounts.temperature / globalTotalTasks) * 100),
+        },
+        allaitement: {
+          count: globalTaskCounts.allaitement,
+          percentage: Math.round((globalTaskCounts.allaitement / globalTotalTasks) * 100),
+        },
+      };
+    }
+
     // Calculate previous period metrics for trends (if date range is specified)
     let previousPeriod;
     if (dateRange.start && dateRange.end) {
@@ -291,6 +346,7 @@ export const getAnalyticsMetrics = async (dateRange: DateRange): Promise<Analyti
       androidDownloads,
       previousPeriod,
       averageStats,
+      taskDistribution,
     };
   } catch (error) {
     console.error('Error fetching analytics:', error);

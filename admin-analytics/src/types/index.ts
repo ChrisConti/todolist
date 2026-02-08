@@ -67,6 +67,16 @@ export interface AnalyticsMetrics {
     mostPopularTaskCount: number;
     avgAccountLifetime: number; // in days
   };
+  // Global task distribution
+  taskDistribution?: {
+    totalTasks: number;
+    biberon: { count: number; percentage: number };
+    couche: { count: number; percentage: number };
+    sante: { count: number; percentage: number };
+    sommeil: { count: number; percentage: number };
+    temperature: { count: number; percentage: number };
+    allaitement: { count: number; percentage: number };
+  };
 }
 
 export interface BabyStats {

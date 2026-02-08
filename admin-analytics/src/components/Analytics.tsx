@@ -5,6 +5,7 @@ import { getAnalyticsMetrics, getAllUsers, getAllBabies } from '../services/anal
 import { ListModal } from './ListModal';
 import { Charts } from './Charts';
 import { BabyDetailsModal } from './BabyDetailsModal';
+import { TaskDistribution } from './TaskDistribution';
 import './Analytics.css';
 
 type ModalType = 'accounts' | 'babies' | 'accountsWithoutBaby' | 'deletedAccounts' | 'babies1Task' | 'babies5Tasks' | 'babies30Tasks' | 'babies100Tasks' | 'babiesMultipleParents' | 'babiesActiveRecently' | null;
@@ -498,6 +499,10 @@ export const Analytics: React.FC = () => {
             )}
           </div>
         </div>
+      )}
+
+      {metrics?.taskDistribution && (
+        <TaskDistribution distribution={metrics.taskDistribution} />
       )}
 
       {metrics && allUsers.length > 0 && allBabies.length > 0 && (
