@@ -76,6 +76,20 @@ export const useBiberonStats = (tasks: Task[]): TaskStatistics => {
   }, [tasksSignature, tasks]);
 };
 
+// Returns how many minutes of a sleep session [start, start+duration) overlap
+// with a given calendar day. Uses exclusive midnight boundary to avoid the
+// endOf('day') = 23:59:59.999 truncation issue when diffing in minutes.
+const getSleepMinutesForDay = (start: moment.Moment, durationMinutes: number, targetDay: moment.Moment): number => {
+  const end = start.clone().add(durationMinutes, 'minutes');
+  const dayStart = targetDay.clone().startOf('day');
+  const dayEnd = dayStart.clone().add(1, 'day'); // exclusive: midnight of next day
+
+  const overlapStart = start.isAfter(dayStart) ? start : dayStart;
+  const overlapEnd = end.isBefore(dayEnd) ? end : dayEnd;
+
+  return Math.max(0, overlapEnd.diff(overlapStart, 'minutes'));
+};
+
 // Hook pour Sommeil
 export const useSommeilStats = (tasks: Task[]): TaskStatistics => {
   // Performance optimization: use stable signature instead of tasks array reference
@@ -105,20 +119,21 @@ export const useSommeilStats = (tasks: Task[]): TaskStatistics => {
 
     tasks.forEach((task) => {
       const duration = parseInt(task.label, 10);
-      if (isNaN(duration)) return;
+      if (isNaN(duration) || duration <= 0) return;
 
-      if (isToday(task.date)) todaySum += duration;
-      if (isYesterday(task.date)) yesterdaySum += duration;
-      if (isInLastNDays(task.date, 7)) lastSevenDaysSum += duration;
+      const startMoment = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
+
+      // Split duration across calendar days to handle midnight-crossing sessions
+      todaySum += getSleepMinutesForDay(startMoment, duration, moment());
+      yesterdaySum += getSleepMinutesForDay(startMoment, duration, moment().subtract(1, 'day'));
 
       for (let i = 0; i < 7; i++) {
-        if (moment(task.date, 'YYYY-MM-DD HH:mm:ss').isSame(moment().subtract(i, 'days'), 'day')) {
-          lastSevenDaysData[i] += duration;
-        }
+        const minutes = getSleepMinutesForDay(startMoment, duration, moment().subtract(i, 'days'));
+        lastSevenDaysData[i] += minutes;
+        lastSevenDaysSum += minutes;
       }
 
-      const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
-      if (!mostRecentTask || taskDate.isAfter(moment(mostRecentTask.date, 'YYYY-MM-DD HH:mm:ss'))) {
+      if (!mostRecentTask || startMoment.isAfter(moment(mostRecentTask.date, 'YYYY-MM-DD HH:mm:ss'))) {
         mostRecentTask = task;
       }
     });

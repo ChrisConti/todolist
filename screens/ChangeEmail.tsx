@@ -91,6 +91,7 @@ const ChangeEmail = ({ route, navigation }) => {
           ref={inputRef}
           style={[styles.input, isReadOnly && styles.inputReadOnly]}
           placeholder={t('email')}
+          placeholderTextColor="#9BA3A4"
           keyboardType="email-address"
           autoComplete="email"
           autoCapitalize="none"
@@ -104,6 +105,7 @@ const ChangeEmail = ({ route, navigation }) => {
           <TextInput
             style={styles.input}
             placeholder={t('password')}
+            placeholderTextColor="#9BA3A4"
             secureTextEntry
             autoCorrect={false}
             autoCapitalize="none"
@@ -146,6 +148,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     backgroundColor: '#FFF',
     marginBottom: 20,
+    color: '#333333',
   },
   inputReadOnly: {
     backgroundColor: '#F5F5F5',

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, TextInput, Keyboard, ScrollVi
 import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { babiesRef, userRef, db } from '../config.js';
-import { query, getDocs, updateDoc, where, doc } from 'firebase/firestore';
+import { query, getDocs, getDocsFromServer, updateDoc, where, doc } from 'firebase/firestore';
 import moment from 'moment';
 import DateTimePicker from "react-native-modal-datetime-picker";
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
@@ -148,8 +148,8 @@ const UpdateTask = ({ route, navigation }) => {
     
     const queryResult = query(babiesRef, where('id', '==', babyID));
     try {
-      const querySnapshot = await getDocs(queryResult);
-      
+      const querySnapshot = await getDocsFromServer(queryResult);
+
       if (querySnapshot.empty) {
         setLoading(false);
         Alert.alert(t('error.title'), t('error.babyNotFound') || 'Baby not found');
@@ -234,7 +234,7 @@ const UpdateTask = ({ route, navigation }) => {
             
             try {
               const queryResult = query(babiesRef, where('id', '==', babyID));
-              const querySnapshot = await getDocs(queryResult);
+              const querySnapshot = await getDocsFromServer(queryResult);
               const updatePromises = querySnapshot.docs.map(async (document) => {
                 const currentTasks = document.data().tasks;
                 const updatedTasks = currentTasks.filter(task2 => task2.uid !== task.uid);
@@ -345,11 +345,12 @@ const UpdateTask = ({ route, navigation }) => {
             onSubmitEditing={Keyboard.dismiss}
             maxLength={10}
             placeholder={t('placeholder.millilitres')}
+          placeholderTextColor="#9BA3A4"
           />
         );
       } else if (id == 1) {
         return null; // Diaper type selector moved to inline section below
-  
+
       } else if (id == 2) {
         return (
           <TextInput
@@ -362,9 +363,10 @@ const UpdateTask = ({ route, navigation }) => {
             onSubmitEditing={Keyboard.dismiss}
             maxLength={20}
             placeholder={t('placeholder.medicaments')}
+            placeholderTextColor="#9BA3A4"
           />
         );
-  
+
       } else if (id == 3) {
         return (
           <TextInput
@@ -377,9 +379,10 @@ const UpdateTask = ({ route, navigation }) => {
             onSubmitEditing={Keyboard.dismiss}
             maxLength={10}
             placeholder={t('placeholder.sleepTime')}
+            placeholderTextColor="#9BA3A4"
           />
         );
-  
+
       } else if (id == 4) {
         return (
           <TextInput
@@ -392,6 +395,7 @@ const UpdateTask = ({ route, navigation }) => {
             onSubmitEditing={Keyboard.dismiss}
             maxLength={10}
             placeholder={t('placeholder.temperature')}
+            placeholderTextColor="#9BA3A4"
           />
         );
   
@@ -832,6 +836,7 @@ const UpdateTask = ({ route, navigation }) => {
               value={note}
               onChangeText={setNote}
               placeholder={t('placeholder.comment')}
+              placeholderTextColor="#9BA3A4"
               maxLength={60}
             />
           </View>
@@ -897,6 +902,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 20,
+    backgroundColor: '#FFFFFF',
+    color: '#333333',
   },
   inputComment: {
     height: 100,
@@ -907,6 +914,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#C75B4A',
     borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    color: '#333333',
   },
   timePickerContainer: {
     paddingTop: 20,

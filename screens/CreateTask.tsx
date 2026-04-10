@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, Keyboard, S
 import Slider from '@react-native-community/slider';
 import s = require("../Style.js");
 import { auth, db, babiesRef, userRef } from '../config.js';
-import { addDoc, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, doc, getDocs, getDocsFromServer, query, updateDoc, where } from 'firebase/firestore';
 import { useReviewPrompt } from '../Context/ReviewPromptContext';
 import moment from 'moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -184,8 +184,8 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
 
     const queryResult = query(babiesRef, where('id', '==', babySelected));
     try {
-      const querySnapshot = await getDocs(queryResult);
-      
+      const querySnapshot = await getDocsFromServer(queryResult);
+
       if (querySnapshot.empty) {
         console.error('No baby found with this ID');
         setLoading(false);
@@ -285,6 +285,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
           onSubmitEditing={Keyboard.dismiss}
           maxLength={10}
           placeholder={t('placeholder.millilitres')}
+          placeholderTextColor="#9BA3A4"
           inputAccessoryViewID="none"
         />
       );
@@ -303,6 +304,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
           onSubmitEditing={Keyboard.dismiss}
           maxLength={20}
           placeholder={t('placeholder.medicaments')}
+          placeholderTextColor="#9BA3A4"
           inputAccessoryViewID="none"
         />
       );
@@ -319,6 +321,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
           onSubmitEditing={Keyboard.dismiss}
           maxLength={10}
           placeholder={t('placeholder.sleepTime')}
+          placeholderTextColor="#9BA3A4"
           inputAccessoryViewID="none"
         />
       );
@@ -335,6 +338,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
           onSubmitEditing={Keyboard.dismiss}
           maxLength={10}
           placeholder={t('placeholder.temperature')}
+          placeholderTextColor="#9BA3A4"
           inputAccessoryViewID="none"
         />
       );
@@ -858,6 +862,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                   numberOfLines={3}
                   value={note}
                   placeholder={t('placeholder.comment')}
+                  placeholderTextColor="#9BA3A4"
                   onChangeText={(inputText) => setNote(inputText)}
                   maxLength={60}
                   onSubmitEditing={Keyboard.dismiss}
@@ -931,6 +936,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#C75B4A',
     borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    color: '#333333',
   },
   input: {
     width: 280,
@@ -941,7 +948,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 20,
     alignSelf: 'center',
-    //backgroundColor: 'white', // White input background
+    backgroundColor: '#FFFFFF',
+    color: '#333333',
   },
   footer: {
     height: 100, // Adjust as needed

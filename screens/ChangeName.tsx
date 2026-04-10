@@ -78,6 +78,7 @@ const ChangeName = ({ route, navigation }) => {
           ref={inputRef}
           style={[styles.input, isReadOnly && styles.inputReadOnly]}
           placeholder={t('name')}
+          placeholderTextColor="#9BA3A4"
           keyboardType="default"
           autoCapitalize="words"
           clearButtonMode="always"
@@ -118,6 +119,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     backgroundColor: '#FFF',
     marginBottom: 20,
+    color: '#333333',
   },
   inputReadOnly: {
     backgroundColor: '#F5F5F5',

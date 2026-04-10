@@ -6,8 +6,6 @@ import analytics from '../../services/analytics';
 jest.mock('@react-native-async-storage/async-storage');
 jest.mock('firebase/firestore');
 
-jest.mock('firebase/firestore');
-
 describe('CreateTask - Business Logic', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -59,118 +57,143 @@ describe('CreateTask - Business Logic', () => {
   });
 
   describe('Firestore Task Creation', () => {
-    const mockUser = {
-      uid: 'test-user-123',
-      email: 'test@example.com',
-    };
+    const mockUser = { uid: 'test-user-123', email: 'test@example.com' };
+    const mockUserInfo = { userId: 'test-user-123', username: 'TestUser', email: 'test@example.com' };
 
-    const mockUserInfo = {
-      userId: 'test-user-123',
-      username: 'TestUser',
-      email: 'test@example.com',
-    };
-
-    it('should call updateDoc with correct task structure', async () => {
-      const mockQuerySnapshot = {
-        empty: false,
-        docs: [
-          {
-            id: 'doc-123',
-            data: () => ({
-              id: 'baby-123',
-              name: 'Test Baby',
-              tasks: [],
-            }),
-          },
-        ],
-      };
-
-      (firestore.getDocs as jest.Mock).mockResolvedValue(mockQuerySnapshot);
-      (firestore.updateDoc as jest.Mock).mockResolvedValue(undefined);
+    beforeEach(() => {
       (firestore.query as jest.Mock).mockReturnValue({});
       (firestore.where as jest.Mock).mockReturnValue({});
       (firestore.doc as jest.Mock).mockReturnValue({});
+      (firestore.updateDoc as jest.Mock).mockResolvedValue(undefined);
+    });
 
-      // Simulate the updateBabyTasks logic
-      const queryResult = (firestore.query as jest.Mock)();
-      const querySnapshot = await firestore.getDocs(queryResult);
+    it('should use getDocsFromServer (not getDocs) to avoid stale cache', async () => {
+      const mockSnapshot = {
+        empty: false,
+        docs: [{ id: 'doc-123', data: () => ({ tasks: [] }) }],
+      };
+      (firestore.getDocsFromServer as jest.Mock).mockResolvedValue(mockSnapshot);
 
-      if (!querySnapshot.empty) {
-        const document = querySnapshot.docs[0];
-        const newTask = {
-          uid: 'mock-uuid',
-          id: 0,
-          labelTask: 'biberon',
-          date: '2025-01-04 12:00:00',
-          label: 150,
-          idCaca: 150, // legacy field for backward compatibility
-          diaperType: undefined, // not a diaper task
-          boobLeft: 0,
-          boobRight: 0,
-          user: mockUser.uid,
-          createdBy: mockUserInfo.username,
-          comment: 'Test comment',
-        };
+      await firestore.getDocsFromServer((firestore.query as jest.Mock)());
 
-        await firestore.updateDoc(
-          firestore.doc({} as any, 'Baby', document.id),
-          {
-            tasks: [...document.data().tasks, newTask],
-          }
-        );
-      }
+      expect(firestore.getDocsFromServer).toHaveBeenCalled();
+      expect(firestore.getDocs).not.toHaveBeenCalled();
+    });
+
+    it('should append new task to existing server tasks, not cached tasks', async () => {
+      const existingTask = { uid: 'existing-task', id: 0, labelTask: 'biberon', date: '2025-01-01 10:00:00' };
+      const mockSnapshot = {
+        empty: false,
+        docs: [{ id: 'doc-123', data: () => ({ tasks: [existingTask] }) }],
+      };
+      (firestore.getDocsFromServer as jest.Mock).mockResolvedValue(mockSnapshot);
+
+      const querySnapshot = await firestore.getDocsFromServer((firestore.query as jest.Mock)());
+      const document = querySnapshot.docs[0];
+      const newTask = {
+        uid: 'new-task',
+        id: 0,
+        labelTask: 'biberon',
+        date: '2025-01-04 12:00:00',
+        label: 150,
+        boobLeft: 0,
+        boobRight: 0,
+        user: mockUser.uid,
+        createdBy: mockUserInfo.username,
+        comment: '',
+      };
+
+      await firestore.updateDoc(
+        firestore.doc({} as any, 'Baby', document.id),
+        { tasks: [...document.data().tasks, newTask] }
+      );
 
       expect(firestore.updateDoc).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
           tasks: expect.arrayContaining([
-            expect.objectContaining({
-              uid: expect.any(String),
-              id: 0,
-              labelTask: 'biberon',
-              user: 'test-user-123',
-              createdBy: 'TestUser',
-            }),
+            expect.objectContaining({ uid: 'existing-task' }),
+            expect.objectContaining({ uid: 'new-task' }),
           ]),
         })
       );
     });
 
-    it('should not update if baby is not found', async () => {
-      const mockEmptySnapshot = {
-        empty: true,
-        docs: [],
-      };
+    it('should not call updateDoc when baby is not found', async () => {
+      (firestore.getDocsFromServer as jest.Mock).mockResolvedValue({ empty: true, docs: [] });
 
-      (firestore.getDocs as jest.Mock).mockResolvedValue(mockEmptySnapshot);
-
-      const queryResult = (firestore.query as jest.Mock)();
-      const querySnapshot = await firestore.getDocs(queryResult);
-
-      if (querySnapshot.empty) {
-        // Don't call updateDoc
-      } else {
+      const querySnapshot = await firestore.getDocsFromServer((firestore.query as jest.Mock)());
+      if (!querySnapshot.empty) {
         await firestore.updateDoc({} as any, {});
       }
 
       expect(firestore.updateDoc).not.toHaveBeenCalled();
     });
 
-    it('should handle Firestore errors gracefully', async () => {
-      const mockError = {
+    it('should handle Firestore server errors gracefully', async () => {
+      const mockError = { code: 'permission-denied', message: 'Permission denied' };
+      (firestore.getDocsFromServer as jest.Mock).mockRejectedValue(mockError);
+
+      await expect(firestore.getDocsFromServer({} as any)).rejects.toMatchObject({
         code: 'permission-denied',
-        message: 'Permission denied',
+      });
+    });
+
+    it('should build correct task structure for biberon', () => {
+      const task = {
+        uid: 'uuid-123',
+        id: 0,
+        labelTask: 'biberon',
+        date: '2025-01-04 12:00:00',
+        label: 150,
+        boobLeft: 0,
+        boobRight: 0,
+        user: mockUser.uid,
+        createdBy: mockUserInfo.username,
+        comment: '',
       };
 
-      (firestore.getDocs as jest.Mock).mockRejectedValue(mockError);
+      expect(task).toMatchObject({
+        id: 0,
+        labelTask: 'biberon',
+        label: 150,
+        user: 'test-user-123',
+        createdBy: 'TestUser',
+      });
+    });
 
-      try {
-        await firestore.getDocs({} as any);
-      } catch (error: any) {
-        expect(error.code).toBe('permission-denied');
-      }
+    it('should include diaperType and idCaca (compat) for diaper tasks', () => {
+      const diaperType = 2;
+      const task = {
+        uid: 'uuid-456',
+        id: 1,
+        labelTask: 'couche',
+        date: '2025-01-04 12:00:00',
+        label: 0,
+        ...(diaperType !== null && { diaperType }),
+        ...(diaperType !== null && { idCaca: diaperType }),
+        boobLeft: 0,
+        boobRight: 0,
+        user: mockUser.uid,
+        createdBy: mockUserInfo.username,
+        comment: '',
+      };
 
-      expect(firestore.getDocs).toHaveBeenCalled();
+      expect(task.diaperType).toBe(2);
+      expect(task.idCaca).toBe(2); // backward compat
+    });
+
+    it('should not include diaperType for non-diaper tasks', () => {
+      const selectedImage = 3; // sommeil
+      const diaperType = null;
+      const task = {
+        uid: 'uuid-789',
+        id: selectedImage,
+        labelTask: 'sommeil',
+        ...(selectedImage === 1 && diaperType !== null && { diaperType }),
+      };
+
+      expect(task).not.toHaveProperty('diaperType');
     });
   });
 
