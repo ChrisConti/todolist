@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SectionList, ActivityIndicator, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import { babiesRef, userRef } from '../config';
@@ -25,6 +26,7 @@ const BabyList = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<number | null>(null); // null = All, 0-5 = category
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     // Track screen view
@@ -152,7 +154,7 @@ const BabyList = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <Text style={styles.headerTitle}>{babyName || t('title.following')}</Text>
       </View>
 
@@ -293,10 +295,9 @@ const styles = StyleSheet.create({
   header: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 15,
+    paddingBottom: 15,
     paddingHorizontal: 15,
     backgroundColor: '#C75B4A',
-    paddingTop: 50,
   },
   headerTitle: {
     fontSize: 22,

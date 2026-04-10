@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
 import { babiesRef, db, userRef, storage } from './config';
@@ -14,6 +15,7 @@ import BabyFamilyTab from './BabyFamilyTab';
 const BabyTab = ({ navigation }) => {
   const { user, babyID, setBabyID } = useContext(AuthentificationUserContext);
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'profile' | 'family'>('profile');
   const [loading, setLoading] = useState(false);
   const [babyData, setBabyData] = useState<any>(null);
@@ -162,7 +164,7 @@ const BabyTab = ({ navigation }) => {
   if (!babyID || !babyData) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top }]}>
           <Text style={styles.headerTitle}>{t('baby.title') || 'Mon Bébé'}</Text>
         </View>
         
@@ -203,7 +205,7 @@ const BabyTab = ({ navigation }) => {
   // Baby exists - show profile with tabs
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <Text style={styles.headerTitle}>{babyData.name || t('baby.title')}</Text>
       </View>
       
@@ -252,7 +254,6 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#C75B4A',
-    paddingTop: 50,
     paddingBottom: 15,
     paddingHorizontal: 20,
     alignItems: 'center',

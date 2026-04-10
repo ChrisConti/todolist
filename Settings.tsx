@@ -68,7 +68,7 @@ const Settings = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: Math.max(insets.top - 10, 0) }]}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <Text style={styles.headerTitle}>{t('title.settings') || 'Réglages'}</Text>
       </View>
       
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   header: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 0,
+    paddingBottom: 12,
     paddingHorizontal: 15,
     backgroundColor: '#C75B4A',
   },
