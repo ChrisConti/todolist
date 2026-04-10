@@ -208,26 +208,15 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
 };
 
 export const useReviewPrompt = (): ReviewPromptContextType => {
-  console.log('[ReviewPromptContext] useReviewPrompt called');
   const context = useContext(ReviewPromptContext);
-  console.log('[ReviewPromptContext] context value:', context);
-  
+
   if (!context) {
-    console.warn('[ReviewPromptContext] Context is undefined, returning fallback');
-    // Au lieu de lancer une erreur, retourner des fonctions no-op
-    // Cela évite le crash si le contexte n'est pas encore monté
-    const fallback: ReviewPromptContextType = {
-      handleTaskCreated: async () => {
-        console.warn('[ReviewPromptContext] handleTaskCreated called but Provider not mounted');
-      },
-      showReviewModalManually: () => {
-        console.warn('[ReviewPromptContext] showReviewModalManually called but Provider not mounted');
-      },
+    // Retourner des fonctions no-op si le Provider n'est pas encore monté
+    return {
+      handleTaskCreated: async () => {},
+      showReviewModalManually: () => {},
       hasReviewed: false,
     };
-    console.log('[ReviewPromptContext] Returning fallback:', fallback);
-    return fallback;
   }
-  console.log('[ReviewPromptContext] Returning context');
   return context;
 };
