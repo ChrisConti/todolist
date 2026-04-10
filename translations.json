@@ -168,7 +168,7 @@
         "formatColumns": "Columns: Date, Time, Type, Quantity/Duration, Consistency, Content, Left Breast, Right Breast, Created by, Comment",
         "formatLabels": "Translated labels (Bottle, Diaper, Pee, Poop, etc.)",
         "formatEncoding": "UTF-8 encoding with BOM",
-        "exportButton": "Export to CSV",
+        "exportButton": "Export my data",
         "helpText": "The file will be shared via your device's share menu. You can open it in Excel, Google Sheets, Numbers or any other app."
       },
       "periods": {
@@ -327,7 +327,27 @@
     "stats": {
       "quantity": "Quantity",
       "duration": "Duration",
-      "count": "Count"
+      "count": "Count",
+      "average": "Average",
+      "averagePerDay": "Average per day",
+      "day": "day",
+      "totalMonth": "Total month",
+      "regularity": "Regularity",
+      "excellent": "Excellent",
+      "good": "Good",
+      "moderate": "Moderate",
+      "irregular": "Irregular",
+      "bestDay": "Best day",
+      "lowestDay": "Lowest day",
+      "daysWithData": "days with data",
+      "quantityPerDay": "Quantity per day",
+      "countPerDay": "Count per day",
+      "bottlesPerDay": "Bottles per day",
+      "timePatterns": "Time patterns",
+      "firstBottle": "First",
+      "lastBottle": "Last",
+      "avgInterval": "Avg interval",
+      "noData": "No data available"
     },
     "enterValidName": "Please enter a valid name", 
     "modification": "Modification", 
@@ -389,7 +409,11 @@
       "yesterday": "Yesterday",
       "last7Days": "Last 7 days",
       "evolutionLast7Days": "Evolution over the last 7 days",
-      "noTaskFound": "No task found"
+      "noTaskFound": "No task found",
+      "biberon": "bottle",
+      "viewDetail": "Detail",
+      "view7Days": "7 days",
+      "view30Days": "30 days"
     },
     "sommeil": {
       "lastTask": "Last task done",
@@ -662,7 +686,7 @@
         "formatColumns": "Colonnes : Date, Heure, Type, Quantité/Durée, Consistance, Contenu, Sein Gauche, Sein Droit, Créé par, Commentaire",
         "formatLabels": "Labels traduits (Biberon, Couche, Pipi, Caca, etc.)",
         "formatEncoding": "Encodage UTF-8 avec BOM",
-        "exportButton": "Exporter vers CSV",
+        "exportButton": "Exporter mes données",
         "helpText": "Le fichier sera partagé via le menu de partage de votre appareil. Vous pourrez l'ouvrir dans Excel, Google Sheets, Numbers ou toute autre application."
       },
       "periods": {
@@ -844,7 +868,27 @@
     "stats": {
       "quantity": "Quantité",
       "duration": "Durée",
-      "count": "Comptage"
+      "count": "Comptage",
+      "average": "Moyenne",
+      "averagePerDay": "Moyenne par jour",
+      "day": "jour",
+      "totalMonth": "Total du mois",
+      "regularity": "Régularité",
+      "excellent": "Excellent",
+      "good": "Bon",
+      "moderate": "Modéré",
+      "irregular": "Irrégulier",
+      "bestDay": "Meilleur jour",
+      "lowestDay": "Plus faible",
+      "daysWithData": "jours avec données",
+      "quantityPerDay": "Quantité par jour",
+      "countPerDay": "Comptage par jour",
+      "bottlesPerDay": "Biberons par jour",
+      "timePatterns": "Horaires moyens",
+      "firstBottle": "Premier",
+      "lastBottle": "Dernier",
+      "avgInterval": "Intervalle moy.",
+      "noData": "Aucune donnée disponible"
     },
     "conditions":{
       "label": "En cliquant sur valider, vous acceptez nos ",
@@ -879,7 +923,11 @@
           "yesterday": "Hier",
           "last7Days": "Les 7 derniers jours",
           "evolutionLast7Days": "Evolution sur les 7 derniers jours",
-          "noTaskFound": "Aucune tâche trouvée"
+          "noTaskFound": "Aucune tâche trouvée",
+          "biberon": "biberon",
+          "viewDetail": "Détail",
+          "view7Days": "7 jours",
+          "view30Days": "30 jours"
         },
         "sommeil": {
     "lastTask": "Dernière tâche effectuée",
@@ -1152,7 +1200,7 @@
           "formatColumns": "Columnas: Fecha, Hora, Tipo, Cantidad/Duración, Consistencia, Contenido, Pecho Izquierdo, Pecho Derecho, Creado por, Comentario",
           "formatLabels": "Etiquetas traducidas (Biberón, Pañal, Pipí, Caca, etc.)",
           "formatEncoding": "Codificación UTF-8 con BOM",
-          "exportButton": "Exportar a CSV",
+          "exportButton": "Exportar mis datos",
           "helpText": "El archivo se compartirá a través del menú de compartir de su dispositivo. Podrá abrirlo en Excel, Google Sheets, Numbers o cualquier otra aplicación."
         },
         "periods": {
@@ -1330,7 +1378,27 @@
       "stats": {
         "quantity": "Cantidad",
         "duration": "Duración",
-        "count": "Recuento"
+        "count": "Recuento",
+        "average": "Promedio",
+        "averagePerDay": "Promedio por día",
+        "day": "día",
+        "totalMonth": "Total del mes",
+        "regularity": "Regularidad",
+        "excellent": "Excelente",
+        "good": "Bueno",
+        "moderate": "Moderado",
+        "irregular": "Irregular",
+        "bestDay": "Mejor día",
+        "lowestDay": "Más bajo",
+        "daysWithData": "días con datos",
+        "quantityPerDay": "Cantidad por día",
+        "countPerDay": "Recuento por día",
+        "bottlesPerDay": "Biberones por día",
+        "timePatterns": "Horarios promedio",
+        "firstBottle": "Primero",
+        "lastBottle": "Último",
+        "avgInterval": "Intervalo prom.",
+        "noData": "No hay datos disponibles"
       },
       "conditions":{
         "label": "Al hacer clic en validar, acepta nuestros ",
@@ -1362,7 +1430,11 @@
         "yesterday": "Ayer",
         "last7Days": "Últimos 7 días",
         "evolutionLast7Days": "Evolución en los últimos 7 días",
-        "noTaskFound": "No se encontró ninguna tarea"
+        "noTaskFound": "No se encontró ninguna tarea",
+        "biberon": "biberón",
+        "viewDetail": "Detalle",
+        "view7Days": "7 días",
+        "view30Days": "30 días"
       },
       "sommeil": {
         "lastTask": "Última tarea realizada",

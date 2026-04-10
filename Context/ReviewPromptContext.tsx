@@ -129,24 +129,32 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!user?.uid) return;
 
     try {
-      // Use platform-specific store URL
-      const storeUrl = Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL;
       const storeName = Platform.OS === 'ios' ? 'App Store' : 'Play Store';
 
-      // Vérifier si on peut ouvrir l'URL avant de continuer
-      const canOpen = await Linking.canOpenURL(storeUrl);
+      // On Android, market:// opens the Play Store app directly.
+      // https:// URLs open the browser first, which is unreliable on some devices.
+      let urlToOpen = Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL;
+      if (Platform.OS === 'android') {
+        const marketUrl = `market://details?id=com.tribubaby.tribubaby`;
+        const canOpenMarket = await Linking.canOpenURL(marketUrl);
+        urlToOpen = canOpenMarket ? marketUrl : PLAY_STORE_URL;
+      }
 
-      if (!canOpen) {
-        log.warn(`Cannot open ${storeName} URL`, 'ReviewPromptContext');
-        setShowReviewModal(false);
-        return;
+      // On iOS, verify the App Store URL is reachable
+      if (Platform.OS === 'ios') {
+        const canOpen = await Linking.canOpenURL(urlToOpen);
+        if (!canOpen) {
+          log.warn(`Cannot open ${storeName} URL`, 'ReviewPromptContext');
+          setShowReviewModal(false);
+          return;
+        }
       }
 
       analytics.logEvent('review_write_clicked', {
         platform: Platform.OS,
-        store_url: storeUrl,
+        store_url: urlToOpen,
       });
-      await Linking.openURL(storeUrl);
+      await Linking.openURL(urlToOpen);
 
       // Marquer définitivement que l'utilisateur a reviewé (uniquement si ouverture réussie)
       await AsyncStorage.setItem(`has_reviewed_app_${user.uid}`, 'true');
