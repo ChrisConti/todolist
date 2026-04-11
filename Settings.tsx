@@ -138,9 +138,9 @@ const Settings = ({ navigation }) => {
             <TouchableOpacity onPress={handleContactUs}>
               <ItemParameter title={t('settings.contactUs')} icon="email" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
-            
+
           </View>
-         
+
         </View>
       </ScrollView>
       {/* Footer */}
@@ -160,15 +160,6 @@ const Settings = ({ navigation }) => {
     </View>
   );
 }
-/*
-<TouchableOpacity onPress={() => navigation.navigate('AnalyticsTest')}>
-              <ItemParameter title="🔬 Test Analytics" icon="flask" />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => navigation.navigate('ExportTasks')}>
-                  <ItemParameter title="📊 Exporter les tâches" icon="download" />
-                </TouchableOpacity>
-*/
 
 export default Settings;
 

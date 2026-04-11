@@ -1,11 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Card from '../Card';
 import { useTranslation } from 'react-i18next';
 import { useThermoStats } from '../hooks/useTaskStatistics';
 import { Task } from '../types/stats';
 import StatsContainer from '../components/stats/StatsContainer';
-import SectionTitle from '../components/stats/SectionTitle';
 import { STATS_CONFIG } from '../constants/statsConfig';
 
 interface ThermoProps {
@@ -72,17 +70,9 @@ const Thermo: React.FC<ThermoProps> = ({ navigation, tasks }) => {
       hasData={!!lastTask}
       emptyMessage={t('thermo.noTaskFound')}
     >
-      {/* Last Task */}
-      {lastTask && (
-        <View style={styles.section}>
-          <SectionTitle>{t('thermo.lastTask')}</SectionTitle>
-          <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} />
-        </View>
-      )}
-
       {/* Statistics */}
       <View style={styles.section}>
-        <SectionTitle>{t('thermo.someFigures')}</SectionTitle>
+        <Text style={styles.sectionTitle}>{t('thermo.someFigures')}</Text>
 
         {/* Today */}
         <View style={styles.statsBlock}>
@@ -117,7 +107,7 @@ const Thermo: React.FC<ThermoProps> = ({ navigation, tasks }) => {
 
       {/* Chart */}
       <View style={styles.section}>
-        <SectionTitle>{t('thermo.evolutionLast24Hours')}</SectionTitle>
+        <Text style={styles.sectionTitle}>{t('thermo.evolutionLast24Hours')}</Text>
         {renderChart()}
       </View>
     </StatsContainer>
@@ -127,6 +117,12 @@ const Thermo: React.FC<ThermoProps> = ({ navigation, tasks }) => {
 const styles = StyleSheet.create({
   section: {
     marginBottom: STATS_CONFIG.SPACING.LARGE,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 16,
   },
   statsBlock: {
     marginBottom: STATS_CONFIG.SPACING.MEDIUM,

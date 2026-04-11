@@ -76,10 +76,37 @@ const Card = ({ task, navigation, editable }) => {
     if (task.id !== 1) return null;
 
     const diaperContent = task.diaperContent;
-    if (diaperContent === 0) return '💦'; // Pee (multiple drops)
-    if (diaperContent === 1) return '💩'; // Poop
-    if (diaperContent === 2) return '💦💩'; // Both
+    if (diaperContent === 0) return '💦';
+    if (diaperContent === 1) return '💩';
+    if (diaperContent === 2) return '💦💩';
     return null;
+  };
+
+  const getMilkTypeIcon = () => {
+    if (task.id !== 0) return null;
+    if (task.milkType === 'artificial') return '🥛';
+    if (task.milkType === 'maternal') return '🤱';
+    return null;
+  };
+
+  const getBreastfeedingModeIcon = () => {
+    if (task.id !== 5) return null;
+    if (task.breastfeedingMode === 'timer') return '⏱️';
+    if (task.breastfeedingMode === 'manual') return '✏️';
+    return null;
+  };
+
+  const getSleepLocationIcon = () => {
+    if (task.id !== 3) return null;
+    switch (task.sleepLocation) {
+      case 'bed':          return '🛏️';
+      case 'arms':         return '🤲';
+      case 'breastfeeding': return '🤱';
+      case 'bottle':       return '🍼';
+      case 'bouncer':      return '🪑';
+      case 'other':        return '💤';
+      default:             return null;
+    }
   };
 
   const handleCategoryLabel = () => {
@@ -130,6 +157,15 @@ const Card = ({ task, navigation, editable }) => {
           <View style={styles.iconRow}>
             {getDiaperContentIcon() && (
               <Text style={styles.emojiIcon}>{getDiaperContentIcon()}</Text>
+            )}
+            {getSleepLocationIcon() && (
+              <Text style={styles.emojiIcon}>{getSleepLocationIcon()}</Text>
+            )}
+            {getMilkTypeIcon() && (
+              <Text style={styles.emojiIcon}>{getMilkTypeIcon()}</Text>
+            )}
+            {getBreastfeedingModeIcon() && (
+              <Text style={styles.emojiIcon}>{getBreastfeedingModeIcon()}</Text>
             )}
           </View>
         </View>

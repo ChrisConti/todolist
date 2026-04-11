@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Card from '../Card';
 import { useTranslation } from 'react-i18next';
 import { useSommeilStats, useSommeilCountStats } from '../hooks/useTaskStatistics';
 import { Task } from '../types/stats';
 import StatsContainer from '../components/stats/StatsContainer';
-import SectionTitle from '../components/stats/SectionTitle';
 import { STATS_CONFIG } from '../constants/statsConfig';
 
 interface SommeilProps {
@@ -32,48 +30,39 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
     return `${hours}h ${mins}m`;
   };
 
-  const renderBar = (value: number, maxValue: number, color: string, isMax: boolean) => {
-    if (value === 0) return null;
-    const barHeight = (value / maxValue) * STATS_CONFIG.BAR_MAX_HEIGHT * 1.5;
-    return (
-      <View style={[styles.bar, {
-        height: barHeight,
-        backgroundColor: color,
-        opacity: isMax ? STATS_CONFIG.BAR_OPACITY_MAX : STATS_CONFIG.BAR_OPACITY_NON_MAX
-      }]}>
-        {viewMode === 'count' && value > 0 && (
-          <Text style={styles.barValue}>{value}</Text>
-        )}
-      </View>
-    );
-  };
-
   const renderChart = () => {
     const sommeilChartData = chartData as import('../types/stats').ChartData;
     const dataValues = sommeilChartData.datasets[0].data as number[];
     const maxValue = Math.max(...dataValues);
 
-    // Format Y-axis labels based on view mode (only show in duration mode)
-    const yAxisLabels = viewMode === 'duration'
-      ? [maxValue, maxValue / 2, 0].map(formatDuration)
-      : [];
-
     return (
       <View style={styles.chartContainer}>
-        {viewMode === 'duration' && (
-          <View style={styles.yAxis}>
-            {yAxisLabels.map((label, index) => (
-              <Text key={index} style={styles.yAxisLabel}>{label}</Text>
-            ))}
-          </View>
-        )}
         <View style={styles.chartContent}>
-          {chartData.labels.map((label, index) => (
-            <View key={index} style={styles.chartColumn}>
-              {renderBar(dataValues[index], maxValue, STATS_CONFIG.COLORS.SLEEP, dataValues[index] === maxValue)}
-              <Text style={styles.chartLabel}>{label}</Text>
-            </View>
-          ))}
+          {chartData.labels.map((label, index) => {
+            const value = dataValues[index];
+            const isEmpty = value === 0;
+            const barHeight = isEmpty ? 0 : (value / maxValue) * STATS_CONFIG.BAR_MAX_HEIGHT * 1.5;
+            const isMax = value === maxValue;
+            return (
+              <View key={index} style={styles.chartColumn}>
+                {viewMode === 'duration' && !isEmpty && (
+                  <Text style={styles.barLabelAbove}>{formatDuration(value)}</Text>
+                )}
+                {!isEmpty && (
+                  <View style={[styles.bar, {
+                    height: barHeight,
+                    backgroundColor: STATS_CONFIG.COLORS.SLEEP,
+                    opacity: isMax ? STATS_CONFIG.BAR_OPACITY_MAX : STATS_CONFIG.BAR_OPACITY_NON_MAX,
+                  }]}>
+                    {viewMode === 'count' && (
+                      <Text style={styles.barValue}>{value}</Text>
+                    )}
+                  </View>
+                )}
+                <Text style={styles.chartLabel}>{label}</Text>
+              </View>
+            );
+          })}
         </View>
       </View>
     );
@@ -90,17 +79,9 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
       hasData={!!lastTask}
       emptyMessage={t('sommeil.noTaskFound')}
     >
-      {/* Last Task */}
-      {lastTask && (
-        <View style={styles.section}>
-          <SectionTitle>{t('sommeil.lastTask')}</SectionTitle>
-          <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} />
-        </View>
-      )}
-
       {/* Statistics */}
       <View style={styles.section}>
-        <SectionTitle>{t('sommeil.someFigures')}</SectionTitle>
+        <Text style={styles.sectionTitle}>{t('sommeil.someFigures')}</Text>
 
         {/* View Mode Selector */}
         <View style={styles.viewModeContainer}>
@@ -139,7 +120,7 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
 
       {/* Chart */}
       <View style={styles.section}>
-        <SectionTitle>{t('sommeil.evolutionLast7Days')}</SectionTitle>
+        <Text style={styles.sectionTitle}>{t('sommeil.evolutionLast7Days')}</Text>
         {renderChart()}
       </View>
     </StatsContainer>
@@ -149,6 +130,12 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
 const styles = StyleSheet.create({
   section: {
     marginBottom: STATS_CONFIG.SPACING.LARGE,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 16,
   },
   viewModeContainer: {
     flexDirection: 'row',
@@ -195,21 +182,11 @@ const styles = StyleSheet.create({
     color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
   },
   chartContainer: {
-    flexDirection: 'row',
     height: 220,
     marginVertical: STATS_CONFIG.SPACING.LARGE + 8,
     borderRadius: 16,
     backgroundColor: STATS_CONFIG.COLORS.BACKGROUND,
     paddingVertical: STATS_CONFIG.SPACING.MEDIUM,
-  },
-  yAxis: {
-    justifyContent: 'space-between',
-    marginRight: 8,
-    paddingLeft: STATS_CONFIG.SPACING.SMALL,
-  },
-  yAxisLabel: {
-    fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
-    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
   },
   chartContent: {
     flexDirection: 'row',
@@ -231,6 +208,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 4,
+  },
+  barLabelAbove: {
+    fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
+    fontWeight: '600',
+    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    marginBottom: 4,
+    textAlign: 'center',
   },
   barValue: {
     color: STATS_CONFIG.COLORS.WHITE,

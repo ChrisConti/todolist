@@ -1,12 +1,10 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, Keyboard, ScrollView, FlatList, TouchableWithoutFeedback, Button, AppState, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, Keyboard, ScrollView, FlatList, TouchableWithoutFeedback, Button, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import s = require("../Style.js");
 import { auth, db, babiesRef, userRef } from '../config.js';
 import { addDoc, collection, doc, getDocs, getDocsFromServer, query, updateDoc, where } from 'firebase/firestore';
 import { useReviewPrompt } from '../Context/ReviewPromptContext';
 import moment from 'moment';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import DateTimePicker from "react-native-modal-datetime-picker";
 
@@ -22,7 +20,17 @@ import Sante from '../assets/sante-color.svg';
 import Biberon from '../assets/biberon-color.svg';
 import analytics from '../services/analytics';
 import { KEYBOARD_CONFIG } from '../utils/constants';
+import BreastfeedingSection, { BreastfeedingRef } from '../components/BreastfeedingSection';
 
+
+const IMAGES = [
+  { id: 0, rq: require('../assets/biberon.png') },
+  { id: 5, rq: require('../assets/allaitement.png') },
+  { id: 3, rq: require('../assets/sommeil.png') },
+  { id: 1, rq: require('../assets/diaper.png') },
+  { id: 4, rq: require('../assets/thermo.png') },
+  { id: 2, rq: require('../assets/medicaments.png') },
+];
 
 interface CreateTaskProps {
   route: any;
@@ -45,92 +53,14 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const [diaperType, setDiaperType] = useState<number | null>(null); // 0=normal, 1=soft, 2=liquid
   const [sleepLocation, setSleepLocation] = useState<string | null>(null); // bed, arms, breastfeeding, bottle, bouncer, other
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const uniqueId = uuid.v4();
-  const [timer1, setTimer1] = useState(0);
-  const [timer2, setTimer2] = useState(0);
-  const [isRunning1, setIsRunning1] = useState(false);
-  const [isRunning2, setIsRunning2] = useState(false);
-  const [breastfeedingMode, setBreastfeedingMode] = useState<'timer' | 'manual'>('timer');
-  const [manualMinutesLeft, setManualMinutesLeft] = useState(0);
-  const [manualMinutesRight, setManualMinutesRight] = useState(0);
+  const uniqueId = useRef(uuid.v4()).current;
+  const breastfeedingRef = useRef<BreastfeedingRef>(null);
   const [loading, setLoading] = useState(false);
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
-  const [startTime1, setStartTime1] = useState(null);
-  const [startTime2, setStartTime2] = useState(null);
-  const interval1 = useRef(null);
-  const interval2 = useRef(null);
-  const appState = useRef(AppState.currentState);
 
-  // Charger les timers sauvegardés au démarrage
   useEffect(() => {
     analytics.logScreenView('CreateTask');
-    loadTimers();
-    
-    // Écouter les changements d'état de l'app (background/foreground)
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-    
-    return () => {
-      subscription?.remove();
-      clearInterval(interval1.current);
-      clearInterval(interval2.current);
-    };
   }, []);
-
-  const handleAppStateChange = async (nextAppState: any) => {
-    if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-      // L'app revient au premier plan, recalculer les timers
-      await loadTimers();
-    }
-    appState.current = nextAppState;
-  };
-
-  const loadTimers = async () => {
-    try {
-      const timer1Data = await AsyncStorage.getItem('timer1_createtask');
-      const timer2Data = await AsyncStorage.getItem('timer2_createtask');
-      
-      if (timer1Data) {
-        const { elapsed, startTime, isRunning } = JSON.parse(timer1Data);
-        if (isRunning && startTime) {
-          const now = Date.now();
-          const additionalTime = Math.floor((now - startTime) / 1000);
-          setTimer1(elapsed + additionalTime);
-          setStartTime1(startTime);
-          setIsRunning1(true);
-          startTimerInterval(setTimer1, interval1, startTime, elapsed);
-        } else {
-          setTimer1(elapsed);
-        }
-      }
-      
-      if (timer2Data) {
-        const { elapsed, startTime, isRunning } = JSON.parse(timer2Data);
-        if (isRunning && startTime) {
-          const now = Date.now();
-          const additionalTime = Math.floor((now - startTime) / 1000);
-          setTimer2(elapsed + additionalTime);
-          setStartTime2(startTime);
-          setIsRunning2(true);
-          startTimerInterval(setTimer2, interval2, startTime, elapsed);
-        } else {
-          setTimer2(elapsed);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading timers:', error);
-    }
-  };
-
-  const saveTimer = async (timerKey: string, elapsed: any, startTime: any, isRunning: any) => {
-    try {
-      await AsyncStorage.setItem(
-        timerKey,
-        JSON.stringify({ elapsed, startTime, isRunning })
-      );
-    } catch (error) {
-      console.error('Error saving timer:', error);
-    }
-  };
 
   // date picker
   const showDateTimePicker = () => {
@@ -145,15 +75,6 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
     if (id == 4) return <Thermo height={35} width={35} />;
     if (id == 5) return <Allaitement height={35} width={35} />;
   };
-
-  const images = [
-    { id: 0, rq: require('../assets/biberon.png') },
-    { id: 5, rq: require('../assets/allaitement.png') },
-    { id: 3, rq: require('../assets/sommeil.png') },
-    { id: 1, rq: require('../assets/diaper.png') },
-    { id: 4, rq: require('../assets/thermo.png') },
-    { id: 2, rq: require('../assets/medicaments.png') },
-  ];
 
   const imagesDiapers = [
     { id: 0, name: t('diapers.dur'), nameTrad:'dur' },
@@ -196,6 +117,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
       // Ne prendre que le premier document trouvé
       const document = querySnapshot.docs[0];
       
+      const bfValues = breastfeedingRef.current?.getValues();
       const newTask = {
         uid: uniqueId,
         id: selectedImage,
@@ -206,9 +128,9 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         ...(selectedImage === 1 && diaperType !== null && { diaperType }),
         ...(selectedImage === 1 && diaperType !== null && { idCaca: diaperType }), // Backward compatibility only if selected
         ...(selectedImage === 1 && diaperContent !== null && { diaperContent }),
-        boobLeft: breastfeedingMode === 'manual' ? manualMinutesLeft * 60 : timer1,
-        boobRight: breastfeedingMode === 'manual' ? manualMinutesRight * 60 : timer2,
-        breastfeedingMode: selectedImage === 5 ? breastfeedingMode : null,
+        boobLeft: bfValues ? (bfValues.mode === 'manual' ? bfValues.manualLeft * 60 : bfValues.timer1) : 0,
+        boobRight: bfValues ? (bfValues.mode === 'manual' ? bfValues.manualRight * 60 : bfValues.timer2) : 0,
+        breastfeedingMode: selectedImage === 5 ? (bfValues?.mode ?? 'timer') : null,
         milkType: selectedImage === 0 ? milkType : null,
         sleepLocation: selectedImage === 3 ? sleepLocation : null,
         user: user.uid,
@@ -235,8 +157,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
       await handleTaskCreated();
       
       // Nettoyer les timers sauvegardés
-      await AsyncStorage.removeItem('timer1_createtask');
-      await AsyncStorage.removeItem('timer2_createtask');
+      await breastfeedingRef.current?.clearTimers();
 
       setLoading(false);
       navigation.goBack();
@@ -344,201 +265,9 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
       );
 
     } else if (id == 5) {
-      return (
-        <View>
-          {/* Mode Switch */}
-          <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 20, gap: 10 }}>
-            <TouchableOpacity
-              onPress={() => setBreastfeedingMode('timer')}
-              style={[
-                styles.modeButton,
-                breastfeedingMode === 'timer' && styles.modeButtonSelected
-              ]}
-            >
-              <Text style={[
-                styles.modeButtonText,
-                breastfeedingMode === 'timer' && styles.modeButtonTextSelected
-              ]}>
-                ⏱️ {t('breastfeeding.timer')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setBreastfeedingMode('manual')}
-              style={[
-                styles.modeButton,
-                breastfeedingMode === 'manual' && styles.modeButtonSelected
-              ]}
-            >
-              <Text style={[
-                styles.modeButtonText,
-                breastfeedingMode === 'manual' && styles.modeButtonTextSelected
-              ]}>
-                ✏️ {t('breastfeeding.manual')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {breastfeedingMode === 'timer' ? (
-            // Timer Mode
-            <View>
-              <View style={styles.timerContainer}>
-                <Text style={{ fontSize: 16, fontWeight: '600', color: '#7A8889', marginBottom: 10 }}>{t('breast.left')}</Text>
-                <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#C75B4A', marginBottom: 10 }}>{formatTime(timer1)}</Text>
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity 
-                    onPress={() => startTimer(setTimer1, setIsRunning1, interval1, 1)} 
-                    disabled={isRunning1}
-                    style={[styles.timerButton, isRunning1 && styles.timerButtonDisabled]}
-                  >
-                    <Ionicons name="play" size={24} color={isRunning1 ? "#D8ABA0" : "#F6F0EB"} />
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    onPress={() => pauseTimer(setIsRunning1, interval1, 1)} 
-                    disabled={!isRunning1}
-                    style={[styles.timerButton, !isRunning1 && styles.timerButtonDisabled]}
-                  >
-                    <Ionicons name="pause" size={24} color={!isRunning1 ? "#D8ABA0" : "#F6F0EB"} />
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    onPress={() => stopTimer(setTimer1, setIsRunning1, interval1, 1)}
-                    style={styles.timerButton}
-                  >
-                    <Ionicons name="close-circle" size={24} color="#F6F0EB" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-              <View style={styles.timerContainer}>
-                <Text style={{ fontSize: 16, fontWeight: '600', color: '#7A8889', marginBottom: 10 }}>{t('breast.right')}</Text>
-                <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#C75B4A', marginBottom: 10 }}>{formatTime(timer2)}</Text>
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity 
-                    onPress={() => startTimer(setTimer2, setIsRunning2, interval2, 2)} 
-                    disabled={isRunning2}
-                    style={[styles.timerButton, isRunning2 && styles.timerButtonDisabled]}
-                  >
-                    <Ionicons name="play" size={24} color={isRunning2 ? "#D8ABA0" : "#F6F0EB"} />
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    onPress={() => pauseTimer(setIsRunning2, interval2, 2)} 
-                    disabled={!isRunning2}
-                    style={[styles.timerButton, !isRunning2 && styles.timerButtonDisabled]}
-                  >
-                    <Ionicons name="pause" size={24} color={!isRunning2 ? "#D8ABA0" : "#F6F0EB"} />
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    onPress={() => stopTimer(setTimer2, setIsRunning2, interval2, 2)}
-                    style={styles.timerButton}
-                  >
-                    <Ionicons name="close-circle" size={24} color="#F6F0EB" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          ) : (
-            // Manual Mode
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 20 }}>
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#C75B4A', marginBottom: 5 }}>{manualMinutesLeft} {t('min')}</Text>
-                <View style={{ height: 200, justifyContent: 'center', alignItems: 'center' }}>
-                  <Slider
-                    style={{ width: 200, height: 40, transform: [{ rotate: '-90deg' }] }}
-                    minimumValue={0}
-                    maximumValue={60}
-                    step={1}
-                    value={manualMinutesLeft}
-                    onValueChange={(value) => setManualMinutesLeft(Math.round(value))}
-                    minimumTrackTintColor="#C75B4A"
-                    maximumTrackTintColor="#D8ABA0"
-                    thumbTintColor="#C75B4A"
-                  />
-                </View>
-                <Text style={{ fontSize: 16, fontWeight: '600', color: '#7A8889', marginTop: 5 }}>{t('breast.left')}</Text>
-              </View>
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#C75B4A', marginBottom: 5 }}>{manualMinutesRight} {t('min')}</Text>
-                <View style={{ height: 200, justifyContent: 'center', alignItems: 'center' }}>
-                  <Slider
-                    style={{ width: 200, height: 40, transform: [{ rotate: '-90deg' }] }}
-                    minimumValue={0}
-                    maximumValue={60}
-                    step={1}
-                    value={manualMinutesRight}
-                    onValueChange={(value) => setManualMinutesRight(Math.round(value))}
-                    minimumTrackTintColor="#C75B4A"
-                    maximumTrackTintColor="#D8ABA0"
-                    thumbTintColor="#C75B4A"
-                  />
-                </View>
-                <Text style={{ fontSize: 16, fontWeight: '600', color: '#7A8889', marginTop: 5 }}>{t('breast.right')}</Text>
-              </View>
-            </View>
-          )}
-        </View>
-      )
+      return <BreastfeedingSection ref={breastfeedingRef} t={t} />;
     }
   }
-
-  const startTimerInterval = (setTimer: any, interval: any, startTime: any, initialElapsed: any) => {
-    clearInterval(interval.current);
-    interval.current = setInterval(() => {
-      const now = Date.now();
-      const elapsed = Math.floor((now - startTime) / 1000) + initialElapsed;
-      setTimer(elapsed);
-    }, 1000);
-  };
-
-  const startTimer = (setTimer: any, setIsRunning: any, interval: any, timerNum: any) => {
-    const now = Date.now();
-    const currentElapsed = timerNum === 1 ? timer1 : timer2;
-    
-    if (timerNum === 1) {
-      setStartTime1(now);
-      saveTimer('timer1_createtask', currentElapsed, now, true);
-    } else {
-      setStartTime2(now);
-      saveTimer('timer2_createtask', currentElapsed, now, true);
-    }
-    
-    setIsRunning(true);
-    startTimerInterval(setTimer, interval, now, currentElapsed);
-  };
-
-  const pauseTimer = (setIsRunning: any, interval: any, timerNum: any) => {
-    setIsRunning(false);
-    clearInterval(interval.current);
-    
-    const currentElapsed = timerNum === 1 ? timer1 : timer2;
-    const timerKey = timerNum === 1 ? 'timer1_createtask' : 'timer2_createtask';
-    saveTimer(timerKey, currentElapsed, null, false);
-    
-    if (timerNum === 1) {
-      setStartTime1(null);
-    } else {
-      setStartTime2(null);
-    }
-  };
-
-  const stopTimer = (setTimer: any, setIsRunning: any, interval: any, timerNum: any) => {
-    setIsRunning(false);
-    clearInterval(interval.current);
-    setTimer(0);
-    
-    const timerKey = timerNum === 1 ? 'timer1_createtask' : 'timer2_createtask';
-    saveTimer(timerKey, 0, null, false);
-    
-    if (timerNum === 1) {
-      setStartTime1(null);
-    } else {
-      setStartTime2(null);
-    }
-  };
-
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
   return (
     <>
@@ -555,7 +284,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
           >
             {/* Image picker */}
             <View style={{ flexDirection: 'row' }}>
-              {images.map((image, index) => (
+              {IMAGES.map((image, index) => (
                 <TouchableOpacity
                   key={index}
                   onPress={() => {
@@ -713,7 +442,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                         styles.sleepLocationText,
                         sleepLocation === 'arms' && styles.sleepLocationTextSelected
                       ]}>
-                        🤱 {t('sleepLocation.arms')}
+                        🤲 {t('sleepLocation.arms')}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -769,7 +498,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                         styles.sleepLocationText,
                         sleepLocation === 'other' && styles.sleepLocationTextSelected
                       ]}>
-                        {t('sleepLocation.other')}
+                        💤 {t('sleepLocation.other')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -819,7 +548,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                         styles.milkTypeText,
                         milkType === 'artificial' && styles.milkTypeTextSelected
                       ]}>
-                        {t('milkType.artificial')}
+                        🥛 {t('milkType.artificial')}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -833,21 +562,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                         styles.milkTypeText,
                         milkType === 'maternal' && styles.milkTypeTextSelected
                       ]}>
-                        {t('milkType.maternal')}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => setMilkType(milkType === 'other' ? null : 'other')}
-                      style={[
-                        styles.milkTypeButton,
-                        milkType === 'other' && styles.milkTypeButtonSelected
-                      ]}
-                    >
-                      <Text style={[
-                        styles.milkTypeText,
-                        milkType === 'other' && styles.milkTypeTextSelected
-                      ]}>
-                        {t('milkType.other')}
+                        🤱 {t('milkType.maternal')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -976,35 +691,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  timerContainer: {
-    marginBottom: 20,
-    alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    backgroundColor: '#F6F0EB',
-    borderRadius: 12,
-    width: 280,
-    alignSelf: 'center',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginTop: 10,
-  },
-  timerButton: {
-    backgroundColor: '#C75B4A',
-    borderRadius: 8,
-    padding: 12,
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  timerButtonDisabled: {
-    backgroundColor: '#D8ABA0',
-    opacity: 0.5,
-  },
   milkTypeButton: {
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -1047,27 +733,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   sleepLocationTextSelected: {
-    color: '#F6F0EB',
-  },
-  modeButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#C75B4A',
-    backgroundColor: 'transparent',
-    minWidth: 120,
-    alignItems: 'center',
-  },
-  modeButtonSelected: {
-    backgroundColor: '#C75B4A',
-  },
-  modeButtonText: {
-    color: '#C75B4A',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modeButtonTextSelected: {
     color: '#F6F0EB',
   },
 });

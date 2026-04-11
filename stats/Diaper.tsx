@@ -74,32 +74,30 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
 
   const renderContentStats = () => {
     return (
-      <View style={styles.contentStatsContainer}>
-        <View style={styles.contentStatsRow}>
-          <View style={styles.contentColumn}>
-            <Text style={styles.contentLabel}></Text>
-            <Text style={styles.statsLabel}>{t('diapers.today')}</Text>
-            <Text style={styles.statsLabel}>{t('diapers.yesterday')}</Text>
-            <Text style={styles.statsLabel}>{t('diapers.last7Days')}</Text>
-          </View>
-          <View style={styles.contentColumn}>
-            <Text style={styles.contentEmoji}>💦</Text>
-            <Text style={styles.statsValue}>{(dailyContentStats.today as any)[0]}</Text>
-            <Text style={styles.statsValue}>{(dailyContentStats.yesterday as any)[0]}</Text>
-            <Text style={styles.statsValue}>{(dailyContentStats.lastPeriod as any)[0]}</Text>
-          </View>
-          <View style={styles.contentColumn}>
-            <Text style={styles.contentEmoji}>💩</Text>
-            <Text style={styles.statsValue}>{(dailyContentStats.today as any)[1]}</Text>
-            <Text style={styles.statsValue}>{(dailyContentStats.yesterday as any)[1]}</Text>
-            <Text style={styles.statsValue}>{(dailyContentStats.lastPeriod as any)[1]}</Text>
-          </View>
-          <View style={styles.contentColumn}>
-            <Text style={styles.contentEmoji}>💦💩</Text>
-            <Text style={styles.statsValue}>{(dailyContentStats.today as any)[2]}</Text>
-            <Text style={styles.statsValue}>{(dailyContentStats.yesterday as any)[2]}</Text>
-            <Text style={styles.statsValue}>{(dailyContentStats.lastPeriod as any)[2]}</Text>
-          </View>
+      <View style={styles.statsTable}>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsHeader}></Text>
+          <Text style={styles.statsHeader}>💦</Text>
+          <Text style={styles.statsHeader}>💩</Text>
+          <Text style={styles.statsHeader}>💦💩</Text>
+        </View>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsLabel}>{t('diapers.today')}</Text>
+          <Text style={styles.statsValue}>{(dailyContentStats.today as any)[0]}</Text>
+          <Text style={styles.statsValue}>{(dailyContentStats.today as any)[1]}</Text>
+          <Text style={styles.statsValue}>{(dailyContentStats.today as any)[2]}</Text>
+        </View>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsLabel}>{t('diapers.yesterday')}</Text>
+          <Text style={styles.statsValue}>{(dailyContentStats.yesterday as any)[0]}</Text>
+          <Text style={styles.statsValue}>{(dailyContentStats.yesterday as any)[1]}</Text>
+          <Text style={styles.statsValue}>{(dailyContentStats.yesterday as any)[2]}</Text>
+        </View>
+        <View style={styles.statsRow}>
+          <Text style={styles.statsLabel}>{t('diapers.last7Days')}</Text>
+          <Text style={styles.statsValue}>{(dailyContentStats.lastPeriod as any)[0]}</Text>
+          <Text style={styles.statsValue}>{(dailyContentStats.lastPeriod as any)[1]}</Text>
+          <Text style={styles.statsValue}>{(dailyContentStats.lastPeriod as any)[2]}</Text>
         </View>
       </View>
     );
@@ -269,29 +267,6 @@ const styles = StyleSheet.create({
     color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
     flex: 1,
     textAlign: 'center',
-  },
-  contentStatsContainer: {
-    backgroundColor: STATS_CONFIG.COLORS.WHITE,
-    borderRadius: 8,
-    padding: STATS_CONFIG.SPACING.MEDIUM,
-  },
-  contentStatsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  contentColumn: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  contentEmoji: {
-    fontSize: 18,
-    marginBottom: STATS_CONFIG.SPACING.SMALL,
-  },
-  contentLabel: {
-    fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    fontWeight: 'bold',
-    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
-    marginBottom: STATS_CONFIG.SPACING.SMALL,
   },
 });
 

@@ -77,17 +77,25 @@ export const useBiberonStats = (tasks: Task[]): TaskStatistics => {
 };
 
 // Returns how many minutes of a sleep session [start, start+duration) overlap
-// with a given calendar day. Uses exclusive midnight boundary to avoid the
-// endOf('day') = 23:59:59.999 truncation issue when diffing in minutes.
-const getSleepMinutesForDay = (start: moment.Moment, durationMinutes: number, targetDay: moment.Moment): number => {
+// with an arbitrary period [periodStart, periodEnd).
+export const getSleepMinutesForPeriod = (
+  start: moment.Moment,
+  durationMinutes: number,
+  periodStart: moment.Moment,
+  periodEnd: moment.Moment
+): number => {
   const end = start.clone().add(durationMinutes, 'minutes');
+  const overlapStart = start.isAfter(periodStart) ? start : periodStart;
+  const overlapEnd = end.isBefore(periodEnd) ? end : periodEnd;
+  return Math.max(0, overlapEnd.diff(overlapStart, 'minutes'));
+};
+
+// Convenience wrapper for a single calendar day.
+// Uses exclusive midnight boundary to avoid endOf('day') = 23:59:59.999 truncation.
+const getSleepMinutesForDay = (start: moment.Moment, durationMinutes: number, targetDay: moment.Moment): number => {
   const dayStart = targetDay.clone().startOf('day');
   const dayEnd = dayStart.clone().add(1, 'day'); // exclusive: midnight of next day
-
-  const overlapStart = start.isAfter(dayStart) ? start : dayStart;
-  const overlapEnd = end.isBefore(dayEnd) ? end : dayEnd;
-
-  return Math.max(0, overlapEnd.diff(overlapStart, 'minutes'));
+  return getSleepMinutesForPeriod(start, durationMinutes, dayStart, dayEnd);
 };
 
 // Hook pour Sommeil

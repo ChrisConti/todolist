@@ -34,8 +34,9 @@ import { auth } from './config';
 import { useFonts, Pacifico_400Regular } from '@expo-google-fonts/pacifico';
 import PrivacyPolicy from './screens/PrivacyPolicy';
 import TermsOfUse from './screens/TermsOfUse';
-import AnalyticsTest from './screens/AnalyticsTest';
 import ExportTasks from './screens/ExportTasks';
+import BiberonInsights from './screens/BiberonInsights';
+import CategoryDetail from './screens/CategoryDetail';
 import Statistics from './screens/Statistics';
 import { useTranslation } from 'react-i18next';
 import { log } from './utils/logger';
@@ -73,18 +74,13 @@ function RootNavigator() {
         // Configure Google Sign-In
         configureGoogleSignIn();
 
-        // Track first open for download statistics
-        trackFirstOpen().catch(err => {
-          log.error('First open tracking failed (non-critical)', 'App.tsx', err);
-        });
-
         // Check authentication state with improved handling
         log.debug('Setting up authentication listener...', 'App.tsx');
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
           try {
             if (firebaseUser) {
               log.info(`User authenticated: ${firebaseUser.uid}`, 'App.tsx');
-              
+
               // Verify token is still valid
               try {
                 await firebaseUser.getIdToken(true); // Force refresh
@@ -96,7 +92,12 @@ function RootNavigator() {
                 setIsLoading(false);
                 return;
               }
-              
+
+              // Track first open now that user is authenticated
+              trackFirstOpen().catch(err => {
+                log.error('First open tracking failed (non-critical)', 'App.tsx', err);
+              });
+
               setUser(firebaseUser);
             } else {
               log.info('No user authenticated', 'App.tsx');
@@ -385,17 +386,6 @@ function MainStack() {
         }}
       />
       <Stack.Screen 
-        name="AnalyticsTest" 
-        component={AnalyticsTest}
-        options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold', fontSize:22, color:'#FDF1E7' },
-          headerTitle: 'Analytics Test',
-          headerBackTitle: ''
-        }}
-      />
-      <Stack.Screen 
         name="DeleteAccount" 
         component={DeleteAccount}
         options={{
@@ -428,8 +418,18 @@ function MainStack() {
           headerBackTitle: ''
         }}
       />
-      <Stack.Screen 
-        name="JoinBaby" 
+      <Stack.Screen
+        name="BiberonInsights"
+        component={BiberonInsights}
+        options={{ headerShown: false, gestureEnabled: false, animationEnabled: false }}
+      />
+      <Stack.Screen
+        name="CategoryDetail"
+        component={CategoryDetail}
+        options={{ headerShown: false, gestureEnabled: false, animationEnabled: false }}
+      />
+      <Stack.Screen
+        name="JoinBaby"
         component={JoinBaby} 
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },

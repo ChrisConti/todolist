@@ -46,8 +46,7 @@
     "milkType": {
       "title": "Milk",
       "artificial": "Formula",
-      "maternal": "Breast milk",
-      "other": "Other"
+      "maternal": "Breast milk"
     },
     "sleepLocation": {
       "title": "Sleep location",
@@ -347,6 +346,7 @@
       "firstBottle": "First",
       "lastBottle": "Last",
       "avgInterval": "Avg interval",
+      "quantityUnit": "ml/oz",
       "noData": "No data available"
     },
     "enterValidName": "Please enter a valid name", 
@@ -564,8 +564,7 @@
     "milkType": {
       "title": "Lait",
       "artificial": "Artificiel",
-      "maternal": "Maternel",
-      "other": "Autre"
+      "maternal": "Maternel"
     },
     "sleepLocation": {
       "title": "Lieu de sommeil",
@@ -888,6 +887,7 @@
       "firstBottle": "Premier",
       "lastBottle": "Dernier",
       "avgInterval": "Intervalle moy.",
+      "quantityUnit": "ml/oz",
       "noData": "Aucune donnée disponible"
     },
     "conditions":{
@@ -1079,8 +1079,7 @@
       "milkType": {
         "title": "Leche",
         "artificial": "Artificial",
-        "maternal": "Materna",
-        "other": "Otra"
+        "maternal": "Materna"
       },
       "sleepLocation": {
         "title": "Lugar de sueño",
@@ -1398,6 +1397,7 @@
         "firstBottle": "Primero",
         "lastBottle": "Último",
         "avgInterval": "Intervalo prom.",
+        "quantityUnit": "ml/oz",
         "noData": "No hay datos disponibles"
       },
       "conditions":{

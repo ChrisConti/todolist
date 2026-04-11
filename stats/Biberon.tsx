@@ -1,40 +1,26 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Card from '../Card';
 import { useTranslation } from 'react-i18next';
-import { useBiberonStats, useBiberonCountStats } from '../hooks/useTaskStatistics';
+import { useBiberonStats } from '../hooks/useTaskStatistics';
 import { Task } from '../types/stats';
 import StatsContainer from '../components/stats/StatsContainer';
-import SectionTitle from '../components/stats/SectionTitle';
-import BarChart from '../components/stats/charts/BarChart';
 import { STATS_CONFIG } from '../constants/statsConfig';
+import TimelineComparison from '../components/stats/timeline/TimelineComparison';
+import Timeline7Days from '../components/stats/timeline/Timeline7Days';
+import Timeline30Days from '../components/stats/timeline/Timeline30Days';
 
 interface BiberonProps {
   navigation: any;
   tasks: Task[];
 }
 
-type ViewMode = 'quantity' | 'count';
+type TabView = 'detail' | '7days' | '30days';
 
 const Biberon: React.FC<BiberonProps> = ({ navigation, tasks }) => {
   const { t } = useTranslation();
-  const [viewMode, setViewMode] = useState<ViewMode>('count');
+  const [activeTab, setActiveTab] = useState<TabView>('detail');
 
-  const quantityStats = useBiberonStats(tasks);
-  const countStats = useBiberonCountStats(tasks);
-  const { dailyStats, chartData, lastTask, isLoading, error } = viewMode === 'quantity' ? quantityStats : countStats;
-
-  // Transform chart data for BarChart component
-  // useBiberonStats always returns ChartData (not StackedChartData)
-  const biberonChartData = chartData as import('../types/stats').ChartData;
-  const barChartData = biberonChartData.labels.map((label, index) => ({
-    label,
-    value: (biberonChartData.datasets[0].data as number[])[index],
-  }));
-
-  const formatValue = (value: number) => {
-    return viewMode === 'quantity' ? `${value} ${t('ml')}` : `${value}`;
-  };
+  const { lastTask, isLoading, error } = useBiberonStats(tasks);
 
   return (
     <StatsContainer
@@ -43,113 +29,98 @@ const Biberon: React.FC<BiberonProps> = ({ navigation, tasks }) => {
       hasData={!!lastTask}
       emptyMessage={t('biberon.noTaskFound')}
     >
-      {/* Last Task */}
-      {lastTask && (
-        <View style={styles.section}>
-          <SectionTitle>{t('biberon.lastTask')}</SectionTitle>
-          <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} />
-        </View>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('BiberonInsights')}
+        style={styles.insightsButton}
+      >
+        <Text style={styles.insightsButtonText}>📊 Analyse détaillée</Text>
+      </TouchableOpacity>
+      {/* Tab Selector */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          onPress={() => setActiveTab('detail')}
+          style={[styles.tabButton, activeTab === 'detail' && styles.tabButtonActive]}
+        >
+          <Text style={[styles.tabText, activeTab === 'detail' && styles.tabTextActive]}>
+            {t('biberon.viewDetail')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setActiveTab('7days')}
+          style={[styles.tabButton, activeTab === '7days' && styles.tabButtonActive]}
+        >
+          <Text style={[styles.tabText, activeTab === '7days' && styles.tabTextActive]}>
+            {t('biberon.view7Days')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setActiveTab('30days')}
+          style={[styles.tabButton, activeTab === '30days' && styles.tabButtonActive]}
+        >
+          <Text style={[styles.tabText, activeTab === '30days' && styles.tabTextActive]}>
+            {t('biberon.view30Days')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Content based on active tab */}
+      {activeTab === 'detail' && (
+        <TimelineComparison tasks={tasks} viewMode="quantity" />
       )}
 
-      {/* Statistics */}
-      <View style={styles.section}>
-        <SectionTitle>{t('biberon.someFigures')}</SectionTitle>
+      {activeTab === '7days' && (
+        <Timeline7Days tasks={tasks} viewMode="quantity" />
+      )}
 
-        {/* View Mode Selector */}
-        <View style={styles.viewModeContainer}>
-          <TouchableOpacity
-            onPress={() => setViewMode('count')}
-            style={[styles.viewModeButton, viewMode === 'count' && styles.viewModeButtonActive]}
-          >
-            <Text style={[styles.viewModeText, viewMode === 'count' && styles.viewModeTextActive]}>
-              {t('stats.count')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setViewMode('quantity')}
-            style={[styles.viewModeButton, viewMode === 'quantity' && styles.viewModeButtonActive]}
-          >
-            <Text style={[styles.viewModeText, viewMode === 'quantity' && styles.viewModeTextActive]}>
-              {t('stats.quantity')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Stats Values */}
-        <View style={styles.statsRow}>
-          <View style={styles.statsColumn}>
-            <Text style={styles.statLabel}>{t('biberon.today')}</Text>
-            <Text style={styles.statLabel}>{t('biberon.yesterday')}</Text>
-            <Text style={styles.statLabel}>{t('biberon.last7Days')}</Text>
-          </View>
-          <View style={styles.statsColumn}>
-            <Text style={styles.statValue}>{formatValue(dailyStats.today as number)}</Text>
-            <Text style={styles.statValue}>{formatValue(dailyStats.yesterday as number)}</Text>
-            <Text style={styles.statValue}>{formatValue(dailyStats.lastPeriod as number)}</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Chart */}
-      <View style={styles.section}>
-        <SectionTitle>{t('biberon.evolutionLast7Days')}</SectionTitle>
-        <BarChart
-          data={barChartData}
-          color={STATS_CONFIG.COLORS.BIBERON}
-          showValues={true}
-        />
-      </View>
+      {activeTab === '30days' && (
+        <Timeline30Days tasks={tasks} viewMode="quantity" />
+      )}
     </StatsContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  section: {
-    marginBottom: STATS_CONFIG.SPACING.LARGE,
-  },
-  viewModeContainer: {
+  tabContainer: {
     flexDirection: 'row',
     backgroundColor: STATS_CONFIG.COLORS.WHITE,
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 4,
+    marginTop: STATS_CONFIG.SPACING.MEDIUM,
     marginBottom: STATS_CONFIG.SPACING.LARGE,
     gap: 4,
   },
-  viewModeButton: {
+  tabButton: {
     flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderRadius: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
   },
-  viewModeButtonActive: {
+  tabButtonActive: {
     backgroundColor: STATS_CONFIG.COLORS.BIBERON,
   },
-  viewModeText: {
-    fontSize: 13,
+  tabText: {
+    fontSize: 14,
     fontWeight: '600',
     color: '#7A8889',
   },
-  viewModeTextActive: {
+  tabTextActive: {
     color: '#FFF',
   },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  insightsButton: {
+    backgroundColor: STATS_CONFIG.COLORS.BIBERON,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: STATS_CONFIG.SPACING.MEDIUM,
+    marginBottom: STATS_CONFIG.SPACING.SMALL,
   },
-  statsColumn: {
-    gap: STATS_CONFIG.SPACING.SMALL,
-  },
-  statLabel: {
-    fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
-  },
-  statValue: {
-    fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    fontWeight: '600',
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+  insightsButtonText: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
 

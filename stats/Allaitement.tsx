@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Card from '../Card';
 import { useTranslation } from 'react-i18next';
 import { useAllaitementStats, useAllaitementCountStats } from '../hooks/useTaskStatistics';
 import { Task } from '../types/stats';
 import StatsContainer from '../components/stats/StatsContainer';
-import SectionTitle from '../components/stats/SectionTitle';
 import { STATS_CONFIG } from '../constants/statsConfig';
 
 type ViewMode = 'duration' | 'count';
@@ -107,17 +105,9 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
       hasData={!!lastTask}
       emptyMessage={t('allaitement.noTaskFound')}
     >
-      {/* Last Task */}
-      {lastTask && (
-        <View style={styles.section}>
-          <SectionTitle>{t('allaitement.lastTask')}</SectionTitle>
-          <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} />
-        </View>
-      )}
-
       {/* Statistics */}
       <View style={styles.section}>
-        <SectionTitle>{t('allaitement.someFigures')}</SectionTitle>
+        <Text style={styles.sectionTitle}>{t('allaitement.someFigures')}</Text>
 
         {/* View Mode Selector */}
         <View style={styles.viewModeContainer}>
@@ -177,7 +167,7 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
 
       {/* Chart */}
       <View style={styles.section}>
-        <SectionTitle>{t('allaitement.evolutionLast7Days')}</SectionTitle>
+        <Text style={styles.sectionTitle}>{t('allaitement.evolutionLast7Days')}</Text>
         {renderBarChart()}
 
         {/* Legend */}
@@ -199,6 +189,12 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
 const styles = StyleSheet.create({
   section: {
     marginBottom: STATS_CONFIG.SPACING.LARGE,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 16,
   },
   viewModeContainer: {
     flexDirection: 'row',
