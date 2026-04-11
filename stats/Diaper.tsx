@@ -1,14 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Card from '../Card';
 import { useTranslation } from 'react-i18next';
 import { useDiaperStats } from '../hooks/useTaskStatistics';
 import { Task } from '../types/stats';
 import StatsContainer from '../components/stats/StatsContainer';
-import SectionTitle from '../components/stats/SectionTitle';
 import StackedBarChart from '../components/stats/charts/StackedBarChart';
-import { BarChart } from 'react-native-chart-kit';
-import { Dimensions } from 'react-native';
 import { STATS_CONFIG } from '../constants/statsConfig';
 
 interface DiaperProps {
@@ -116,14 +112,6 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
       hasData={!!lastTask}
       emptyMessage={t('diapers.noTaskFound')}
     >
-      {/* Last Task */}
-      {lastTask && (
-        <View style={styles.section}>
-          <SectionTitle>{t('diapers.lastTask')}</SectionTitle>
-          <Card key={lastTask.uid} task={lastTask} navigation={navigation} editable={false} />
-        </View>
-      )}
-
       {/* Tab Buttons */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
@@ -156,36 +144,16 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
       {selectedTab === 'count' && (
         <>
           <View style={styles.section}>
-            <SectionTitle>{t('diapers.someFigures')}</SectionTitle>
+            <Text style={styles.sectionTitle}>{t('diapers.someFigures')}</Text>
             {renderCountStats()}
           </View>
           <View style={styles.section}>
-            <SectionTitle>{t('diapers.last7DaysStacked')}</SectionTitle>
-            {(countChartData.datasets[0].data as any).length > 0 && (
-              <BarChart
-                data={countChartData}
-                width={Dimensions.get('window').width - 40}
-                height={220}
-                yAxisLabel=""
-                yAxisSuffix=""
-                chartConfig={{
-                  backgroundColor: '#FFF',
-                  backgroundGradientFrom: '#FFF',
-                  backgroundGradientTo: '#FFF',
-                  decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(199, 91, 74, ${opacity})`,
-                  labelColor: (opacity = 1) => `rgba(122, 136, 137, ${opacity})`,
-                  barPercentage: 0.7,
-                  style: { borderRadius: 16 }
-                }}
-                style={{
-                  marginVertical: 8,
-                  borderRadius: 16
-                }}
-                showValuesOnTopOfBars={true}
-                fromZero={true}
-              />
-            )}
+            <Text style={styles.sectionTitle}>{t('diapers.last7DaysStacked')}</Text>
+            <StackedBarChart
+              labels={countChartData.labels}
+              data={(countChartData.datasets[0].data as number[]).map(v => [v])}
+              barColors={['#C75B4A']}
+            />
           </View>
         </>
       )}
@@ -194,11 +162,11 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
       {selectedTab === 'type' && (
         <>
           <View style={styles.section}>
-            <SectionTitle>{t('diapers.someFigures')}</SectionTitle>
+            <Text style={styles.sectionTitle}>{t('diapers.someFigures')}</Text>
             {renderDailyStats()}
           </View>
           <View style={styles.section}>
-            <SectionTitle>{t('diapers.last7DaysStacked')}</SectionTitle>
+            <Text style={styles.sectionTitle}>{t('diapers.last7DaysStacked')}</Text>
             <StackedBarChart
               labels={(chartData as any).labels}
               data={(chartData as any).data}
@@ -213,11 +181,11 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
       {selectedTab === 'content' && (
         <>
           <View style={styles.section}>
-            <SectionTitle>{t('diapers.content')}</SectionTitle>
+            <Text style={styles.sectionTitle}>{t('diapers.content')}</Text>
             {renderContentStats()}
           </View>
           <View style={styles.section}>
-            <SectionTitle>{t('diapers.last7DaysStacked')}</SectionTitle>
+            <Text style={styles.sectionTitle}>{t('diapers.last7DaysStacked')}</Text>
             <StackedBarChart
               labels={(contentChartData as any).labels}
               data={(contentChartData as any).data}
@@ -238,6 +206,12 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
 const styles = StyleSheet.create({
   section: {
     marginBottom: STATS_CONFIG.SPACING.LARGE,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 16,
   },
   tabContainer: {
     flexDirection: 'row',
