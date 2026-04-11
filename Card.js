@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import React from 'react';
 import * as Localization from 'expo-localization';
 import { useTranslation } from 'react-i18next';
@@ -10,16 +10,11 @@ import Couche from './assets/couche-clair.svg';
 import Sante from './assets/sante-clair.svg';
 import Biberon from './assets/biberon-clair.svg';
 
+// Static — defined once outside the component, not recreated on every render
+const CATEGORY_COLORS = ['#34777B', '#C75B4A', '#6B8DEA', '#E29656', '#4F469F', '#1AAAAA'];
+
 const Card = ({ task, navigation, editable }) => {
   const { t } = useTranslation();
-  const images = [
-    { id: 0, rq: require('./assets/biberon.png'), color: '#34777B' },
-    { id: 1, rq: require('./assets/diaper.png'), color: '#C75B4A' },
-    { id: 2, rq: require('./assets/medicaments.png'), color: '#6B8DEA' },
-    { id: 3, rq: require('./assets/sommeil.png'), color: '#E29656' },
-    { id: 4, rq: require('./assets/thermo.png'), color: '#4F469F' },
-    { id: 5, rq: require('./assets/allaitement.png'), color: '#1AAAAA' },
-  ];
 
   const imagesDiapers = [
     { id: 0, name: t('diapers.dur'), nameTrad:'dur' },
@@ -121,58 +116,38 @@ const Card = ({ task, navigation, editable }) => {
           : null;
       }}
       key={task.uid}
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        backgroundColor: images[task.id].color,
-        borderColor: '#C75B4A',
-        borderRadius: 8,
-        paddingVertical: 7,
-        paddingHorizontal: 20,
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 3,
-        marginBottom: 2,
-        marginLeft: 8,
-        marginRight: 8
-      }}>
-      <View style={{ flexDirection: "row", alignItems: "flex-start", width: 95 }}>
+      style={[styles.card, { backgroundColor: CATEGORY_COLORS[task.id] }]}>
+      <View style={styles.leftSection}>
         {handleImageType()}
-        <View style={{ flexDirection: "column", marginLeft: 8, justifyContent: "flex-start" }}>
+        <View style={styles.iconsColumn}>
           {/* Line 1: Comment icon or empty space */}
-          <View style={{ height: 20, marginBottom: 2 }}>
+          <View style={styles.iconRow}>
             {task.comment && task.comment.trim() !== '' && (
               <Ionicons name="chatbubble-ellipses" size={20} color="#F6F0EB" />
             )}
           </View>
           {/* Line 2: Content icon or empty space */}
-          <View style={{ height: 20 }}>
+          <View style={styles.iconRow}>
             {getDiaperContentIcon() && (
-              <Text style={{ fontSize: 20, lineHeight: 20 }}>{getDiaperContentIcon()}</Text>
+              <Text style={styles.emojiIcon}>{getDiaperContentIcon()}</Text>
             )}
           </View>
         </View>
       </View>
-      <View style={{ flexDirection: 'row' }}>
-        <Text style={{ color: '#F6F0EB', fontSize: 25, marginRight: 8, alignSelf: 'flex-end' }}>
+      <View style={styles.centerSection}>
+        <Text style={styles.labelText}>
           {handleCategoryLabel()}
         </Text>
         <View>
-          {handleCategory(images[task.id].id)}
+          {handleCategory(task.id)}
         </View>
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-        <Text style={{ color: '#F6F0EB', fontSize: 25 }}>
+      <View style={styles.timeSection}>
+        <Text style={styles.timeText}>
           {formattedTimes.time}
         </Text>
         {formattedTimes.isEnglish && (
-          <Text style={{ color: '#F6F0EB', fontSize: 15, marginLeft: 2 }}>
+          <Text style={styles.periodText}>
             {formattedTimes.period}
           </Text>
         )}
@@ -181,4 +156,32 @@ const Card = ({ task, navigation, editable }) => {
   );
 };
 
-export default Card;
+const styles = StyleSheet.create({
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    marginBottom: 2,
+    marginLeft: 8,
+    marginRight: 8,
+  },
+  leftSection: { flexDirection: 'row', alignItems: 'flex-start', width: 95 },
+  iconsColumn: { flexDirection: 'column', marginLeft: 8, justifyContent: 'flex-start' },
+  iconRow: { height: 20, marginBottom: 2 },
+  emojiIcon: { fontSize: 20, lineHeight: 20 },
+  centerSection: { flexDirection: 'row' },
+  labelText: { color: '#F6F0EB', fontSize: 25, marginRight: 8, alignSelf: 'flex-end' },
+  timeSection: { flexDirection: 'row', alignItems: 'flex-start' },
+  timeText: { color: '#F6F0EB', fontSize: 25 },
+  periodText: { color: '#F6F0EB', fontSize: 15, marginLeft: 2 },
+});
+
+export default React.memo(Card);

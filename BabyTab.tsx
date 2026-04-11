@@ -30,14 +30,7 @@ const BabyTab = ({ navigation }) => {
       return;
     }
     loadBabyAndUsers();
-    
-    // Recharger les données quand on revient sur cet onglet
-    const unsubscribe = navigation.addListener('focus', () => {
-      loadBabyAndUsers();
-    });
-    
-    return unsubscribe;
-  }, [babyID, navigation, user]);
+  }, [babyID, user]);
 
   const loadBabyAndUsers = async () => {
     if (initialLoad) {

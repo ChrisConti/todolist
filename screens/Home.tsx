@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SectionList, ActivityIndicator, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
@@ -145,12 +145,12 @@ const BabyList = ({ navigation }) => {
       .map((key) => ({ title: key, data: groupedTasks[key] }));
   };
 
-  // Filter tasks by selected category
-  const filteredTasks = selectedFilter === null
-    ? tasks
-    : tasks.filter(task => task.id === selectedFilter);
+  const filteredTasks = useMemo(
+    () => selectedFilter === null ? tasks : tasks.filter(task => task.id === selectedFilter),
+    [tasks, selectedFilter]
+  );
 
-  const sections = groupTasksByDay(filteredTasks);
+  const sections = useMemo(() => groupTasksByDay(filteredTasks), [filteredTasks]);
 
   return (
     <View style={styles.container}>
@@ -224,16 +224,17 @@ const BabyList = ({ navigation }) => {
   );
 };
 
-const FilterBar = ({ selectedFilter, onFilterChange, t }) => {
-  const categories = [
-    { id: 0, icon: <Biberon height={30} width={30} />, color: '#34777B' },
-    { id: 5, icon: <Allaitement height={30} width={30} />, color: '#1AAAAA' },
-    { id: 3, icon: <Dodo height={30} width={30} />, color: '#E29656' },
-    { id: 1, icon: <Couche height={30} width={30} />, color: '#C75B4A' },
-    { id: 4, icon: <Thermo height={30} width={30} />, color: '#4F469F' },
-    { id: 2, icon: <Sante height={30} width={30} />, color: '#6B8DEA' },
-  ];
+// Static — defined once, not recreated on every FilterBar render
+const FILTER_CATEGORIES = [
+  { id: 0, icon: <Biberon height={30} width={30} />, color: '#34777B' },
+  { id: 5, icon: <Allaitement height={30} width={30} />, color: '#1AAAAA' },
+  { id: 3, icon: <Dodo height={30} width={30} />, color: '#E29656' },
+  { id: 1, icon: <Couche height={30} width={30} />, color: '#C75B4A' },
+  { id: 4, icon: <Thermo height={30} width={30} />, color: '#4F469F' },
+  { id: 2, icon: <Sante height={30} width={30} />, color: '#6B8DEA' },
+];
 
+const FilterBar = React.memo(({ selectedFilter, onFilterChange, t }: { selectedFilter: number | null; onFilterChange: (id: number | null) => void; t: any }) => {
   return (
     <View style={styles.filterContainer}>
       {/* All button */}
@@ -253,7 +254,7 @@ const FilterBar = ({ selectedFilter, onFilterChange, t }) => {
       </TouchableOpacity>
 
       {/* Category buttons */}
-      {categories.map((category) => (
+      {FILTER_CATEGORIES.map((category) => (
         <TouchableOpacity
           key={category.id}
           onPress={() => onFilterChange(category.id)}
@@ -267,7 +268,7 @@ const FilterBar = ({ selectedFilter, onFilterChange, t }) => {
       ))}
     </View>
   );
-};
+});
 
 const EmptyState = ({ icon, message, actions }) => (
   <View style={{ alignSelf: 'center', paddingTop: 50 }}>
