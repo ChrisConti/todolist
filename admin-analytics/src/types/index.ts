@@ -5,6 +5,9 @@ export interface User {
   creationDate?: any; // Firestore Timestamp (optional, may not exist on all users)
   deleted?: boolean;
   deletedAt?: string;
+  provider?: 'email' | 'google' | 'apple';
+  emailOptIn?: boolean;
+  country?: string;
 }
 
 export interface Task {

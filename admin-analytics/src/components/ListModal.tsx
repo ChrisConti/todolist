@@ -65,7 +65,13 @@ export const ListModal: React.FC<ListModalProps> = ({
     // Parse DD/MM/YYYY format
     let birth: Date;
     if (birthDate.includes('/')) {
-      const [day, month, year] = birthDate.split('/').map(Number);
+      let [day, month, year] = birthDate.split('/').map(Number);
+
+      // Handle 2-digit years: if year <= 50, assume 20XX, else 19XX
+      if (year < 100) {
+        year = year <= 50 ? 2000 + year : 1900 + year;
+      }
+
       birth = new Date(year, month - 1, day);
     } else {
       birth = new Date(birthDate);
@@ -74,6 +80,8 @@ export const ListModal: React.FC<ListModalProps> = ({
     if (isNaN(birth.getTime())) return 'N/A';
 
     const now = new Date();
+
+    // For very recent babies, show days
     const diffMs = now.getTime() - birth.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
@@ -82,12 +90,24 @@ export const ListModal: React.FC<ListModalProps> = ({
     if (diffDays === 1) return '1 jour';
     if (diffDays < 30) return `${diffDays} jours`;
 
-    const months = Math.floor(diffDays / 30);
-    if (months === 1) return '1 mois';
-    if (months < 12) return `${months} mois`;
+    // Calculate months difference properly
+    const yearsDiff = now.getFullYear() - birth.getFullYear();
+    const monthsDiff = now.getMonth() - birth.getMonth();
+    const daysDiff = now.getDate() - birth.getDate();
 
-    const years = Math.floor(months / 12);
-    const remainingMonths = months % 12;
+    let totalMonths = yearsDiff * 12 + monthsDiff;
+
+    // If the day hasn't been reached yet this month, subtract one month
+    if (daysDiff < 0) {
+      totalMonths--;
+    }
+
+    if (totalMonths < 0) return 'N/A';
+    if (totalMonths === 1) return '1 mois';
+    if (totalMonths < 12) return `${totalMonths} mois`;
+
+    const years = Math.floor(totalMonths / 12);
+    const remainingMonths = totalMonths % 12;
     if (years === 1 && remainingMonths === 0) return '1 an';
     if (years === 1) return `1 an ${remainingMonths}m`;
     if (remainingMonths === 0) return `${years} ans`;
@@ -100,8 +120,8 @@ export const ListModal: React.FC<ListModalProps> = ({
     if (type === 'users') {
       const hasDeletedUsers = (data as User[]).some(u => u.deleted);
       csv = hasDeletedUsers
-        ? 'Email,Nom,Date de création,Période de vie\n'
-        : 'Email,Nom,Date de création\n';
+        ? 'Email,Nom,Provider,Opt-in email,Pays,Date de création,Période de vie\n'
+        : 'Email,Nom,Provider,Opt-in email,Pays,Date de création\n';
 
       (data as User[]).forEach(user => {
         const date = user.creationDate
@@ -118,9 +138,13 @@ export const ListModal: React.FC<ListModalProps> = ({
           lifetime = `${daysDiff} jours`;
         }
 
+        const provider = user.provider || 'email';
+        const optIn = user.emailOptIn ? 'Oui' : 'Non';
+        const country = user.country || 'N/A';
+
         csv += hasDeletedUsers
-          ? `${user.email},${user.username},${date},${lifetime}\n`
-          : `${user.email},${user.username},${date}\n`;
+          ? `${user.email},${user.username},${provider},${optIn},${country},${date},${lifetime}\n`
+          : `${user.email},${user.username},${provider},${optIn},${country},${date}\n`;
       });
     } else {
       csv = 'Nom du bébé,Sexe,Date de naissance,Âge,Poids (kg),Taille (cm),Nb parents,Nombre de tâches,Emails parents,Date de création\n';
@@ -201,6 +225,9 @@ export const ListModal: React.FC<ListModalProps> = ({
                     <tr>
                       <th>Email</th>
                       <th>Nom</th>
+                      <th>Provider</th>
+                      <th>Opt-in</th>
+                      <th>Pays</th>
                       <th>Date de création</th>
                       {(data as User[]).some(u => u.deleted) && <th>Période de vie</th>}
                     </tr>
@@ -211,7 +238,6 @@ export const ListModal: React.FC<ListModalProps> = ({
                         ? new Date(typeof user.creationDate === 'string' ? user.creationDate : (user.creationDate as any).toDate()).toLocaleDateString('fr-FR')
                         : 'N/A';
 
-                      // Calculate lifetime for deleted users
                       let lifetime = 'N/A';
                       if (user.deleted && user.creationDate && user.deletedAt) {
                         const creationDate = typeof user.creationDate === 'string'
@@ -222,10 +248,17 @@ export const ListModal: React.FC<ListModalProps> = ({
                         lifetime = `${daysDiff} jours`;
                       }
 
+                      const providerIcon = user.provider === 'google' ? '🔵 Google'
+                        : user.provider === 'apple' ? '🍎 Apple'
+                        : '✉️ Email';
+
                       return (
                         <tr key={user.userId}>
                           <td>{user.email}</td>
                           <td>{user.username}</td>
+                          <td style={{ whiteSpace: 'nowrap' }}>{providerIcon}</td>
+                          <td style={{ textAlign: 'center' }}>{user.emailOptIn ? '✅' : '❌'}</td>
+                          <td>{user.country || '—'}</td>
                           <td>{date}</td>
                           {(data as User[]).some(u => u.deleted) && <td>{lifetime}</td>}
                         </tr>
