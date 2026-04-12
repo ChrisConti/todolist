@@ -1,25 +1,24 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, TouchableWithoutFeedback, Keyboard, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Image, Linking } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Image, Linking } from 'react-native';
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { auth, db, storage } from './config';
-import { addDoc, collection } from 'firebase/firestore';
+import { db, storage } from './config';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
-import moment from 'moment';
 import uuid from 'react-native-uuid';
 import { useTranslation } from 'react-i18next';
 import analytics from './services/analytics';
 import Boy from './assets/garcon.svg';
 import Girl from './assets/fille.svg';
 import { validateBabyName, validateBirthdate, formatBirthdateInput, validateWeight, validateHeight } from './utils/validation';
-import { BABY_TYPES, COLLECTIONS, KEYBOARD_CONFIG } from './utils/constants';
+import { COLLECTIONS, KEYBOARD_CONFIG } from './utils/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome } from '@expo/vector-icons';
 
 
 const Baby = ({ navigation }) => {
     const [name, setName] = useState('');
-    const [selectedImage, setSelectedImage] = useState(0);
+    const [selectedType, setSelectedType] = useState(0);
     const [birthdate, setBirthdate] = useState('');
     const [weight, setWeight] = useState('');
     const [height, setHeight] = useState('');
@@ -31,16 +30,17 @@ const Baby = ({ navigation }) => {
     const { user, setBabyID, userInfo } = useContext(AuthentificationUserContext);
     const { t } = useTranslation();
 
-    const images = [
-        { id: 0, type: 'Boy', rq: require('./assets/boy.png') },
-        { id: 1, type: 'Girl', rq: require('./assets/girl.png') },
+    const types = [
+        { id: 0, type: 'Boy' },
+        { id: 1, type: 'Girl' },
     ];
 
     useEffect(() => {
         if (!user) return;
 
         // Auto-focus sur le champ nom
-        setTimeout(() => nameInputRef.current?.focus(), 100);
+        const timer = setTimeout(() => nameInputRef.current?.focus(), 100);
+        return () => clearTimeout(timer);
     }, []);
 
     const pickImage = async () => {
@@ -146,10 +146,10 @@ const Baby = ({ navigation }) => {
             
             const babyData: any = {
                 id: uniqueId,
-                type: images[selectedImage].type,
+                type: types[selectedType].type,
                 name: trimmedName,
                 birthDate: birthdate,
-                CreatedDate: moment().format('YYYY-MM-DD HH:mm:ss'),
+                createdDate: serverTimestamp(),
                 user: [user.uid],
                 admin: user.uid,
                 userName: userInfo?.username || 'Unknown',
@@ -172,28 +172,25 @@ const Baby = ({ navigation }) => {
                 await AsyncStorage.removeItem(`task_created_count_${user.uid}`);
                 await AsyncStorage.removeItem(`last_review_prompt_at_count_${user.uid}`);
                 await AsyncStorage.removeItem(`review_prompt_count_${user.uid}`);
-                // Only remove has_reviewed if user hasn't reviewed yet
                 if (hasReviewed !== 'true') {
                     await AsyncStorage.removeItem(`has_reviewed_app_${user.uid}`);
                 }
-                console.log('✅ Review counters cleaned when creating baby:', uniqueId, 'preserved has_reviewed:', hasReviewed === 'true');
-            } catch (storageError) {
-                console.warn('⚠️ Failed to clean review counters:', storageError);
+            } catch {
+                // Non-critical — ignore storage errors
             }
 
-            analytics.logEvent('baby_created', {
-                baby_type: images[selectedImage].type,
-                baby_id: uniqueId,
-                user_id: user.uid,
-                has_photo: !!photoURL,
-                has_weight: !!weightNum,
-                has_height: !!heightNum
-            });
-            console.log('📊 baby_created event sent', {
-                baby_type: images[selectedImage].type,
-                baby_id: uniqueId,
-                user_id: user.uid
-            });
+            try {
+                analytics.logEvent('baby_created', {
+                    baby_type: types[selectedType].type,
+                    baby_id: uniqueId,
+                    user_id: user.uid,
+                    has_photo: !!photoURL,
+                    has_weight: !!weightNum,
+                    has_height: !!heightNum
+                });
+            } catch {
+                // Non-critical — don't fail baby creation if analytics throws
+            }
 
             setLoading(false);
             navigation.navigate('MainTabs');
@@ -209,12 +206,16 @@ const Baby = ({ navigation }) => {
                 setError(t('error.babyCreationFailed') || 'Unable to create baby. Please try again.');
             }
 
-            analytics.logEvent('baby_creation_failed', {
-                baby_type: images[selectedImage].type,
-                user_id: user.uid,
-                error_code: error.code || 'unknown',
-                error: error instanceof Error ? error.message : 'Unknown error'
-            });
+            try {
+                analytics.logEvent('baby_creation_failed', {
+                    baby_type: types[selectedType].type,
+                    user_id: user.uid,
+                    error_code: error.code || 'unknown',
+                    error: error instanceof Error ? error.message : 'Unknown error'
+                });
+            } catch {
+                // Non-critical
+            }
         }
     };
 
@@ -247,13 +248,6 @@ const Baby = ({ navigation }) => {
         }
     };
 
-    const handleImageSelection = (id) => {
-        setSelectedImage(id);
-
-        // Log analytics event for image selection
-   
-    };
-
     return (
         <KeyboardAvoidingView
             style={{ flex: 1, backgroundColor: '#FDF1E7' }}
@@ -266,18 +260,21 @@ const Baby = ({ navigation }) => {
                 contentContainerStyle={styles.scrollContent}
             >
                 {/* Sélection du sexe */}
-                <View style={styles.sexSelection}>
+                <Text style={styles.label}>{t('baby.sex')}</Text>
+                <View style={styles.typeSelector}>
                     <TouchableOpacity
-                        onPress={() => handleImageSelection(0)}
-                        style={[selectedImage == 0 ? styles.imageSelected : styles.imageNonSelected]}
+                        onPress={() => setSelectedType(0)}
+                        style={[styles.typeOption, selectedType === 0 && styles.typeOptionSelected]}
                     >
-                        <Boy height={90} width={90} />
+                        <Boy height={60} width={60} />
+                        <Text style={styles.typeText}>{t('baby.boy')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                        onPress={() => handleImageSelection(1)}
-                        style={[selectedImage == 1 ? styles.imageSelected : styles.imageNonSelected]}
+                        onPress={() => setSelectedType(1)}
+                        style={[styles.typeOption, selectedType === 1 && styles.typeOptionSelected]}
                     >
-                        <Girl height={90} width={90} />
+                        <Girl height={60} width={60} />
+                        <Text style={styles.typeText}>{t('baby.girl')}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -407,30 +404,28 @@ const styles = StyleSheet.create({
         padding: 20,
         paddingBottom: 40,
     },
-    sexSelection: {
+    typeSelector: {
         flexDirection: 'row',
-        justifyContent: 'center',
-        marginBottom: 30,
+        justifyContent: 'space-around',
+        marginBottom: 25,
     },
-    imageSelected: {
-        width: 120,
-        height: 120,
-        borderColor: '#C75B4A',
-        borderWidth: 5,
-        borderRadius: 60,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginHorizontal: 10,
-    },
-    imageNonSelected: {
-        width: 120,
-        height: 120,
-        borderWidth: 5,
-        borderRadius: 60,
-        justifyContent: 'center',
-        alignItems: 'center',
+    typeOption: {
+        width: '45%',
+        padding: 15,
+        borderRadius: 12,
+        borderWidth: 3,
         borderColor: 'transparent',
-        marginHorizontal: 10,
+        alignItems: 'center',
+        backgroundColor: '#FFF',
+    },
+    typeOptionSelected: {
+        borderColor: '#C75B4A',
+    },
+    typeText: {
+        marginTop: 8,
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#333',
     },
     section: {
         marginBottom: 25,

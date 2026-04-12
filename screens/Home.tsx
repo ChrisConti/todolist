@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SectionList, ActivityIndicator, ScrollView } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { onSnapshot, query, where, getDocs } from 'firebase/firestore';
@@ -35,6 +36,7 @@ const BabyList = ({ navigation }) => {
     if (!user) return;
 
     setLoading(true);
+    setSelectedFilter(null); // Reset filter when baby changes
 
     // Fetch user info if not already available
     if (!userInfo) fetchUserInfo();
@@ -245,12 +247,11 @@ const FilterBar = React.memo(({ selectedFilter, onFilterChange, t }: { selectedF
           selectedFilter === null && styles.filterButtonSelected
         ]}
       >
-        <Text style={[
-          styles.filterAllText,
-          selectedFilter === null && styles.filterAllTextSelected
-        ]}>
-          All
-        </Text>
+        <MaterialCommunityIcons
+          name="chart-box-multiple-outline"
+          size={26}
+          color={selectedFilter === null ? '#C75B4A' : '#7A8889'}
+        />
       </TouchableOpacity>
 
       {/* Category buttons */}
@@ -292,12 +293,12 @@ const EmptyState = ({ icon, message, actions }) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F6F0EB' },
+  container: { flex: 1, backgroundColor: '#FDF1E7' },
   header: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 15,
-    paddingHorizontal: 15,
+    paddingBottom: 14,
+    paddingHorizontal: 16,
     backgroundColor: '#C75B4A',
   },
   headerTitle: {
@@ -316,9 +317,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
   },
   filterButton: {
-    width: 45,
-    height: 45,
-    borderRadius: 23,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: '#FFF',
     borderWidth: 2,
     borderColor: '#E0E0E0',
@@ -327,18 +328,9 @@ const styles = StyleSheet.create({
   },
   filterButtonSelected: {
     borderColor: '#C75B4A',
-    borderWidth: 3,
+    borderWidth: 2.5,
   },
-  filterAllText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#7A8889',
-  },
-  filterAllTextSelected: {
-    color: '#C75B4A',
-    fontWeight: 'bold',
-  },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FDF1E7' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   sectionHeader: { color: '#7A8889', fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginBottom: 5, marginTop: 3 },
   footer: { position: 'absolute', bottom: 40, right: 30 },
   floatingButton: { backgroundColor: '#C75B4A', width: 70, height: 70, borderRadius: 50, alignItems: 'center', justifyContent: 'center' },

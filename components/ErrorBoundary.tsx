@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import i18next from 'i18next';
 
 interface Props {
   children: ReactNode;
@@ -48,12 +49,12 @@ class ErrorBoundary extends Component<Props, State> {
 
       return (
         <View style={styles.container}>
-          <Text style={styles.title}>Oops! Something went wrong</Text>
+          <Text style={styles.title}>{i18next.t('error.somethingWentWrong')}</Text>
           <Text style={styles.message}>
-            {this.state.error?.message || 'An unexpected error occurred'}
+            {this.state.error?.message || i18next.t('error.unexpectedError')}
           </Text>
           <TouchableOpacity style={styles.button} onPress={this.resetError}>
-            <Text style={styles.buttonText}>Try Again</Text>
+            <Text style={styles.buttonText}>{i18next.t('error.tryAgain')}</Text>
           </TouchableOpacity>
         </View>
       );

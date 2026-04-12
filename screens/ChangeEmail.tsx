@@ -6,6 +6,7 @@ import { AuthentificationUserContext } from '../Context/AuthentificationContext'
 import { useTranslation } from 'react-i18next';
 import { getAuth, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ChangeEmail = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -15,21 +16,25 @@ const ChangeEmail = ({ route, navigation }) => {
   const [userError, setError] = useState('');
   const inputRef = useRef<TextInput>(null);
 
-  const isReadOnly = userInfo?.provider !== 'email';
+  const isReadOnly = (userInfo?.provider || 'email') !== 'email';
 
   useEffect(() => {
     if (!isReadOnly) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      const timer = setTimeout(() => inputRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
     }
   }, [isReadOnly]);
 
-  const updateAuthEmail = async () => {
+  const reauthAndUpdateEmail = async () => {
     const auth = getAuth();
     if (!auth.currentUser) {
-      setError(t('userNotAuthenticated'));
+      setError(t('error.userNotAuthenticated'));
       return;
     }
-    await updateEmail(auth.currentUser, email);
+    // Reauthenticate before changing email (required by Firebase)
+    const credential = EmailAuthProvider.credential(auth.currentUser.email!, password);
+    await reauthenticateWithCredential(auth.currentUser, credential);
+    await updateEmail(auth.currentUser, email.trim());
   };
 
   const updateFirestoreEmail = async () => {
@@ -37,13 +42,13 @@ const ChangeEmail = ({ route, navigation }) => {
     const querySnapshot = await getDocs(queryResult);
 
     if (querySnapshot.empty) {
-      setError(t('noUserFound'));
+      setError(t('error.noUserFound'));
       return;
     }
 
     const updatePromises = querySnapshot.docs.map(async (document) => {
       await updateDoc(doc(db, 'Users', document.id), {
-        email: email,
+        email: email.trim(),
       });
     });
 
@@ -51,22 +56,27 @@ const ChangeEmail = ({ route, navigation }) => {
   };
 
   async function updateUserEmail() {
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail || !EMAIL_REGEX.test(trimmedEmail)) {
+      setError(t('error.invalidEmail'));
+      return;
+    }
+
+    if (!password) {
+      setError(t('enterValidPassword'));
+      return;
+    }
+
     try {
-      await updateAuthEmail();
+      await reauthAndUpdateEmail();
       await updateFirestoreEmail();
-      setUserInfo({ ...userInfo, email: email });
-      Alert.alert(t('emailChanged'));
-
-      // Log analytics event for successful email change
-
-
+      setUserInfo({ ...userInfo, email: trimmedEmail });
+      Alert.alert(t('success.title'), t('success.emailChanged'));
       navigation.goBack();
     } catch (error) {
       console.error('Error updating email:', error);
-      setError(t('errorUpdatingEmail'));
-
-      // Log analytics event for error
-
+      setError(t('error.emailUpdateFailed'));
     }
   }
 

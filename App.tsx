@@ -1,8 +1,8 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { I18nextProvider } from 'react-i18next';
-import { StyleSheet, View, ActivityIndicator, Platform } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Platform, StatusBar } from 'react-native';
 import i18n from './i18n';
 import ErrorBoundary from './components/ErrorBoundary';
 import { NavigationContainer } from '@react-navigation/native';
@@ -21,12 +21,12 @@ import BabyTab from './BabyTab';
 import EditBaby from './EditBaby';
 import EditBabyPhoto from './screens/EditBabyPhoto';
 import ChangeName from './screens/ChangeName';
+import EmailOptIn from './screens/EmailOptIn';
 import ChangeEmail from './screens/ChangeEmail';
 import DeleteAccount from './screens/DeleteAccount';
 import ChangePassword from './screens/ChangePassword';
 import PasswordForgotten from './PasswordForgotten';
 import JoinBaby from './JoinBaby';
-import ManageBaby from './ManageBaby';
 import AuthentificationUserProvider, { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { ReviewPromptProvider } from './Context/ReviewPromptContext';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -59,12 +59,13 @@ function RootNavigator() {
     Pacifico: Pacifico_400Regular,
   });
 
+  // Store unsubscribe so the auth listener is properly cleaned up on unmount
+  const unsubscribeAuthRef = useRef<(() => void) | null>(null);
+
   useEffect(() => {
     async function loadResourcesAndDataAsync() {
       const timeoutId = setTimeout(() => {
         log.error('App initialization timeout', 'App.tsx');
-        alert('Timeout: App is taking too long to load. Check console for errors.');
-        setFontsLoaded(true);
         setIsLoading(false);
       }, APP_INIT_TIMEOUT);
 
@@ -74,16 +75,15 @@ function RootNavigator() {
         // Configure Google Sign-In
         configureGoogleSignIn();
 
-        // Check authentication state with improved handling
         log.debug('Setting up authentication listener...', 'App.tsx');
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        unsubscribeAuthRef.current = onAuthStateChanged(auth, async (firebaseUser) => {
           try {
             if (firebaseUser) {
               log.info(`User authenticated: ${firebaseUser.uid}`, 'App.tsx');
 
               // Verify token is still valid
               try {
-                await firebaseUser.getIdToken(true); // Force refresh
+                await firebaseUser.getIdToken(true);
                 log.debug('Token refreshed successfully', 'App.tsx');
               } catch (tokenError) {
                 log.error('Token refresh failed, signing out', 'App.tsx', tokenError);
@@ -114,16 +114,8 @@ function RootNavigator() {
           setIsLoading(false);
         });
 
-        // Cleanup function
-        return () => {
-          unsubscribe();
-        };
       } catch (e) {
         log.error('Error during app initialization', 'App.tsx', e);
-        const errorMessage = e instanceof Error ? e.message : String(e);
-        alert(`Error during initialization: ${errorMessage}`);
-        // Continue anyway with fallback
-        setFontsLoaded(true);
         setIsLoading(false);
       } finally {
         clearTimeout(timeoutId);
@@ -134,6 +126,10 @@ function RootNavigator() {
     }
 
     loadResourcesAndDataAsync();
+
+    return () => {
+      unsubscribeAuthRef.current?.();
+    };
   }, []);
 
   if (!fontsLoaded || isLoading) {
@@ -148,6 +144,7 @@ function RootNavigator() {
     <SafeAreaProvider>
       <I18nextProvider i18n={i18n}>
         <NavigationContainer>
+          <StatusBar barStyle="light-content" backgroundColor="#C75B4A" />
           {isLoading ? (
             <AuthStack /> //loader a mettre
           ) : !user ? (
@@ -199,7 +196,7 @@ function AuthStack() {
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
-          headerTitle: 'Politique de Confidentialité',
+          headerTitle: t('settings.privacyPolicy'),
           headerBackTitle: ''
         }}
       />
@@ -364,7 +361,18 @@ function MainStack() {
         }}
       />
       <Stack.Screen
-        name="ChangeName" 
+        name="EmailOptIn"
+        component={EmailOptIn}
+        options={{
+          headerStyle: { backgroundColor: '#C75B4A' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize: 22, color: '#FDF1E7' },
+          headerTitle: t('settings.emailOptIn'),
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen
+        name="ChangeName"
         component={ChangeName}
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
@@ -446,7 +454,7 @@ function MainStack() {
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
-          headerTitle: 'Politique de Confidentialité',
+          headerTitle: t('settings.privacyPolicy'),
           headerBackTitle: ''
         }}
       />
@@ -485,5 +493,6 @@ const styles = StyleSheet.create({
   headerTitleStyle: {
     fontFamily: 'Pacifico',
     fontSize: 22,
+    color: '#FDF1E7',
   },
 });

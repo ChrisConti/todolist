@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { doc, getDocs, query, where, arrayRemove, updateDoc, deleteDoc } from 'firebase/firestore';
+import { getDocs, getDocsFromServer, query, where, updateDoc } from 'firebase/firestore';
 import { babiesRef, userRef } from '../config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
@@ -14,24 +14,29 @@ const DeleteAccount = ({ route, navigation }) => {
   const { user, setUser, babyID, setBabyID, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
   const [password, setPassword] = useState('');
   const [userError, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const provider = userInfo?.provider || 'email';
 
   useEffect(() => {
     if (provider === 'email') {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      const timer = setTimeout(() => inputRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
     }
   }, [provider]);
 
   const deleteAccount = async () => {
+    if (loading) return;
     if (provider === 'email' && !password) {
       setError(t('enterValidPassword'));
       return;
     }
 
-    setError(''); // Clear previous errors
+    setLoading(true);
+    setError('');
     await handleAccountDeletion();
+    setLoading(false);
   };
 
   const reauthenticateUser = async (currentUser: any) => {
@@ -60,8 +65,11 @@ const DeleteAccount = ({ route, navigation }) => {
         ],
       });
       const { identityToken } = appleCredential;
+      if (!identityToken) {
+        throw new Error('No identity token received from Apple');
+      }
       const appleProvider = new OAuthProvider('apple.com');
-      const credential = appleProvider.credential({ idToken: identityToken! });
+      const credential = appleProvider.credential({ idToken: identityToken });
       await reauthenticateWithCredential(currentUser, credential);
     }
   };
@@ -78,14 +86,13 @@ const DeleteAccount = ({ route, navigation }) => {
     // Réauthentifier l'utilisateur
     try {
       await reauthenticateUser(currentUser);
-    } catch (error) {
-      console.error('Reauthentication failed:', error);
+    } catch (error: any) {
       if (provider === 'email') {
         setError(t('incorrectPassword') || 'Incorrect password');
       } else {
         Alert.alert(
-          'Erreur',
-          `Impossible de vous réauthentifier avec ${provider === 'google' ? 'Google' : 'Apple'}. Veuillez réessayer.`
+          t('error.title'),
+          t('reauthenticationError', { message: provider === 'google' ? 'Google' : 'Apple' })
         );
       }
       return;
@@ -107,11 +114,10 @@ const DeleteAccount = ({ route, navigation }) => {
             const userId = currentUser.uid;
             
             try {
-              console.log('🗑️ Starting account anonymization for user:', userId);
 
               // 1. Anonymiser les tâches dans tous les bébés
               const babiesWithUser = query(babiesRef, where('user', 'array-contains', userId));
-              const babySnapshot = await getDocs(babiesWithUser);
+              const babySnapshot = await getDocsFromServer(babiesWithUser);
 
               for (const babyDoc of babySnapshot.docs) {
                 const babyData = babyDoc.data();
@@ -135,11 +141,10 @@ const DeleteAccount = ({ route, navigation }) => {
                 });
               }
 
-              console.log('✅ Tasks anonymized in all babies');
 
               // 2. Anonymiser le document User (ne pas supprimer)
               const userQuery = query(userRef, where('userId', '==', userId));
-              const userSnapshot = await getDocs(userQuery);
+              const userSnapshot = await getDocsFromServer(userQuery);
 
               const anonymizedEmail = `deleted_${Date.now()}_${userId.slice(0, 8)}@deleted.tribubaby.app`;
 
@@ -153,7 +158,6 @@ const DeleteAccount = ({ route, navigation }) => {
               );
               await Promise.all(anonymizeUserPromises);
 
-              console.log('✅ User document anonymized in Firestore');
               
               // 3. Nettoyer AsyncStorage (toutes les données utilisateur)
               await AsyncStorage.removeItem(`task_created_count_${userId}`);
@@ -168,25 +172,21 @@ const DeleteAccount = ({ route, navigation }) => {
               await AsyncStorage.removeItem('last_review_prompt_at_count');
               await AsyncStorage.removeItem('has_prompted_for_review');
               
-              console.log('✅ AsyncStorage cleaned');
               
               // 4. Supprimer le compte Firebase Auth
               await deleteUser(currentUser);
-              console.log('✅ Firebase Auth user deleted');
               
               // 5. SignOut et reset Context
+              // Note: no explicit navigation.navigate() needed here —
+              // deleteUser() triggers onAuthStateChanged(null) in App.tsx,
+              // which sets user=null and automatically renders AuthStack (Connection).
               await signOut(auth);
               setUser(null);
               setBabyID(null);
               setUserInfo(null);
-
-              console.log('✅ User account fully anonymized');
-
-              // 6. Navigation vers l'écran de connexion
-              navigation.navigate('Connection');
               
             } catch (error) {
-              console.error('❌ Error deleting account:', error);
+              console.error('Error deleting account:', error);
               Alert.alert(
                 t('error.title'),
                 t('accountDeletionFailed') || 'Account deletion failed. Please try again.'
@@ -239,7 +239,11 @@ const DeleteAccount = ({ route, navigation }) => {
 
       <View style={styles.footer}>
         <Text style={styles.errorText}>{userError}</Text>
-        <TouchableOpacity style={styles.button} onPress={deleteAccount}>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={deleteAccount}
+          disabled={loading}
+        >
           <Text style={styles.buttonText}>{t('validate')}</Text>
         </TouchableOpacity>
       </View>
@@ -293,6 +297,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     width: 250,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: '#F6F0EB',

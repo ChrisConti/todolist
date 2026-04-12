@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Switch } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { auth, db } from './config';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { addDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { addDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import analytics from './services/analytics';
 import * as Localization from 'expo-localization';
 import { KEYBOARD_CONFIG } from './utils/constants';
@@ -15,21 +15,44 @@ const SignIn = ({ navigation }) => {
   const [name, setName] = useState("");
   const [userError, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailOptIn, setEmailOptIn] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [emailTouched, setEmailTouched] = useState(false);
   const emailInputRef = useRef<TextInput>(null);
 
+const DISPOSABLE_DOMAINS = [
+  'mailinator.com', 'yopmail.com', 'guerrillamail.com', 'throwam.com',
+  'tempmail.com', 'temp-mail.org', 'fakeinbox.com', 'sharklasers.com',
+  'guerrillamailblock.com', 'grr.la', 'guerrillamail.info', 'spam4.me',
+  'trashmail.com', 'trashmail.me', 'trashmail.net', 'dispostable.com',
+  'mailnull.com', 'maildrop.cc', 'spamgourmet.com', 'mytemp.email',
+  'discard.email', 'spamfree24.org', 'mailnesia.com', 'mailnull.com',
+];
+
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+
+const validateEmail = (value: string): string => {
+  const normalized = value.toLowerCase().trim();
+  if (!normalized) return t('error.invalidEmail');
+  if (!EMAIL_REGEX.test(normalized)) return t('error.invalidEmail');
+  const domain = normalized.split('@')[1];
+  if (DISPOSABLE_DOMAINS.includes(domain)) return t('error.disposableEmail');
+  return '';
+};
+
   useEffect(() => {
-    // Auto-focus sur le champ email
-    setTimeout(() => emailInputRef.current?.focus(), 100);
+    const timer = setTimeout(() => emailInputRef.current?.focus(), 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const onHandleRegister = async () => {
-    if (loading) return; // Prévenir double-soumission
-    
-    const emailRegex = /^(([^<>()\[\]\.,;:\s@"]+(\.[^<>()\[\]\.,;:\s@"]+)*)|("..+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    const isValidEmail = emailRegex.test(email.trim());
+    if (loading) return;
 
-    if (!email || !isValidEmail) {
-      setError(t('error.invalidEmail'));
+    const normalizedEmail = email.toLowerCase().trim();
+    const emailValidation = validateEmail(normalizedEmail);
+    if (emailValidation) {
+      setEmailError(emailValidation);
+      setEmailTouched(true);
       return;
     }
 
@@ -51,7 +74,7 @@ const SignIn = ({ navigation }) => {
     
     try {
       // Créer l'utilisateur dans Firebase Auth et Firestore de manière atomique
-      const res = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      const res = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
 
       try {
         // Récupérer le pays de l'utilisateur
@@ -65,15 +88,11 @@ const SignIn = ({ navigation }) => {
         const userSnapshot = await getDocs(userQuery);
 
         if (!userSnapshot.empty) {
-          // Document User existe déjà - situation anormale, il faut faire un rollback
-          console.error('❌ User document already exists for:', res.user.uid);
-
-          // ROLLBACK : Supprimer le compte Auth qu'on vient de créer
+          // Document User existe déjà - situation anormale, rollback
           try {
             await res.user.delete();
-            console.log('🔄 Auth user deleted - document already existed');
           } catch (deleteError) {
-            console.error('❌ CRITICAL: Failed to delete auth user', deleteError);
+            console.error('CRITICAL: Failed to delete auth user during rollback', deleteError);
           }
 
           setError(t('error.userDocumentExists') || 'An account already exists. Please try logging in.');
@@ -81,16 +100,16 @@ const SignIn = ({ navigation }) => {
           return;
         } else {
           // CRITIQUE : Créer le document User dans Firestore
-          const userDocRef = await addDoc(collection(db, "Users"), {
+          await addDoc(collection(db, "Users"), {
             userId: res.user.uid,
-            email: res.user.email,
+            email: normalizedEmail,
             username: trimmedName,
-            BabyID: '',
+            babyID: '',
             country: userCountry,
-            creationDate: new Date(),
+            provider: 'email',
+            emailOptIn,
+            creationDate: serverTimestamp(),
           });
-
-          console.log('✅ User document created successfully:', userDocRef.id);
         }
 
         analytics.logEvent('user_signup', {
@@ -104,12 +123,8 @@ const SignIn = ({ navigation }) => {
         // onAuthStateChanged dans App.tsx va gérer la navigation automatique
         
       } catch (firestoreError: any) {
-        // ROLLBACK : Si Firestore échoue, supprimer l'utilisateur Auth
-        console.error('❌ Failed to create User document, rolling back auth user', firestoreError);
-
-        // Vérifier si c'est l'erreur "document already exists"
+        // Firestore failed — rollback the Auth user
         if (firestoreError.message && firestoreError.message.includes('Document already exists')) {
-          console.log('⚠️ Document already exists - this should not happen with the check above');
           setError(t('error.userDocumentExists') || 'An account already exists. Please try logging in.');
           setLoading(false);
           return;
@@ -117,9 +132,8 @@ const SignIn = ({ navigation }) => {
 
         try {
           await res.user.delete();
-          console.log('🔄 Auth user deleted after Firestore failure');
         } catch (deleteError) {
-          console.error('❌ CRITICAL: Failed to delete auth user during rollback', deleteError);
+          console.error('CRITICAL: Failed to delete auth user during rollback', deleteError);
           // Situation critique : utilisateur Auth existe sans document Firestore
           setError(t('error.criticalAccountError') || 'Critical error. Please contact support.');
           setLoading(false);
@@ -135,7 +149,6 @@ const SignIn = ({ navigation }) => {
         });
       }
     } catch (error: any) {
-      console.error('❌ Auth account creation failed:', error);
       setLoading(false);
       
       if (error.code === "auth/email-already-in-use") {
@@ -145,7 +158,7 @@ const SignIn = ({ navigation }) => {
       } else if (error.code === "auth/invalid-email") {
         setError(t('error.invalidEmail'));
       } else {
-        setError(t('error.general') + ` (${error.code})`);
+        setError(t('error.general'));
       }
       
       analytics.logEvent('signup_error', {
@@ -171,16 +184,32 @@ const SignIn = ({ navigation }) => {
             <View style={styles.inputContainer}>
               <TextInput
                 ref={emailInputRef}
-                style={styles.input}
+                style={[
+                  styles.input,
+                  emailTouched && emailError ? styles.inputError : null,
+                  emailTouched && !emailError && email ? styles.inputValid : null,
+                ]}
                 placeholder={t('placeholder.email')}
                 keyboardType="email-address"
                 textContentType="emailAddress"
                 autoComplete="email"
                 autoCapitalize="none"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (emailTouched) {
+                    setEmailError(validateEmail(text.toLowerCase().trim()));
+                  }
+                }}
+                onBlur={() => {
+                  setEmailTouched(true);
+                  setEmailError(validateEmail(email.toLowerCase().trim()));
+                }}
                 editable={!loading}
               />
+              {emailTouched && emailError ? (
+                <Text style={styles.inlineError}>{emailError}</Text>
+              ) : null}
               <TextInput
                 style={styles.input}
                 placeholder={t('placeholder.password')}
@@ -222,6 +251,22 @@ const SignIn = ({ navigation }) => {
                   <Text style={styles.linkText}>{t('settings.termsOfUse')}</Text>
                 </TouchableOpacity>
               </View>
+
+              <TouchableOpacity
+                style={styles.emailOptInRow}
+                onPress={() => setEmailOptIn(v => !v)}
+                activeOpacity={0.7}
+                disabled={loading}
+              >
+                <Switch
+                  value={emailOptIn}
+                  onValueChange={setEmailOptIn}
+                  thumbColor={emailOptIn ? '#C75B4A' : '#ccc'}
+                  trackColor={{ false: '#E0E0E0', true: '#F0C4BB' }}
+                  disabled={loading}
+                />
+                <Text style={styles.emailOptInText}>{t('conditions.emailOptIn')}</Text>
+              </TouchableOpacity>
 
               {userError !== '' && (
                 <View style={styles.errorContainer}>
@@ -271,8 +316,21 @@ const styles = StyleSheet.create({
     borderColor: '#C75B4A',
     borderRadius: 8,
     paddingHorizontal: 15,
-    marginBottom: 15,
+    marginBottom: 4,
     backgroundColor: '#FFFFFF',
+  },
+  inputError: {
+    borderColor: '#E53935',
+    borderWidth: 2,
+  },
+  inputValid: {
+    borderColor: '#43A047',
+  },
+  inlineError: {
+    color: '#E53935',
+    fontSize: 12,
+    marginBottom: 11,
+    paddingHorizontal: 4,
   },
   footerContainer: {
     alignItems: 'center',
@@ -296,6 +354,18 @@ const styles = StyleSheet.create({
   },
   linkSpacing: {
     marginTop: 10,
+  },
+  emailOptInRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 10,
+  },
+  emailOptInText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#7A8889',
+    lineHeight: 18,
   },
   errorContainer: {
     marginBottom: 15,

@@ -9,6 +9,7 @@ export interface UserInfo {
   deletedAt?: string;
   provider?: 'email' | 'google' | 'apple';
   photoURL?: string;
+  emailOptIn?: boolean;
 }
 
 export interface Task {

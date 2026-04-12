@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
 import { babiesRef, db, userRef, storage } from './config';
@@ -20,22 +21,20 @@ const BabyTab = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [babyData, setBabyData] = useState<any>(null);
   const [userListDisplay, setUserListDisplay] = useState([]);
-  const [initialLoad, setInitialLoad] = useState(true);
 
-
-  useEffect(() => {
-    if (!user || !babyID) {
-      setLoading(false);
-      setInitialLoad(false);
-      return;
-    }
-    loadBabyAndUsers();
-  }, [babyID, user]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!user || !babyID) {
+        setBabyData(null);
+        setLoading(false);
+        return;
+      }
+      loadBabyAndUsers();
+    }, [babyID, user])
+  );
 
   const loadBabyAndUsers = async () => {
-    if (initialLoad) {
-      setLoading(true);
-    }
+    setLoading(true); // toujours afficher le spinner pendant le chargement
 
     const queryResult = query(babiesRef, where('id', '==', babyID));
     try {
@@ -45,12 +44,12 @@ const BabyTab = ({ navigation }) => {
       if (!querySnapshot.empty) {
         const data = querySnapshot.docs[0].data();
         setBabyData(data);
-        
+
         // Load users directly
         if (data.user && data.user.length > 0) {
           const usersQuery = query(userRef, where('userId', 'in', data.user));
           const usersSnapshot = await getDocs(usersQuery);
-          
+
           const users = usersSnapshot.docs.map((doc) => doc.data());
           setUserListDisplay(users);
         }
@@ -62,7 +61,6 @@ const BabyTab = ({ navigation }) => {
       setBabyData(null);
     } finally {
       setLoading(false);
-      setInitialLoad(false);
     }
   };
 
@@ -74,10 +72,9 @@ const BabyTab = ({ navigation }) => {
     
     try {
       const queryResult = query(babiesRef, where('user', 'array-contains', user.uid));
-      const querySnapshot = await getDocs(queryResult);
+      const querySnapshot = await getDocsFromServer(queryResult);
 
       if (querySnapshot.empty) {
-        console.log('No babies found for this user.');
         return;
       }
 
@@ -89,12 +86,16 @@ const BabyTab = ({ navigation }) => {
 
       await Promise.all(updatePromises);
       setBabyID(null);
-      
-      analytics.logEvent('baby_left', {
-        baby_id: babyID,
-        user_id: user.uid,
-        timestamp: Date.now()
-      });
+
+      try {
+        analytics.logEvent('baby_left', {
+          baby_id: babyID,
+          user_id: user.uid,
+          timestamp: Date.now()
+        });
+      } catch {
+        // Non-critical — don't block leave if analytics throws
+      }
       
       // Clean activity review prompt counters for this user
       try {
@@ -145,7 +146,8 @@ const BabyTab = ({ navigation }) => {
     navigation.navigate('EditBaby', { babyData });
   };
 
-  if (loading) {
+  // Spinner : premier chargement uniquement (pas de données en cache)
+  if (loading && !babyData) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#C75B4A" />
@@ -153,8 +155,8 @@ const BabyTab = ({ navigation }) => {
     );
   }
 
-  // No baby - show empty state
-  if (!babyID || !babyData) {
+  // Pas de bébé → proposer créer / rejoindre
+  if (!babyID) {
     return (
       <View style={styles.container}>
         <View style={[styles.header, { paddingTop: insets.top }]}>
@@ -191,6 +193,15 @@ const BabyTab = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         </ScrollView>
+      </View>
+    );
+  }
+
+  // babyID setté mais données pas encore disponibles (query vide ou erreur Firestore)
+  if (!babyData) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#C75B4A" />
       </View>
     );
   }
@@ -247,8 +258,8 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#C75B4A',
-    paddingBottom: 15,
-    paddingHorizontal: 20,
+    paddingBottom: 14,
+    paddingHorizontal: 16,
     alignItems: 'center',
   },
   headerTitle: {

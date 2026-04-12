@@ -1,4 +1,4 @@
-import { Share, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import moment from 'moment';
@@ -208,7 +208,7 @@ export const exportTasksToCSV = async (options: ExportOptions & { maxTasks?: num
         // Share the file
         await Sharing.shareAsync(fileUri, {
           mimeType: 'text/csv',
-          dialogTitle: 'Exporter les tâches',
+          dialogTitle: i18next.t('export.page.exportButton'),
           UTI: 'public.comma-separated-values-text',
         });
       } else {

@@ -1,27 +1,20 @@
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Modal, Linking, Button } from 'react-native';
-// import * as Sentry from '@sentry/react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scrollview';
-import React, { useContext, useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Linking } from 'react-native';
+import React, { useContext, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ItemParameter from './ItemParameter.js';
-import { auth, userRef } from './config.js';
-import AuthentificationUserProvider, { AuthentificationUserContext } from './Context/AuthentificationContext';
-import { deleteUser, signOut } from 'firebase/auth';
-import { getDocs, query, where } from 'firebase/firestore';
-import WebView from 'react-native-webview';
+import { auth } from './config.js';
+import { AuthentificationUserContext } from './Context/AuthentificationContext';
+import { signOut } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
 import analytics from './services/analytics';
 import { useReviewPrompt } from './Context/ReviewPromptContext';
-import Lolipop from './assets/lolipop.svg';
 
 const Settings = ({ navigation }) => {
   const { user, setUser, babyID, setBabyID, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
   const { showReviewModalManually, hasReviewed } = useReviewPrompt();
   const insets = useSafeAreaInsets();
-  const [modalVisible, setModalVisible] = useState(false);
   const { t } = useTranslation();
 
-  // Get provider info
   const provider = userInfo?.provider || 'email';
 
   useEffect(() => {
@@ -56,15 +49,6 @@ const Settings = ({ navigation }) => {
     Linking.openURL(url).catch((err) => console.error('Failed to open email:', err));
   };
 
-  const handleOpenWebsite = () => {
-    const url = 'https://www.tribubaby.app';
-    Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
-  };
-
-  const handleOpenWebsite2 = () => {
-    const url = 'https://www.tribubaby.app';
-    Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
-  };
 
   return (
     <View style={styles.container}>
@@ -95,6 +79,9 @@ const Settings = ({ navigation }) => {
               }}
             >
               <ItemParameter title={t('settings.deleteAccount')} icon="account-remove" iconFamily="MaterialCommunityIcons" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('EmailOptIn')}>
+              <ItemParameter title={t('settings.emailOptIn')} icon="email-newsletter" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleSignOut}>
               <ItemParameter title={t('settings.signOut')} icon="logout" iconFamily="MaterialCommunityIcons" />
@@ -143,20 +130,6 @@ const Settings = ({ navigation }) => {
 
         </View>
       </ScrollView>
-      {/* Footer */}
-            <View style={{
-              position: 'absolute',
-              bottom: 10,
-              left: 0,
-              right: 0,
-              backgroundColor: 'transparent', // Set to 'transparent' to cover the entire bottom
-              alignItems: 'center',
-              justifyContent: 'flex-end', // Pushes the button to the bottom
-              flexDirection: 'column',
-              paddingBottom:10
-            }}>
-                         
-            </View>
     </View>
   );
 }
@@ -171,8 +144,8 @@ const styles = StyleSheet.create({
   header: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 12,
-    paddingHorizontal: 15,
+    paddingBottom: 14,
+    paddingHorizontal: 16,
     backgroundColor: '#C75B4A',
   },
   headerTitle: {
@@ -190,38 +163,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-  },
-  webview: { flex: 1 },
-  webViewcontainer: {
-    width: '80%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'red',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalView: {
-    width: '90%',
-    height: '80%',
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-    alignItems: 'center',
-  },
-  closeButton: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#C75B4A',
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  closeButtonText: {
-    color: 'white',
-    fontSize: 16,
   },
 });
 

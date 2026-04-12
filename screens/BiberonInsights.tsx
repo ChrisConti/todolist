@@ -46,11 +46,12 @@ export default function BiberonInsights({ navigation }: any) {
 
   useEffect(() => {
     if (!user || !babyID) { setLoading(false); return; }
-    const babyQuery = query(babiesRef, where('user', 'array-contains', user.uid));
+    // Query by babyID directly so multi-baby users always get the right data
+    const babyQuery = query(babiesRef, where('id', '==', babyID));
     const unsub = onSnapshot(babyQuery, (snap) => {
       if (!snap.empty) {
         const babyData = snap.docs[0]?.data();
-        if (babyData?.id === babyID) {
+        if (babyData) {
           const since = moment().subtract(90, 'days').startOf('day').toDate();
           const bottles = (babyData.tasks || []).filter((task: any) =>
             task.id === 0 && new Date(task.date) >= since
@@ -291,7 +292,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: BIBERON_COLOR,
-    paddingVertical: 12,
+    paddingBottom: 14,
     paddingHorizontal: 16,
   },
   backBtn: { width: 40, alignItems: 'flex-start' },

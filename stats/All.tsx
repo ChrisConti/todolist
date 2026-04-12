@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import moment from 'moment';
@@ -49,6 +50,7 @@ interface PeriodStats {
 
 const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   const calculatePeriodStats = (startDate: moment.Moment, endDate: moment.Moment): PeriodStats => {
     const stats: PeriodStats = {
@@ -104,15 +106,14 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
           break;
 
         case TASK_TYPES.TEMPERATURE:
+          const temp = parseFloat(String(task.label).replace(',', '.'));
+          if (isNaN(temp) || temp <= 0) break;
           stats.temperature.count++;
-          const temp = parseFloat(task.label);
-          if (!isNaN(temp)) {
-            if (stats.temperature.minTemp === undefined || temp < stats.temperature.minTemp) {
-              stats.temperature.minTemp = temp;
-            }
-            if (stats.temperature.maxTemp === undefined || temp > stats.temperature.maxTemp) {
-              stats.temperature.maxTemp = temp;
-            }
+          if (stats.temperature.minTemp === undefined || temp < stats.temperature.minTemp) {
+            stats.temperature.minTemp = temp;
+          }
+          if (stats.temperature.maxTemp === undefined || temp > stats.temperature.maxTemp) {
+            stats.temperature.maxTemp = temp;
           }
           break;
       }
@@ -240,7 +241,9 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
           {renderCategoryValue(last7Stats, category)}
         </View>
         <View style={styles.chevronCell}>
-          <MaterialCommunityIcons name="chevron-right" size={20} color={color} />
+          <View style={[styles.chevronCircle, { backgroundColor: color }]}>
+            <MaterialCommunityIcons name="chevron-right" size={16} color="#FFF" />
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -253,7 +256,11 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
       hasData={tasks.length > 0}
       emptyMessage={t('stats.noData')}
     >
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.tableCard}>
           {/* Header Row */}
           <View style={styles.headerRow}>
@@ -371,10 +378,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chevronCell: {
-    width: 24,
+    width: 32,
     alignItems: 'center',
     justifyContent: 'center',
     paddingRight: 4,
+  },
+  chevronCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dataCell: {
     flex: 1,

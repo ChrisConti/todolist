@@ -12,16 +12,12 @@ const ChangeName = ({ route, navigation }) => {
   const [userError, setError] = useState('');
   const inputRef = useRef<TextInput>(null);
 
-  const isReadOnly = userInfo?.provider !== 'email';
-
   const queryResult = query(userRef, where('userId', '==', user.uid));
 
-  // Log screen view when the component is mounted
   useEffect(() => {
-    if (!isReadOnly) {
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
-  }, [isReadOnly]);
+    const timer = setTimeout(() => inputRef.current?.focus(), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const onHandleModification = async () => {
     if (!name) {
@@ -67,16 +63,11 @@ const ChangeName = ({ route, navigation }) => {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ padding: 20, paddingBottom: 20 }}
       >
-        <Text style={styles.description}>
-          {isReadOnly
-            ? t('settings.changeNameReadOnly', { provider: userInfo?.provider === 'google' ? 'Google' : 'Apple' })
-            : t('settings.changeNameDescription')
-          }
-        </Text>
+        <Text style={styles.description}>{t('settings.changeNameDescription')}</Text>
 
         <TextInput
           ref={inputRef}
-          style={[styles.input, isReadOnly && styles.inputReadOnly]}
+          style={styles.input}
           placeholder={t('name')}
           placeholderTextColor="#9BA3A4"
           keyboardType="default"
@@ -84,18 +75,15 @@ const ChangeName = ({ route, navigation }) => {
           clearButtonMode="always"
           value={name}
           onChangeText={(text) => setName(text)}
-          editable={!isReadOnly}
         />
       </ScrollView>
 
-      {!isReadOnly && (
-        <View style={styles.footer}>
-          <Text style={styles.errorText}>{userError}</Text>
-          <TouchableOpacity style={styles.button} onPress={onHandleModification}>
-            <Text style={styles.buttonText}>{t('validate')}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <View style={styles.footer}>
+        <Text style={styles.errorText}>{userError}</Text>
+        <TouchableOpacity style={styles.button} onPress={onHandleModification}>
+          <Text style={styles.buttonText}>{t('validate')}</Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 };

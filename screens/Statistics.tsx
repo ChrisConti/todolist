@@ -1,12 +1,14 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import AllComponent from '../stats/All';
 import { onSnapshot, query, where } from 'firebase/firestore';
 import { babiesRef } from '../config';
+import { useTranslation } from 'react-i18next';
 
 export default function Statistics({ navigation }: any) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user, babyID }: any = useContext(AuthentificationUserContext);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -14,11 +16,12 @@ export default function Statistics({ navigation }: any) {
   useEffect(() => {
     if (!user || !babyID) { setTasks([]); return; }
 
-    const babyQuery = query(babiesRef, where('user', 'array-contains', user.uid));
+    // Query by babyID directly so multi-baby users always get the right data
+    const babyQuery = query(babiesRef, where('id', '==', babyID));
     const unsubscribe = onSnapshot(babyQuery, (snap) => {
       if (!snap.empty) {
         const babyData = snap.docs[0]?.data();
-        if (babyData?.id === babyID) {
+        if (babyData) {
           const sevenDaysAgo = new Date();
           sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
           const recentTasks = (babyData.tasks || []).filter((task: any) =>
@@ -39,11 +42,11 @@ export default function Statistics({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        <Text style={styles.headerTitle}>Statistiques</Text>
+        <Text style={styles.headerTitle}>{t('title.stats') || 'Statistiques'}</Text>
       </View>
-      <ScrollView style={styles.content}>
+      <View style={styles.content}>
         <AllComponent tasks={tasks} navigation={navigation} />
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -64,7 +67,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 10,
     backgroundColor: '#FDF1E7',
   },
 });

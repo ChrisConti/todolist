@@ -11,18 +11,29 @@ import DiaperComponent from '../stats/Diaper';
 import SommeilComponent from '../stats/Sommeil';
 import ThermoComponent from '../stats/Thermo';
 import AllaitementComponent from '../stats/Allaitement';
+import { useTranslation } from 'react-i18next';
 
-const CATEGORY_META: Record<number, { title: string; color: string }> = {
-  0: { title: 'Biberon',      color: '#34777B' },
-  1: { title: 'Couches',      color: '#C75B4A' },
-  3: { title: 'Sommeil',      color: '#E29656' },
-  4: { title: 'Température',  color: '#4F469F' },
-  5: { title: 'Allaitement',  color: '#1AAAAA' },
+const CATEGORY_COLORS: Record<number, string> = {
+  0: '#34777B',
+  1: '#C75B4A',
+  3: '#E29656',
+  4: '#4F469F',
+  5: '#1AAAAA',
 };
 
 export default function CategoryDetail({ navigation, route }: any) {
+  const { t } = useTranslation();
   const { categoryId } = route.params as { categoryId: number };
-  const meta = CATEGORY_META[categoryId] ?? { title: 'Détail', color: '#C75B4A' };
+  const color = CATEGORY_COLORS[categoryId] ?? '#C75B4A';
+
+  const CATEGORY_TITLES: Record<number, string> = {
+    0: t('stats.category.bottle'),
+    1: t('stats.category.diaper'),
+    3: t('stats.category.sleep'),
+    4: t('stats.category.temperature'),
+    5: t('stats.category.breastfeeding'),
+  };
+  const title = CATEGORY_TITLES[categoryId] ?? t('stats.category.detail');
 
   const insets = useSafeAreaInsets();
   const { user, babyID } = useContext(AuthentificationUserContext) as any;
@@ -32,11 +43,12 @@ export default function CategoryDetail({ navigation, route }: any) {
   useEffect(() => {
     if (!user || !babyID) { setLoading(false); return; }
 
-    const babyQuery = query(babiesRef, where('user', 'array-contains', user.uid));
+    // Query by babyID directly so multi-baby users always get the right data
+    const babyQuery = query(babiesRef, where('id', '==', babyID));
     const unsub = onSnapshot(babyQuery, (snap) => {
       if (!snap.empty) {
         const babyData = snap.docs[0]?.data();
-        if (babyData?.id === babyID) {
+        if (babyData) {
           const sevenDaysAgo = new Date();
           sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
           const filtered = (babyData.tasks || []).filter((t: any) =>
@@ -52,7 +64,7 @@ export default function CategoryDetail({ navigation, route }: any) {
   }, [babyID, user, categoryId]);
 
   const renderContent = () => {
-    if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={meta.color} />;
+    if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={color} />;
     switch (categoryId) {
       case 0: return <BiberonComponent tasks={tasks} navigation={navigation} />;
       case 1: return <DiaperComponent tasks={tasks} navigation={navigation} />;
@@ -65,11 +77,11 @@ export default function CategoryDetail({ navigation, route }: any) {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { backgroundColor: meta.color, paddingTop: insets.top }]}>
+      <View style={[styles.header, { backgroundColor: color, paddingTop: insets.top }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={26} color="#F6F0EB" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{meta.title}</Text>
+        <Text style={styles.headerTitle}>{title}</Text>
         <View style={{ width: 40 }} />
       </View>
       <View style={{ flex: 1, padding: 10 }}>
@@ -85,7 +97,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingBottom: 14,
     paddingHorizontal: 16,
   },
   backBtn: { width: 40, alignItems: 'flex-start' },

@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
-import { query, where, getDocs } from 'firebase/firestore';
+import { query, where, getDocsFromServer } from 'firebase/firestore';
 import { babiesRef } from '../config';
 import { useTranslation } from 'react-i18next';
 import { exportTasksToCSV, getDateRangePresets } from '../utils/exportTasks';
@@ -26,7 +26,7 @@ const ExportTasks = ({ navigation }) => {
 
     try {
       const babyQuery = query(babiesRef, where('id', '==', babyID));
-      const querySnapshot = await getDocs(babyQuery);
+      const querySnapshot = await getDocsFromServer(babyQuery);
       
       if (!querySnapshot.empty) {
         const data = querySnapshot.docs[0].data();
@@ -52,15 +52,17 @@ const ExportTasks = ({ navigation }) => {
       return;
     }
 
-    setLoading(true);
+    // Non-critical — wrapped so a throw never prevents the export
+    try {
+      analytics.logEvent('export_button_clicked', {
+        period: selectedPeriod,
+        task_count: babyData.tasks.length,
+        baby_id: babyID,
+        user_id: user.uid,
+      });
+    } catch {}
 
-    // Track export button click
-    analytics.logEvent('export_button_clicked', {
-      period: selectedPeriod,
-      task_count: babyData.tasks.length,
-      baby_id: babyID,
-      user_id: user.uid,
-    });
+    setLoading(true);
 
     try {
       const preset = datePresets[selectedPeriod];
@@ -74,17 +76,21 @@ const ExportTasks = ({ navigation }) => {
         maxTasks: preset.maxTasks,
       });
 
-      analytics.logEvent('tasks_exported', {
-        period: selectedPeriod,
-        task_count: babyData.tasks.length,
-        baby_id: babyID,
-        user_id: user.uid,
-      });
-
       Alert.alert(
         t('success.title'),
         t('success.tasksExported')
       );
+
+      // Non-critical — don't fail the export if analytics throws
+      try {
+        analytics.logEvent('tasks_exported', {
+          period: selectedPeriod,
+          task_count: babyData.tasks.length,
+          baby_id: babyID,
+          user_id: user.uid,
+        });
+      } catch {}
+
     } catch (error) {
       console.error('Export error:', error);
       Alert.alert(

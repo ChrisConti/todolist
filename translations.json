@@ -15,7 +15,8 @@
       "signup": "Sign Up",
       "submit": "Submit",
       "validate": "Validate",
-      "delete": "Delete"
+      "delete": "Delete",
+      "backToLogin": "Back to login"
     },
     "socialAuth": {
       "signInWithGoogleOrApple": "Sign in with Google or Apple",
@@ -27,6 +28,7 @@
       "appleConnectionError": "Unable to connect with Apple. Please try again.",
       "appleNotAvailableTitle": "Not Available",
       "appleNotAvailableMessage": "Sign in with Apple is only available on iOS 13+",
+      "otherMethod": "another method",
       "ok": "OK"
     },
     "placeholder": {
@@ -72,6 +74,7 @@
       "shortName": "Name should have at least 2 characters.",
       "emailInUse": "Email already used. Please sign up.",
       "emailAlreadyRegistered": "This email is already registered.",
+      "disposableEmail": "Please use a valid email address.",
       "networkError": "Network error. Please check your connection.",
       "databaseError": "Database error. Please try again later.",
       "criticalAccountError": "Critical error occurred. Please contact support.",
@@ -87,9 +90,15 @@
       "taskUpdateFailed": "Unable to update task. Please try again.",
       "taskDeleteFailed": "Unable to delete task. Please try again.",
       "babyNotFound": "Baby not found.",
+      "temperatureRequired": "Please enter a temperature value.",
       "permissionDenied": "Permission denied. Please check your account.",
       "title": "Error",
+      "somethingWentWrong": "Oops! Something went wrong",
+      "unexpectedError": "An unexpected error occurred",
+      "tryAgain": "Try Again",
       "userNotAuthenticated": "User not authenticated",
+      "noUserFound": "User not found. Please try again.",
+      "emailUpdateFailed": "Error updating email. Please try again.",
       "noTasksToExport": "No tasks to export",
       "exportFailed": "An error occurred during export",
       "birthdateRequired": "Birthdate is required",
@@ -296,6 +305,7 @@
       "contactUs": "Contact Us",
       "resetPasswordInstructions": "To reset your password, click on the button to receive an email.",
       "resetPassordEmailSent": "An email has been sent to reset your password.",
+      "resetPasswordEmailSentConfirm": "If this email address is registered, you will receive a password reset link shortly. Check your inbox.",
       "sendEmail": "Send email",
       "changeNameDescription": "Enter your new name below. This will update your profile name across the app.",
       "changeEmailDescription": "To change your email address, enter your new email and your current password to confirm the change.",
@@ -303,7 +313,10 @@
       "changeNameReadOnly": "Your name comes from your {{provider}} account and cannot be modified here.",
       "changeEmailReadOnly": "Your email comes from your {{provider}} account and cannot be modified here.",
       "deleteAccountPasswordInstruction": "Enter your password to confirm deletion:",
-      "deleteAccountReauthInstruction": "You will need to reconnect with {{provider}} to confirm the deletion of your account."
+      "deleteAccountReauthInstruction": "You will need to reconnect with {{provider}} to confirm the deletion of your account.",
+      "emailOptIn": "Email communications",
+      "emailOptInDescription": "Receive feedback requests and app improvement messages",
+      "emailOptInUpdated": "Preference updated"
     },
     "title":{
       "signup": "Sign Up",
@@ -347,7 +360,15 @@
       "lastBottle": "Last",
       "avgInterval": "Avg interval",
       "quantityUnit": "ml/oz",
-      "noData": "No data available"
+      "noData": "No data available",
+      "category": {
+        "bottle": "Bottle",
+        "diaper": "Diapers",
+        "sleep": "Sleep",
+        "temperature": "Temperature",
+        "breastfeeding": "Breastfeeding",
+        "detail": "Detail"
+      }
     },
     "enterValidName": "Please enter a valid name", 
     "modification": "Modification", 
@@ -379,7 +400,8 @@
       "label": "By clicking on validate, you accept our ",
       "link": "terms and conditions.",
       "terms": "terms and conditions.",
-      "privacy": "privacy policy."
+      "privacy": "privacy policy.",
+      "emailOptIn": "I agree to be contacted by email for app improvement purposes."
     },
     "breast.left": "Breast Left",
     "breast.right": "Breast Right",
@@ -533,7 +555,8 @@
       "signup": "S'inscrire",
       "submit": "Valider",
       "validate": "Valider",
-      "delete": "Supprimer"
+      "delete": "Supprimer",
+      "backToLogin": "Retour à la connexion"
     },
     "socialAuth": {
       "signInWithGoogleOrApple": "S'identifier avec Google ou Apple",
@@ -545,6 +568,7 @@
       "appleConnectionError": "Impossible de se connecter avec Apple. Veuillez réessayer.",
       "appleNotAvailableTitle": "Non disponible",
       "appleNotAvailableMessage": "La connexion avec Apple n'est disponible que sur iOS 13+",
+      "otherMethod": "une autre méthode",
       "ok": "OK"
     },
     "placeholder": {
@@ -590,6 +614,7 @@
       "shortName": "Le nom doit comporter au moins 2 caractères.",
       "emailInUse": "Email déjà utilisé. Veuillez vous inscrire.",
       "emailAlreadyRegistered": "Cet email est déjà enregistré.",
+      "disposableEmail": "Merci d'utiliser une adresse email valide.",
       "networkError": "Erreur réseau. Vérifiez votre connexion.",
       "databaseError": "Erreur de base de données. Réessayez plus tard.",
       "criticalAccountError": "Erreur critique. Veuillez contacter le support.",
@@ -605,9 +630,15 @@
       "taskUpdateFailed": "Impossible de modifier la tâche. Veuillez réessayer.",
       "taskDeleteFailed": "Impossible de supprimer la tâche. Veuillez réessayer.",
       "babyNotFound": "Bébé introuvable.",
+      "temperatureRequired": "Veuillez saisir une valeur de température.",
       "permissionDenied": "Permission refusée. Vérifiez votre compte.",
       "title": "Erreur",
+      "somethingWentWrong": "Oups ! Une erreur est survenue",
+      "unexpectedError": "Une erreur inattendue s'est produite",
+      "tryAgain": "Réessayer",
       "userNotAuthenticated": "Utilisateur non authentifié",
+      "noUserFound": "Utilisateur introuvable. Veuillez réessayer.",
+      "emailUpdateFailed": "Erreur lors de la mise à jour de l'email. Veuillez réessayer.",
       "noTasksToExport": "Aucune tâche à exporter",
       "exportFailed": "Une erreur s'est produite lors de l'export",
       "birthdateRequired": "La date de naissance est requise",
@@ -815,13 +846,17 @@
       "resetPasswordInstructions": "Pour réinitialiser votre mot de passe, cliquez sur le bouton pour recevoir un email.",
       "sendEmail": "Envoyer un email",
       "resetPassordEmailSent": "Un email a été envoyé pour réinitialiser votre mot de passe.",
+      "resetPasswordEmailSentConfirm": "Si cette adresse email est enregistrée, vous recevrez un lien de réinitialisation. Vérifiez votre boîte mail.",
       "changeNameDescription": "Entrez votre nouveau nom ci-dessous. Cela mettra à jour votre nom de profil dans toute l'application.",
       "changeEmailDescription": "Pour changer votre adresse email, entrez votre nouvel email et votre mot de passe actuel pour confirmer le changement.",
       "deleteAccountWarning": "Cette action est permanente et ne peut pas être annulée. Entrez votre mot de passe pour confirmer la suppression de votre compte. Vos tâches seront anonymisées dans les bébés partagés.",
       "changeNameReadOnly": "Votre nom provient de votre compte {{provider}} et ne peut pas être modifié ici.",
       "changeEmailReadOnly": "Votre email provient de votre compte {{provider}} et ne peut pas être modifié ici.",
       "deleteAccountPasswordInstruction": "Entrez votre mot de passe pour confirmer la suppression :",
-      "deleteAccountReauthInstruction": "Vous devrez vous reconnecter avec {{provider}} pour confirmer la suppression de votre compte."
+      "deleteAccountReauthInstruction": "Vous devrez vous reconnecter avec {{provider}} pour confirmer la suppression de votre compte.",
+      "emailOptIn": "Communications email",
+      "emailOptInDescription": "Recevoir des demandes de retour et messages d'amélioration de l'app",
+      "emailOptInUpdated": "Préférence mise à jour"
     },
     "enterValidName": "Veuillez entrer un nom valide", 
     "modification": "Modification", 
@@ -888,11 +923,20 @@
       "lastBottle": "Dernier",
       "avgInterval": "Intervalle moy.",
       "quantityUnit": "ml/oz",
-      "noData": "Aucune donnée disponible"
+      "noData": "Aucune donnée disponible",
+      "category": {
+        "bottle": "Biberon",
+        "diaper": "Couches",
+        "sleep": "Sommeil",
+        "temperature": "Température",
+        "breastfeeding": "Allaitement",
+        "detail": "Détail"
+      }
     },
     "conditions":{
       "label": "En cliquant sur valider, vous acceptez nos ",
-      "link": "conditions generales d'utilisation."
+      "link": "conditions generales d'utilisation.",
+      "emailOptIn": "J'accepte d'être contacté par email à des fins d'améliorations de l'app."
     },
     "breast.left": "Sein Gauche",
     "breast.right": "Sein Droit",
@@ -1048,7 +1092,8 @@
         "signup": "Registrarse",
         "submit": "Enviar",
         "validate": "Validar",
-        "delete": "Eliminar"
+        "delete": "Eliminar",
+        "backToLogin": "Volver al inicio de sesión"
       },
       "socialAuth": {
         "signInWithGoogleOrApple": "Iniciar sesión con Google o Apple",
@@ -1060,6 +1105,7 @@
         "appleConnectionError": "No se pudo conectar con Apple. Por favor intenta de nuevo.",
         "appleNotAvailableTitle": "No disponible",
         "appleNotAvailableMessage": "Iniciar sesión con Apple solo está disponible en iOS 13+",
+        "otherMethod": "otro método",
         "ok": "OK"
       },
       "placeholder": {
@@ -1105,6 +1151,7 @@
         "shortName": "El nombre debe tener al menos 2 caracteres.",
         "emailInUse": "El correo ya está en uso. Por favor, regístrate.",
         "emailAlreadyRegistered": "Este correo ya está registrado.",
+        "disposableEmail": "Por favor, utiliza una dirección de correo válida.",
         "networkError": "Error de red. Verifica tu conexión.",
         "databaseError": "Error de base de datos. Inténtalo más tarde.",
         "criticalAccountError": "Error crítico. Por favor, contacta con soporte.",
@@ -1119,9 +1166,15 @@
         "taskUpdateFailed": "No se pudo actualizar la tarea. Inténtalo de nuevo.",
         "taskDeleteFailed": "No se pudo eliminar la tarea. Inténtalo de nuevo.",
         "babyNotFound": "Bebé no encontrado.",
+        "temperatureRequired": "Por favor, introduce un valor de temperatura.",
         "permissionDenied": "Permiso denegado. Verifica tu cuenta.",
         "title": "Error",
+        "somethingWentWrong": "¡Vaya! Algo salió mal",
+        "unexpectedError": "Se produjo un error inesperado",
+        "tryAgain": "Intentar de nuevo",
         "userNotAuthenticated": "Usuario no autenticado",
+        "noUserFound": "Usuario no encontrado. Por favor, inténtalo de nuevo.",
+        "emailUpdateFailed": "Error al actualizar el correo. Por favor, inténtalo de nuevo.",
         "noTasksToExport": "No hay tareas para exportar",
         "exportFailed": "Ocurrió un error durante la exportación",
         "birthdateRequired": "Se requiere la fecha de nacimiento",
@@ -1329,13 +1382,17 @@
         "resetPasswordInstructions": "Para restablecer tu contraseña, haz clic en el botón para recibir un correo electrónico.",
         "sendEmail": "Enviar correo",
         "resetPassordEmailSent": "Se ha enviado un correo electrónico para restablecer tu contraseña.",
+        "resetPasswordEmailSentConfirm": "Si esta dirección de correo está registrada, recibirás un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada.",
         "changeNameDescription": "Ingresa tu nuevo nombre a continuación. Esto actualizará tu nombre de perfil en toda la aplicación.",
         "changeEmailDescription": "Para cambiar tu dirección de correo electrónico, ingresa tu nuevo correo y tu contraseña actual para confirmar el cambio.",
         "deleteAccountWarning": "Esta acción es permanente y no se puede deshacer. Ingresa tu contraseña para confirmar la eliminación de tu cuenta. Tus tareas serán anonimizadas en los bebés compartidos.",
         "changeNameReadOnly": "Tu nombre proviene de tu cuenta {{provider}} y no se puede modificar aquí.",
         "changeEmailReadOnly": "Tu correo proviene de tu cuenta {{provider}} y no se puede modificar aquí.",
         "deleteAccountPasswordInstruction": "Ingresa tu contraseña para confirmar la eliminación:",
-        "deleteAccountReauthInstruction": "Deberás reconectarte con {{provider}} para confirmar la eliminación de tu cuenta."
+        "deleteAccountReauthInstruction": "Deberás reconectarte con {{provider}} para confirmar la eliminación de tu cuenta.",
+        "emailOptIn": "Comunicaciones por email",
+        "emailOptInDescription": "Recibir solicitudes de opinión y mensajes de mejora de la app",
+        "emailOptInUpdated": "Preferencia actualizada"
       },
       "enterValidName": "Por favor, introduce un nombre válido", 
       "enterValidEmail": "Por favor, introduce un correo válido", 
@@ -1398,11 +1455,20 @@
         "lastBottle": "Último",
         "avgInterval": "Intervalo prom.",
         "quantityUnit": "ml/oz",
-        "noData": "No hay datos disponibles"
+        "noData": "No hay datos disponibles",
+        "category": {
+          "bottle": "Biberón",
+          "diaper": "Pañales",
+          "sleep": "Sueño",
+          "temperature": "Temperatura",
+          "breastfeeding": "Lactancia",
+          "detail": "Detalle"
+        }
       },
       "conditions":{
         "label": "Al hacer clic en validar, acepta nuestros ",
-        "link": "términos y condiciones."
+        "link": "términos y condiciones.",
+        "emailOptIn": "Acepto ser contactado por correo electrónico para fines de mejora de la app."
       },
       "breast.left": "Pecho Izquierdo",
       "breast.right": "Pecho Derecho",
