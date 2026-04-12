@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   type User as FirebaseUser,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged
 } from 'firebase/auth';
@@ -13,6 +15,7 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   error: string | null;
 }
@@ -60,6 +63,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      setError(null);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const email = result.user.email || '';
+      if (!isAdminEmail(email)) {
+        await firebaseSignOut(auth);
+        throw new Error('Accès non autorisé. Seuls les administrateurs peuvent se connecter.');
+      }
+    } catch (err: any) {
+      console.error('Google sign in error:', err);
+      setError(err.message || 'Erreur de connexion Google');
+      throw err;
+    }
+  };
+
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
@@ -76,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAdmin,
     loading,
     signIn,
+    signInWithGoogle,
     signOut,
     error,
   };

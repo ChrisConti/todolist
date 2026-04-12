@@ -57,5 +57,15 @@ target 'tribubaby' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
+
+    # Fix react-native-blob-util header search path (ReactNativeBlobUtilSpec not found)
+    installer.pods_project.targets.each do |target|
+      if target.name == 'react-native-blob-util'
+        target.build_configurations.each do |config|
+          config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited)'
+          config.build_settings['HEADER_SEARCH_PATHS'] += ' "${PODS_ROOT}/Headers/Public/ReactCodegen"'
+        end
+      end
+    end
   end
 end

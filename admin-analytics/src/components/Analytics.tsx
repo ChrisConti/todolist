@@ -9,7 +9,7 @@ import { TaskDistribution } from './TaskDistribution';
 import { TaskDistributionByAge } from './TaskDistributionByAge';
 import './Analytics.css';
 
-type ModalType = 'accounts' | 'babies' | 'accountsWithoutBaby' | 'deletedAccounts' | 'babies1Task' | 'babies5Tasks' | 'babies30Tasks' | 'babies100Tasks' | 'babiesMultipleParents' | 'babiesActiveRecently' | null;
+type ModalType = 'accounts' | 'babies' | 'accountsWithoutBaby' | 'deletedAccounts' | 'babies1Task' | 'babies5Tasks' | 'babies30Tasks' | 'babies100Tasks' | 'babiesMultipleParents' | 'babiesActiveRecently' | 'emailOptIn' | 'providerGoogle' | 'providerApple' | 'providerEmail' | null;
 
 export const Analytics: React.FC = () => {
   const [preset, setPreset] = useState<PresetRange>('all');
@@ -197,6 +197,18 @@ export const Analytics: React.FC = () => {
           });
           setModalData(enrichBabiesWithEmails(sortBabies(activeBabies)));
           break;
+        case 'emailOptIn':
+          setModalData(sortUsers(users.filter(u => u.emailOptIn === true)));
+          break;
+        case 'providerGoogle':
+          setModalData(sortUsers(users.filter(u => u.provider === 'google')));
+          break;
+        case 'providerApple':
+          setModalData(sortUsers(users.filter(u => u.provider === 'apple')));
+          break;
+        case 'providerEmail':
+          setModalData(sortUsers(users.filter(u => !u.provider || u.provider === 'email')));
+          break;
       }
 
       setModalType(type);
@@ -217,6 +229,10 @@ export const Analytics: React.FC = () => {
       case 'babies100Tasks': return 'Bébés avec > 100 tâches';
       case 'babiesMultipleParents': return 'Bébés partagés (> 1 parent)';
       case 'babiesActiveRecently': return 'Bébés actifs (7 derniers jours)';
+      case 'emailOptIn': return 'Comptes opt-in email';
+      case 'providerGoogle': return 'Comptes Google';
+      case 'providerApple': return 'Comptes Apple';
+      case 'providerEmail': return 'Comptes Email/Mot de passe';
       default: return '';
     }
   };
@@ -348,6 +364,48 @@ export const Analytics: React.FC = () => {
             <div className="metric-label">Comptes supprimés</div>
             <div className="metric-value">{metrics?.deletedAccounts || 0}</div>
             <div className="metric-hint">Cliquez pour voir la liste</div>
+          </div>
+        </div>
+
+        <div className="metric-card clickable" onClick={() => handleCardClick('emailOptIn')}>
+          <div className="metric-icon">📧</div>
+          <div className="metric-content">
+            <div className="metric-label">Opt-in email</div>
+            <div className="metric-value">{metrics?.emailOptInCount || 0}</div>
+            <div className="metric-breakdown">
+              <span>{metrics?.totalAccounts ? Math.round(((metrics.emailOptInCount || 0) / metrics.totalAccounts) * 100) : 0}% des comptes</span>
+            </div>
+            <div className="metric-hint">Cliquez pour voir la liste</div>
+          </div>
+        </div>
+
+        <div className="metric-card">
+          <div className="metric-icon">🔑</div>
+          <div className="metric-content">
+            <div className="metric-label">Providers</div>
+            <div className="metric-breakdown" style={{ marginTop: '8px', gap: '6px', display: 'flex', flexDirection: 'column' }}>
+              <span
+                className="provider-badge clickable-badge"
+                onClick={() => handleCardClick('providerGoogle')}
+                title="Voir la liste"
+              >
+                🔵 Google: <strong>{metrics?.providerGoogleCount || 0}</strong>
+              </span>
+              <span
+                className="provider-badge clickable-badge"
+                onClick={() => handleCardClick('providerApple')}
+                title="Voir la liste"
+              >
+                🍎 Apple: <strong>{metrics?.providerAppleCount || 0}</strong>
+              </span>
+              <span
+                className="provider-badge clickable-badge"
+                onClick={() => handleCardClick('providerEmail')}
+                title="Voir la liste"
+              >
+                ✉️ Email: <strong>{metrics?.providerEmailCount || 0}</strong>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -556,7 +614,7 @@ export const Analytics: React.FC = () => {
         isOpen={modalType !== null}
         onClose={() => setModalType(null)}
         title={getModalTitle()}
-        type={modalType === 'accounts' || modalType === 'accountsWithoutBaby' || modalType === 'deletedAccounts' ? 'users' : 'babies'}
+        type={['accounts', 'accountsWithoutBaby', 'deletedAccounts', 'emailOptIn', 'providerGoogle', 'providerApple', 'providerEmail'].includes(modalType as string) ? 'users' : 'babies'}
         data={modalData}
         showAgeBreakdown={modalType === 'accountsWithoutBaby'}
         onBabyClick={handleBabyClick}

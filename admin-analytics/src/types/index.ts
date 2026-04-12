@@ -21,6 +21,7 @@ export interface Task {
   diaperContent?: number; // 0: pee, 1: poop, 2: both
   boobLeft?: number; // Left breast duration (minutes)
   boobRight?: number; // Right breast duration (minutes)
+  milkType?: string | null; // 'artificial' | 'maternal' | null
   user: string;
   createdBy: string;
   comment: string;
@@ -56,6 +57,11 @@ export interface AnalyticsMetrics {
   babiesActiveRecently: number;
   iosDownloads: number;
   androidDownloads: number;
+  // Email opt-in & provider breakdown
+  emailOptInCount: number;
+  providerGoogleCount: number;
+  providerAppleCount: number;
+  providerEmailCount: number;
   // Previous period metrics for trends
   previousPeriod?: {
     totalAccounts: number;

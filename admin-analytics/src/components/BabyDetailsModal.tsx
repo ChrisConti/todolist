@@ -25,7 +25,13 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
 
     let birth: Date;
     if (birthDate.includes('/')) {
-      const [day, month, year] = birthDate.split('/').map(Number);
+      let [day, month, year] = birthDate.split('/').map(Number);
+
+      // Handle 2-digit years: if year <= 50, assume 20XX, else 19XX
+      if (year < 100) {
+        year = year <= 50 ? 2000 + year : 1900 + year;
+      }
+
       birth = new Date(year, month - 1, day);
     } else {
       birth = new Date(birthDate);
@@ -34,6 +40,8 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
     if (isNaN(birth.getTime())) return 'N/A';
 
     const now = new Date();
+
+    // For very recent babies, show days
     const diffMs = now.getTime() - birth.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
@@ -42,12 +50,24 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
     if (diffDays === 1) return '1 jour';
     if (diffDays < 30) return `${diffDays} jours`;
 
-    const months = Math.floor(diffDays / 30);
-    if (months === 1) return '1 mois';
-    if (months < 12) return `${months} mois`;
+    // Calculate months difference properly
+    const yearsDiff = now.getFullYear() - birth.getFullYear();
+    const monthsDiff = now.getMonth() - birth.getMonth();
+    const daysDiff = now.getDate() - birth.getDate();
 
-    const years = Math.floor(months / 12);
-    const remainingMonths = months % 12;
+    let totalMonths = yearsDiff * 12 + monthsDiff;
+
+    // If the day hasn't been reached yet this month, subtract one month
+    if (daysDiff < 0) {
+      totalMonths--;
+    }
+
+    if (totalMonths < 0) return 'N/A';
+    if (totalMonths === 1) return '1 mois';
+    if (totalMonths < 12) return `${totalMonths} mois`;
+
+    const years = Math.floor(totalMonths / 12);
+    const remainingMonths = totalMonths % 12;
     if (years === 1 && remainingMonths === 0) return '1 an';
     if (years === 1) return `1 an ${remainingMonths}m`;
     if (remainingMonths === 0) return `${years} ans`;
@@ -68,10 +88,22 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
   };
 
   let bottlesMl = 0;
-  let sleepHours = 0;
-  let breastfeedingHours = 0;
+  let milkArtificial = 0;
+  let milkMaternal = 0;
+  let milkOther = 0;
+  let sleepMinutes = 0;
+  let breastfeedingLeft = 0;
+  let breastfeedingRight = 0;
   let tempCount = 0;
   let tempSum = 0;
+  let tempMin = Infinity;
+  let tempMax = -Infinity;
+  let diaperPee = 0;
+  let diaperPoop = 0;
+  let diaperBoth = 0;
+  let diaperSolid = 0;
+  let diaperSoft = 0;
+  let diaperLiquid = 0;
 
   tasks.forEach(task => {
     const type = task.labelTask;
@@ -79,20 +111,38 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
       taskTypes[type].count++;
     }
 
-    // Calculate specifics
-    if (type === 'biberon' && task.label) {
+    if (type === 'biberon') {
       bottlesMl += Number(task.label) || 0;
+      if (task.milkType === 'artificial') milkArtificial++;
+      else if (task.milkType === 'maternal') milkMaternal++;
+      else milkOther++;
+    } else if (type === 'couche') {
+      const content = task.diaperContent;
+      if (content === 0) diaperPee++;
+      else if (content === 1) diaperPoop++;
+      else if (content === 2) diaperBoth++;
+      const dtype = task.diaperType ?? task.idCaca;
+      if (dtype === 0) diaperSolid++;
+      else if (dtype === 1) diaperSoft++;
+      else if (dtype === 2) diaperLiquid++;
     } else if (type === 'sommeil' && task.label) {
-      sleepHours += Number(task.label) || 0;
+      sleepMinutes += Number(task.label) || 0;
     } else if (type === 'allaitement') {
-      const left = task.boobLeft || 0;
-      const right = task.boobRight || 0;
-      breastfeedingHours += (left + right) / 60;
+      breastfeedingLeft += task.boobLeft || 0;
+      breastfeedingRight += task.boobRight || 0;
     } else if (type === 'thermo' && task.label) {
-      tempSum += Number(task.label) || 0;
-      tempCount++;
+      const t = Number(String(task.label).replace(',', '.')) || 0;
+      if (t > 0) {
+        tempSum += t;
+        tempCount++;
+        if (t < tempMin) tempMin = t;
+        if (t > tempMax) tempMax = t;
+      }
     }
   });
+
+  const sleepHours = sleepMinutes / 60;
+  const breastfeedingHours = (breastfeedingLeft + breastfeedingRight) / 60;
 
   // Timeline data (last 30 days)
   const getLast30Days = () => {
@@ -284,7 +334,17 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
               </div>
               <div className="info-item">
                 <span className="info-label">Date de naissance:</span>
-                <span className="info-value">{baby.birthDate || 'N/A'}</span>
+                <span className="info-value">{(() => {
+                  if (!baby.birthDate) return 'N/A';
+                  if (baby.birthDate.includes('/')) {
+                    let [day, month, year] = baby.birthDate.split('/').map(Number);
+                    if (year < 100) {
+                      year = year <= 50 ? 2000 + year : 1900 + year;
+                    }
+                    return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+                  }
+                  return baby.birthDate;
+                })()}</span>
               </div>
               <div className="info-item">
                 <span className="info-label">Âge:</span>
@@ -356,17 +416,56 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
                     <div className="task-type-content">
                       <div className="task-type-label">{type.label}</div>
                       <div className="task-type-count">{type.count} ({percentage}%)</div>
-                      {type.label === 'Biberons' && bottlesMl > 0 && (
-                        <div className="task-type-detail">{bottlesMl.toLocaleString()} ml au total</div>
+                      {type.label === 'Biberons' && type.count > 0 && (() => {
+                        const pct = (n: number) => `${Math.round((n / type.count) * 100)}%`;
+                        return (
+                          <div className="task-type-pills">
+                            <span className="task-pill">🥛 Artificiel: {milkArtificial} ({pct(milkArtificial)})</span>
+                            <span className="task-pill">🤱 Maternel: {milkMaternal} ({pct(milkMaternal)})</span>
+                            {milkOther > 0 && <span className="task-pill">— Autre: {milkOther} ({pct(milkOther)})</span>}
+                            {bottlesMl > 0 && <span className="task-pill muted">{bottlesMl.toLocaleString()} ml total</span>}
+                          </div>
+                        );
+                      })()}
+                      {type.label === 'Couches' && type.count > 0 && (() => {
+                        const pct = (n: number) => `${Math.round((n / type.count) * 100)}%`;
+                        const hasConsistency = (diaperSolid + diaperSoft + diaperLiquid) > 0;
+                        return (
+                          <div className="task-type-pills">
+                            <span className="task-pill">💦 Pipi: {diaperPee} ({pct(diaperPee)})</span>
+                            <span className="task-pill">💩 Caca: {diaperPoop} ({pct(diaperPoop)})</span>
+                            <span className="task-pill">💦💩 Les deux: {diaperBoth} ({pct(diaperBoth)})</span>
+                            {hasConsistency && <>
+                              <span className="task-pill">Dur: {diaperSolid} ({pct(diaperSolid)})</span>
+                              <span className="task-pill">Mou: {diaperSoft} ({pct(diaperSoft)})</span>
+                              <span className="task-pill">Liquide: {diaperLiquid} ({pct(diaperLiquid)})</span>
+                            </>}
+                          </div>
+                        );
+                      })()}
+                      {type.label === 'Sommeil' && sleepMinutes > 0 && (
+                        <div className="task-type-pills">
+                          <span className="task-pill">{sleepHours.toFixed(1)}h total</span>
+                          <span className="task-pill">moy. {(sleepMinutes / type.count).toFixed(0)} min/session</span>
+                        </div>
                       )}
-                      {type.label === 'Sommeil' && sleepHours > 0 && (
-                        <div className="task-type-detail">{sleepHours.toFixed(1)}h au total</div>
-                      )}
-                      {type.label === 'Allaitement' && breastfeedingHours > 0 && (
-                        <div className="task-type-detail">{breastfeedingHours.toFixed(1)}h au total</div>
-                      )}
+                      {type.label === 'Allaitement' && (breastfeedingLeft + breastfeedingRight) > 0 && (() => {
+                        const total = breastfeedingLeft + breastfeedingRight;
+                        const pct = (n: number) => `${Math.round((n / total) * 100)}%`;
+                        return (
+                          <div className="task-type-pills">
+                            <span className="task-pill">◀ Gauche: {breastfeedingLeft} min ({pct(breastfeedingLeft)})</span>
+                            <span className="task-pill">Droite ▶: {breastfeedingRight} min ({pct(breastfeedingRight)})</span>
+                            <span className="task-pill muted">{breastfeedingHours.toFixed(1)}h total</span>
+                          </div>
+                        );
+                      })()}
                       {type.label === 'Température' && tempCount > 0 && (
-                        <div className="task-type-detail">Moy: {(tempSum / tempCount).toFixed(1)}°C</div>
+                        <div className="task-type-pills">
+                          <span className="task-pill">Moy: {(tempSum / tempCount).toFixed(1)}°C</span>
+                          <span className="task-pill">Min: {tempMin.toFixed(1)}°C</span>
+                          <span className="task-pill">Max: {tempMax.toFixed(1)}°C</span>
+                        </div>
                       )}
                     </div>
                   </div>

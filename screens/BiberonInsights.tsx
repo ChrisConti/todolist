@@ -12,8 +12,9 @@ import { useTranslation } from 'react-i18next';
 import { SingleDayTimeline, CompareDayTimeline } from '../components/BiberonTimeline';
 import { TendanceChart } from '../components/TendanceChart';
 import { RythmeChart } from '../components/RythmeChart';
+import BiberonTypeBreakdown from '../components/stats/BiberonTypeBreakdown';
 
-type MainTab = 'detail' | 'tendance' | 'rythme';
+type MainTab = 'detail' | 'tendance' | 'rythme' | 'type';
 type DayTab  = 'today' | 'yesterday' | 'compare';
 
 interface MilkBreakdown { count: number; ml: number; }
@@ -213,6 +214,7 @@ export default function BiberonInsights({ navigation }: any) {
     { key: 'detail',   label: 'Détail' },
     { key: 'tendance', label: 'Tendance' },
     { key: 'rythme',   label: 'Rythme' },
+    { key: 'type',     label: 'Type' },
   ];
 
   const DAY_TABS: { key: DayTab; label: string }[] = [
@@ -277,6 +279,7 @@ export default function BiberonInsights({ navigation }: any) {
           {mainTab === 'detail' && dayTab === 'compare'   && renderCompareView()}
           {mainTab === 'tendance' && <TendanceChart tasks={tasks} />}
           {mainTab === 'rythme'   && <RythmeChart tasks={tasks} />}
+          {mainTab === 'type'     && <BiberonTypeBreakdown tasks={tasks} />}
         </ScrollView>
       )}
     </View>

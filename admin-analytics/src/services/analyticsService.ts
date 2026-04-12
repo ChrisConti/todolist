@@ -13,6 +13,8 @@ interface AppInstall {
  */
 export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: string): Promise<AnalyticsMetrics> => {
   try {
+    console.log('🔄 [DEBUG] Fetching data from Firestore at:', new Date().toISOString());
+
     // ALWAYS fetch all data (CreatedDate is a string, not Timestamp, so we can't query on it)
     // Use getDocsFromServer to bypass cache and get fresh data after deletions
     const usersSnapshot = await getDocsFromServer(usersRef);
@@ -27,6 +29,12 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
       id: doc.id,
       ...doc.data()
     } as Baby));
+
+    console.log('📊 [DEBUG] Fetched from Firestore:', {
+      usersCount: allUsers.length,
+      babiesCount: allBabies.length,
+      babyIds: allBabies.map(b => ({ id: b.id, name: b.name }))
+    });
 
     // Fetch installs (may not exist yet)
     let allInstalls: AppInstall[] = [];
@@ -81,11 +89,14 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
       babies = babies.filter(b =>
         b.name && b.name.toLowerCase().includes(lowerSearchTerm)
       );
+      console.log('🔍 [DEBUG] After search filter:', babies.length, 'babies (search:', searchTerm, ')');
     }
 
     // Calculate metrics
     const totalAccounts = users.length;
     const totalBabies = babies.length;
+
+    console.log('📈 [DEBUG] Final metrics:', { totalAccounts, totalBabies });
 
     // Get user IDs who created babies (in the filtered period)
     const userIdsWithBabies = new Set<string>();
@@ -133,6 +144,12 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
       });
       if (hasRecentTask) babiesActiveRecently++;
     });
+
+    // Email opt-in & provider breakdown
+    const emailOptInCount = users.filter(u => u.emailOptIn === true).length;
+    const providerGoogleCount = users.filter(u => u.provider === 'google').length;
+    const providerAppleCount = users.filter(u => u.provider === 'apple').length;
+    const providerEmailCount = users.filter(u => !u.provider || u.provider === 'email').length;
 
     // Count downloads by platform
     let iosDownloads = 0;
@@ -430,6 +447,10 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
       babiesActiveRecently,
       iosDownloads,
       androidDownloads,
+      emailOptInCount,
+      providerGoogleCount,
+      providerAppleCount,
+      providerEmailCount,
       previousPeriod,
       averageStats,
       taskDistribution,

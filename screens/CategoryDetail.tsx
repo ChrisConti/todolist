@@ -6,7 +6,6 @@ import { TouchableOpacity } from 'react-native';
 import { onSnapshot, query, where } from 'firebase/firestore';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { babiesRef } from '../config';
-import BiberonComponent from '../stats/Biberon';
 import DiaperComponent from '../stats/Diaper';
 import SommeilComponent from '../stats/Sommeil';
 import ThermoComponent from '../stats/Thermo';
@@ -66,7 +65,7 @@ export default function CategoryDetail({ navigation, route }: any) {
   const renderContent = () => {
     if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={color} />;
     switch (categoryId) {
-      case 0: return <BiberonComponent tasks={tasks} navigation={navigation} />;
+      case 0: navigation.replace('BiberonInsights'); return null;
       case 1: return <DiaperComponent tasks={tasks} navigation={navigation} />;
       case 3: return <SommeilComponent tasks={tasks} navigation={navigation} />;
       case 4: return <ThermoComponent tasks={tasks} navigation={navigation} />;

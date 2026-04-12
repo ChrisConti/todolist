@@ -6,9 +6,11 @@ import { Analytics } from './components/Analytics';
 import { Funnel } from './components/Funnel';
 import { Search } from './components/Search';
 import { Export } from './components/Export';
+import { Trends } from './components/Trends';
+import { Migration } from './components/Migration';
 import './App.css';
 
-type TabType = 'analytics' | 'funnel' | 'search' | 'export';
+type TabType = 'analytics' | 'trends' | 'funnel' | 'search' | 'export' | 'migration';
 
 const AppContent: React.FC = () => {
   const { currentUser, isAdmin, loading } = useAuth();
@@ -31,12 +33,16 @@ const AppContent: React.FC = () => {
     switch (activeTab) {
       case 'analytics':
         return <Analytics />;
+      case 'trends':
+        return <Trends />;
       case 'funnel':
         return <Funnel />;
       case 'search':
         return <Search />;
       case 'export':
         return <Export />;
+      case 'migration':
+        return <Migration />;
       default:
         return <Analytics />;
     }
