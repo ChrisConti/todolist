@@ -66,6 +66,7 @@ export const signInWithGoogle = async () => {
         creationDate: serverTimestamp(),
         provider: 'google',
         photoURL: user.photoURL,
+        emailOptIn: false,
       });
       log.info('User document created in Firestore', 'socialAuth');
     }
@@ -79,7 +80,7 @@ export const signInWithGoogle = async () => {
       const email = error.customData?.email;
       if (email) {
         const methods = await fetchSignInMethodsForEmail(auth, email);
-        let providerName = 'une autre méthode';
+        let providerName = i18next.t('socialAuth.otherMethod') || 'unknown';
 
         if (methods.includes('password')) providerName = 'Email/Password';
         else if (methods.includes('apple.com')) providerName = 'Apple';
@@ -131,9 +132,12 @@ export const signInWithApple = async () => {
 
     // Create Firebase credential
     const { identityToken, fullName } = appleCredential;
+    if (!identityToken) {
+      throw new Error('No identity token received from Apple');
+    }
     const provider = new OAuthProvider('apple.com');
     const credential = provider.credential({
-      idToken: identityToken!,
+      idToken: identityToken,
     });
 
     // Sign in to Firebase
@@ -154,10 +158,11 @@ export const signInWithApple = async () => {
 
       await setDoc(userDocRef, {
         userId: user.uid,
-        email: user.email || 'no-email@apple.com', // Fallback if no email
+        email: user.email || '', // Email only provided on first Apple sign-in
         username: displayName,
         creationDate: serverTimestamp(),
         provider: 'apple',
+        emailOptIn: false,
       });
       log.info('User document created in Firestore', 'socialAuth');
     }
@@ -177,7 +182,7 @@ export const signInWithApple = async () => {
       const email = error.customData?.email;
       if (email) {
         const methods = await fetchSignInMethodsForEmail(auth, email);
-        let providerName = 'une autre méthode';
+        let providerName = i18next.t('socialAuth.otherMethod') || 'unknown';
 
         if (methods.includes('password')) providerName = 'Email/Password';
         else if (methods.includes('google.com')) providerName = 'Google';
