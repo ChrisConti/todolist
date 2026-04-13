@@ -58,25 +58,25 @@ private func milkIcon(_ type: String) -> String {
 
 private func milkLabel(_ type: String) -> String {
   switch type {
-  case "artificial": return "Artificiel"
-  case "maternal":   return "Maternel"
-  default:           return "Lait"
+  case "artificial": return NSLocalizedString("milk.artificial", comment: "")
+  case "maternal":   return NSLocalizedString("milk.maternal", comment: "")
+  default:           return NSLocalizedString("milk.other", comment: "")
   }
 }
 
 private func timeAgo(_ date: Date) -> String {
   let diff = Int(Date().timeIntervalSince(date))
-  if diff < 60   { return "À l'instant" }
-  if diff < 3600 { return "Il y a \(diff / 60) min" }
+  if diff < 60   { return NSLocalizedString("time.now", comment: "") }
+  if diff < 3600 { return String(format: NSLocalizedString("time.minutes", comment: ""), diff / 60) }
   let h = diff / 3600
   let m = (diff % 3600) / 60
-  if m == 0      { return "Il y a \(h)h" }
-  return "Il y a \(h)h\(m)m"
+  if m == 0      { return String(format: NSLocalizedString("time.hours", comment: ""), h) }
+  return String(format: NSLocalizedString("time.hoursMinutes", comment: ""), h, m)
 }
 
 private func formattedTime(_ date: Date) -> String {
   let f = DateFormatter()
-  f.dateFormat = "HH:mm"
+  f.dateFormat = "HH'h'mm"
   return f.string(from: date)
 }
 
@@ -96,7 +96,7 @@ struct BiberonWidgetView: View {
           HStack(spacing: 5) {
             Text("🍼")
               .font(.system(size: 18))
-            Text("Biberon")
+            Text(NSLocalizedString("widget.title", comment: ""))
               .font(.system(size: 12, weight: .bold))
               .foregroundColor(.white.opacity(0.85))
           }
@@ -109,26 +109,17 @@ struct BiberonWidgetView: View {
               .foregroundColor(.white)
               .minimumScaleFactor(0.7)
               .lineLimit(1)
-            Text("ml")
+            Text(NSLocalizedString("unit.ml", comment: ""))
               .font(.system(size: 15, weight: .semibold))
               .foregroundColor(.white.opacity(0.8))
           }
 
-          HStack(spacing: 4) {
-            Text(milkIcon(bottle.milkType))
-              .font(.system(size: 12))
-            Text(milkLabel(bottle.milkType))
-              .font(.system(size: 12, weight: .semibold))
-              .foregroundColor(.white.opacity(0.9))
-          }
-
-          HStack(spacing: 4) {
-            Text(formattedTime(bottle.date))
-            Text("·")
-            Text(timeAgo(bottle.date))
-          }
-          .font(.system(size: 11))
-          .foregroundColor(.white.opacity(0.65))
+          Text(timeAgo(bottle.date))
+            .font(.system(size: 11))
+            .foregroundColor(.white.opacity(0.65))
+          Text(String(format: NSLocalizedString("widget.madeAt", comment: ""), formattedTime(bottle.date)))
+            .font(.system(size: 11))
+            .foregroundColor(.white.opacity(0.65))
         }
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -137,7 +128,7 @@ struct BiberonWidgetView: View {
         VStack(spacing: 8) {
           Text("🍼")
             .font(.system(size: 28))
-          Text("Aucun biberon\nenregistré")
+          Text(NSLocalizedString("widget.empty", comment: ""))
             .font(.system(size: 12, weight: .medium))
             .foregroundColor(.white.opacity(0.8))
             .multilineTextAlignment(.center)

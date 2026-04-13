@@ -1,0 +1,18 @@
+/* Unit */
+"unit.ml" = "ml";
+
+/* Widget */
+"widget.title" = "Biberón";
+"widget.empty" = "Sin biberón\nregistrado";
+"widget.madeAt" = "A las %@";
+
+/* Time ago */
+"time.now" = "Ahora mismo";
+"time.minutes" = "Hace %d min";
+"time.hours" = "Hace %dh";
+"time.hoursMinutes" = "Hace %dh%dm";
+
+/* Milk types */
+"milk.artificial" = "Artificial";
+"milk.maternal" = "Materna";
+"milk.other" = "Leche";

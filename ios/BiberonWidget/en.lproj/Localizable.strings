@@ -1,0 +1,18 @@
+/* Unit */
+"unit.ml" = "oz/ml";
+
+/* Widget */
+"widget.title" = "Bottle";
+"widget.empty" = "No bottle\nrecorded";
+"widget.madeAt" = "At %@";
+
+/* Time ago */
+"time.now" = "Just now";
+"time.minutes" = "%d min ago";
+"time.hours" = "%dh ago";
+"time.hoursMinutes" = "%dh%dm ago";
+
+/* Milk types */
+"milk.artificial" = "Formula";
+"milk.maternal" = "Breast milk";
+"milk.other" = "Milk";
