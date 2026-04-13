@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,9 +13,38 @@
 		4B8C2E66BBFA4330BC190DF8 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B245315349045738874038B /* GoogleService-Info.plist */; };
 		606F34BCDA7ABE46138D03B4 /* libPods-tribubaby.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C85126B0A960C27F85C406A1 /* libPods-tribubaby.a */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		BDFF0B952F8BF0C1009EC696 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDFF0B942F8BF0C1009EC696 /* WidgetKit.framework */; };
+		BDFF0B972F8BF0C1009EC696 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDFF0B962F8BF0C1009EC696 /* SwiftUI.framework */; };
+		BDFF0BA22F8BF0C2009EC696 /* BiberonWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BDFF0B932F8BF0C1009EC696 /* BiberonWidgetExtension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C5999D3BF1420310C302EFCA /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47807B4C80A885A0A7ED2FE /* ExpoModulesProvider.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		AA11BB241A000000000000AA /* WidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB221A000000000000AA /* WidgetBridge.swift */; };
+		AA11BB251A000000000000AA /* WidgetBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB231A000000000000AA /* WidgetBridge.m */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BDFF0BA02F8BF0C2009EC696 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BDFF0B922F8BF0C1009EC696;
+			remoteInfo = BiberonWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		BDFF0BA32F8BF0C2009EC696 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BDFF0BA22F8BF0C2009EC696 /* BiberonWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		13B07F961A680F5B00A75B9A /* tribubaby.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tribubaby.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -25,6 +54,12 @@
 		7031A36DD1432416B6A21524 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = tribubaby/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = tribubaby/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
+		BDFF0B932F8BF0C1009EC696 /* BiberonWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BiberonWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BDFF0B942F8BF0C1009EC696 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		BDFF0B962F8BF0C1009EC696 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		BDFF0BA82F8BF11D009EC696 /* tribubabyRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = tribubabyRelease.entitlements; path = tribubaby/tribubabyRelease.entitlements; sourceTree = "<group>"; };
+		BDFF0BA92F8BF154009EC696 /* BiberonWidgetExtensionRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BiberonWidgetExtensionRelease.entitlements; sourceTree = "<group>"; };
+		BDFF0BAA2F8BF154009EC696 /* BiberonWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BiberonWidgetExtension.entitlements; sourceTree = "<group>"; };
 		C85126B0A960C27F85C406A1 /* libPods-tribubaby.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-tribubaby.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9DAD20E09EBE8EC91007D2F /* Pods-tribubaby.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tribubaby.release.xcconfig"; path = "Target Support Files/Pods-tribubaby/Pods-tribubaby.release.xcconfig"; sourceTree = "<group>"; };
 		D47807B4C80A885A0A7ED2FE /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-tribubaby/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
@@ -32,7 +67,23 @@
 		EE4247E86FD4C1A05B77E5C8 /* Pods-tribubaby.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tribubaby.debug.xcconfig"; path = "Target Support Files/Pods-tribubaby/Pods-tribubaby.debug.xcconfig"; sourceTree = "<group>"; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = tribubaby/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* tribubaby-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "tribubaby-Bridging-Header.h"; path = "tribubaby/tribubaby-Bridging-Header.h"; sourceTree = "<group>"; };
+		AA11BB221A000000000000AA /* WidgetBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetBridge.swift; path = tribubaby/WidgetBridge.swift; sourceTree = "<group>"; };
+		AA11BB231A000000000000AA /* WidgetBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = WidgetBridge.m; path = tribubaby/WidgetBridge.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		BDFF0BA62F8BF0C2009EC696 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BDFF0B922F8BF0C1009EC696 /* BiberonWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		BDFF0B982F8BF0C1009EC696 /* BiberonWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (BDFF0BA62F8BF0C2009EC696 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = BiberonWidget; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
@@ -43,14 +94,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BDFF0B902F8BF0C1009EC696 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BDFF0B972F8BF0C1009EC696 /* SwiftUI.framework in Frameworks */,
+				BDFF0B952F8BF0C1009EC696 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		13B07FAE1A68108700A75B9A /* tribubaby */ = {
 			isa = PBXGroup;
 			children = (
+				BDFF0BA82F8BF11D009EC696 /* tribubabyRelease.entitlements */,
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
 				F11748442D0722820044C1D9 /* tribubaby-Bridging-Header.h */,
+				AA11BB221A000000000000AA /* WidgetBridge.swift */,
+				AA11BB231A000000000000AA /* WidgetBridge.m */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -66,6 +129,8 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				C85126B0A960C27F85C406A1 /* libPods-tribubaby.a */,
+				BDFF0B942F8BF0C1009EC696 /* WidgetKit.framework */,
+				BDFF0B962F8BF0C1009EC696 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -96,8 +161,11 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				BDFF0BA92F8BF154009EC696 /* BiberonWidgetExtensionRelease.entitlements */,
+				BDFF0BAA2F8BF154009EC696 /* BiberonWidgetExtension.entitlements */,
 				13B07FAE1A68108700A75B9A /* tribubaby */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
+				BDFF0B982F8BF0C1009EC696 /* BiberonWidget */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				CC12D292ED314E379CF617CA /* Pods */,
@@ -112,6 +180,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* tribubaby.app */,
+				BDFF0B932F8BF0C1009EC696 /* BiberonWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -149,16 +218,40 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
 				D47CC9FD324901614EB1A457 /* [CP] Embed Pods Frameworks */,
+				BDFF0BA32F8BF0C2009EC696 /* Embed Foundation Extensions */,
 				E8A671A9D6FC2A0B82D8CF10 /* [CP-User] [RNFB] Core Configuration */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				BDFF0BA12F8BF0C2009EC696 /* PBXTargetDependency */,
 			);
 			name = tribubaby;
 			productName = tribubaby;
 			productReference = 13B07F961A680F5B00A75B9A /* tribubaby.app */;
 			productType = "com.apple.product-type.application";
+		};
+		BDFF0B922F8BF0C1009EC696 /* BiberonWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BDFF0BA72F8BF0C2009EC696 /* Build configuration list for PBXNativeTarget "BiberonWidgetExtension" */;
+			buildPhases = (
+				BDFF0B8F2F8BF0C1009EC696 /* Sources */,
+				BDFF0B902F8BF0C1009EC696 /* Frameworks */,
+				BDFF0B912F8BF0C1009EC696 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				BDFF0B982F8BF0C1009EC696 /* BiberonWidget */,
+			);
+			name = BiberonWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = BiberonWidgetExtension;
+			productReference = BDFF0B932F8BF0C1009EC696 /* BiberonWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -166,10 +259,14 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1250;
+					};
+					BDFF0B922F8BF0C1009EC696 = {
+						CreatedOnToolsVersion = 26.4;
 					};
 				};
 			};
@@ -187,6 +284,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* tribubaby */,
+				BDFF0B922F8BF0C1009EC696 /* BiberonWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -201,6 +299,13 @@
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				4B8C2E66BBFA4330BC190DF8 /* GoogleService-Info.plist in Resources */,
 				1BD1CBFFDF88B3A41B899928 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BDFF0B912F8BF0C1009EC696 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -412,10 +517,27 @@
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
 				C5999D3BF1420310C302EFCA /* ExpoModulesProvider.swift in Sources */,
+				AA11BB241A000000000000AA /* WidgetBridge.swift in Sources */,
+				AA11BB251A000000000000AA /* WidgetBridge.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BDFF0B8F2F8BF0C1009EC696 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BDFF0BA12F8BF0C2009EC696 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BDFF0B922F8BF0C1009EC696 /* BiberonWidgetExtension */;
+			targetProxy = BDFF0BA02F8BF0C2009EC696 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
@@ -461,7 +583,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = tribubaby/tribubaby.entitlements;
+				CODE_SIGN_ENTITLEMENTS = tribubaby/tribubabyRelease.entitlements;
 				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = LY727WW2PQ;
 				INFOPLIST_FILE = tribubaby/Info.plist;
@@ -604,6 +726,101 @@
 			};
 			name = Release;
 		};
+		BDFF0BA42F8BF0C2009EC696 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = BiberonWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = LY727WW2PQ;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BiberonWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TribuBaby;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tribubaby.tribubaby.BiberonWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BDFF0BA52F8BF0C2009EC696 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = BiberonWidgetExtensionRelease.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = LY727WW2PQ;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BiberonWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TribuBaby;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tribubaby.tribubaby.BiberonWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -621,6 +838,15 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BDFF0BA72F8BF0C2009EC696 /* Build configuration list for PBXNativeTarget "BiberonWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BDFF0BA42F8BF0C2009EC696 /* Debug */,
+				BDFF0BA52F8BF0C2009EC696 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -1,8 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, Keyboard, ScrollView, FlatList, TouchableWithoutFeedback, Button, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import s = require("../Style.js");
-import { auth, db, babiesRef, userRef } from '../config.js';
-import { addDoc, collection, doc, getDocs, getDocsFromServer, query, updateDoc, where } from 'firebase/firestore';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Keyboard, ScrollView, TouchableWithoutFeedback, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { db, babiesRef } from '../config.js';
+import { doc, getDocsFromServer, query, updateDoc, where } from 'firebase/firestore';
 import { useReviewPrompt } from '../Context/ReviewPromptContext';
 import moment from 'moment';
 
@@ -94,7 +93,13 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
 
   const updateBabyTasks = async () => {
     if (loading) return; // Prévenir double-soumission
-    
+
+    // Temperature requires a value
+    if (selectedImage === 4 && !label.trim()) {
+      Alert.alert(t('error.title'), t('error.temperatureRequired') || 'Please enter a temperature value.');
+      return;
+    }
+
     if (!user || !user.uid) {
       console.error('Cannot update tasks: user not authenticated');
       Alert.alert(t('error.title'), t('error.notAuthenticated'));
@@ -141,7 +146,13 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
       await updateDoc(doc(db, 'Baby', document.id), {
         tasks: [...document.data().tasks, newTask],
       });
-      
+
+      // Update biberon widget if it's a bottle task
+      if (selectedImage === 0) {
+        const { updateBiberonWidget } = require('../utils/widgetBridge');
+        updateBiberonWidget(Number(label) || 0, milkType, new Date(time));
+      }
+
       console.log('Task created successfully');
       
       // Track task creation
@@ -517,10 +528,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                 <DateTimePicker
                   isVisible={isDateTimePickerVisible}
                   onConfirm={(date) => handleDateChange(date)}
-                  onCancel={()=> {
-                  setIsDateTimePickerVisible(false);
-                  setSelectedDate(new Date());
-                  }}
+                  onCancel={() => setIsDateTimePickerVisible(false)}
                   minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}
                   maximumDate={new Date()}
                   mode="datetime"

@@ -61,7 +61,7 @@ const UpdateTask = ({ route, navigation }) => {
         return;
       }
       
-      querySnapshot.forEach(async (document) => {
+      for (const document of querySnapshot.docs) {
         const data = document.data();
         const bfValues = breastfeedingRef.current?.getValues();
         const tasks = data.tasks.map(t => {
@@ -103,9 +103,13 @@ const UpdateTask = ({ route, navigation }) => {
         });
 
         await updateDoc(doc(db, 'Baby', document.id), { tasks });
-      });
 
-      console.log('Task updated successfully');
+        // Update biberon widget if it's a bottle task
+        if (selectedImage === 0) {
+          const { updateBiberonWidget } = require('../utils/widgetBridge');
+          updateBiberonWidget(Number(label) || 0, milkType, new Date(selectedDate));
+        }
+      }
 
       // Nettoyer les timers sauvegardés
       await breastfeedingRef.current?.clearTimers();
