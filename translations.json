@@ -8,7 +8,8 @@
     "forgotPassword": "Forgot password?",
     "noAccount": "Don't have an account?",
     "common": {
-      "loading": "Loading..."
+      "loading": "Loading...",
+      "or": "or"
     },
     "button": {
       "login": "Login",
@@ -249,7 +250,8 @@
       "day": "day",
       "kg": "kg/lb",
       "cm": "cm/in",
-      "openSettings": "Open Settings"
+      "openSettings": "Open Settings",
+      "codeLabel": "Code"
     },
     "task": {
       "createdBy": "Created by",
@@ -613,7 +615,8 @@
     "forgotPassword": "Mot de passe oublié ?",
     "noAccount": "Vous n'avez pas de compte ?",
     "common": {
-      "loading": "Chargement..."
+      "loading": "Chargement...",
+      "or": "ou"
     },
     "button": {
       "login": "Se connecter",
@@ -854,7 +857,8 @@
       "day": "jour",
       "kg": "kg",
       "cm": "cm",
-      "openSettings": "Ouvrir les réglages"
+      "openSettings": "Ouvrir les réglages",
+      "codeLabel": "Code"
     },
     "task": {
       "createdBy": "Créé par",
@@ -1204,7 +1208,8 @@
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "noAccount": "¿No tienes una cuenta?",
     "common": {
-      "loading": "Cargando..."
+      "loading": "Cargando...",
+      "or": "o"
     },
     "button": {
       "login": "Iniciar sesión",
@@ -1433,7 +1438,8 @@
       "day": "día",
       "kg": "kg",
       "cm": "cm",
-      "openSettings": "Abrir ajustes"
+      "openSettings": "Abrir ajustes",
+      "codeLabel": "Código"
     },
     "task": {
       "createdBy": "Creado por",

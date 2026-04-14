@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, GestureResponderEv
 import Logo from './assets/logo.svg';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from './config';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 // import * as Sentry from '@sentry/react-native';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
@@ -84,25 +84,17 @@ const ConnectionScreen = ({ navigation }) => {
             const userSnapshot = await getDocs(userQuery);
             
             if (userSnapshot.empty) {
-              // Document User manquant - le créer maintenant avec un nom par défaut localisé
-              console.warn('⚠️ User document missing for:', user.uid, '- creating now');
-              
               await addDoc(collection(db, "Users"), {
                 userId: user.uid,
                 email: user.email,
                 username: user.displayName || user.email?.split('@')[0] || 'Utilisateur',
-                BabyID: '',
-                creationDate: new Date(),
+                babyID: '',
+                provider: 'email',
+                creationDate: serverTimestamp(),
               });
-              
-              console.log('✅ User document created on login');
-            } else {
-              console.log('✅ User document exists');
             }
           } catch (firestoreError: any) {
-            console.error('❌ Error checking/creating User document:', firestoreError);
-            // Continue anyway - don't block login
-            // Note: Si le document existe déjà, c'est géré par le check au-dessus
+            // Non-blocking — don't prevent login if Firestore check fails
           }
           
           setUser(user);
@@ -110,13 +102,9 @@ const ConnectionScreen = ({ navigation }) => {
         })
         .catch((error) => {
           setLoading(false);
-          if (error.code === 'auth/invalid-credential') {
+          if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
             setError(t('error.invalidCredential'));
-          } else if (error.code === 'auth/wrong-password') {
-            console.log(error.message);
-            setError(t('error.test'));
           } else {
-            console.log(error.message);
             setError(t('error.general'));
           }
         });
@@ -170,7 +158,7 @@ const ConnectionScreen = ({ navigation }) => {
 
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>ou</Text>
+          <Text style={styles.dividerText}>{t('common.or')}</Text>
           <View style={styles.dividerLine} />
         </View>
 

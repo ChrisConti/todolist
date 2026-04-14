@@ -84,7 +84,7 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
           </TouchableOpacity>
 
           <View style={styles.codeContainer}>
-            <Text style={styles.codeLabel}>Code:</Text>
+            <Text style={styles.codeLabel}>{t('baby.codeLabel')} :</Text>
             <Text style={styles.codeValue}>{babyID}</Text>
           </View>
         </View>

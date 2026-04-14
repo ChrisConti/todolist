@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import moment from 'moment';
 
 const MATERNAL_COLOR = '#34777B';
@@ -133,6 +134,7 @@ interface CompareProps {
 }
 
 export const CompareDayTimeline: React.FC<CompareProps> = ({ todayTasks, yesterdayTasks }) => {
+  const { t } = useTranslation();
   const [containerWidth, setContainerWidth] = React.useState(0);
 
   if (todayTasks.length === 0 && yesterdayTasks.length === 0) return null;
@@ -182,8 +184,8 @@ export const CompareDayTimeline: React.FC<CompareProps> = ({ todayTasks, yesterd
     <View>
       {/* Headers */}
       <View style={s.cmpHeaders}>
-        <Text style={[s.cmpHeader, { color: MATERNAL_COLOR }]}>Aujourd'hui</Text>
-        <Text style={[s.cmpHeader, { color: YESTERDAY_COLOR }]}>Hier</Text>
+        <Text style={[s.cmpHeader, { color: MATERNAL_COLOR }]}>{t('days.today')}</Text>
+        <Text style={[s.cmpHeader, { color: YESTERDAY_COLOR }]}>{t('days.yesterday')}</Text>
       </View>
 
       <View
