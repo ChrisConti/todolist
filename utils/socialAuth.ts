@@ -1,6 +1,7 @@
 import { Platform, Alert } from 'react-native';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Localization from 'expo-localization';
 import {
   signInWithCredential,
   GoogleAuthProvider,
@@ -67,6 +68,7 @@ export const signInWithGoogle = async () => {
         provider: 'google',
         photoURL: user.photoURL,
         emailOptIn: false,
+        country: Localization.region || 'Unknown',
       });
       log.info('User document created in Firestore', 'socialAuth');
     }
@@ -163,6 +165,7 @@ export const signInWithApple = async () => {
         creationDate: serverTimestamp(),
         provider: 'apple',
         emailOptIn: false,
+        country: Localization.region || 'Unknown',
       });
       log.info('User document created in Firestore', 'socialAuth');
     }
