@@ -388,7 +388,7 @@
     "password": "Password",
     "ml": "oz/ml",
     "min": "min",
-    "celsius": "°F/°C",
+    "celsius": "°",
     "Name": "Name",
     "Liste d'utilisateur": "User List",
     "Partager le bébé": "Share the baby",
@@ -450,8 +450,11 @@
       "typeUnknown": "Unknown",
       "abbrev": "bot.",
       "perDay": "/d",
-      "mlPerDay": "ml/d",
-      "daysLabel": "{{count}} days"
+      "mlPerDay": "oz/ml/d",
+      "daysLabel": "{{count}} days",
+      "noBottleRecorded": "No bottle recorded",
+      "volumeHeader": "Volume",
+      "typeHeader": "Type"
     },
     "sommeil": {
       "lastTask": "Last task done",
@@ -589,7 +592,7 @@
     },
     "tendance": {
       "title": "📈 Trend",
-      "volume": "Volume (ml)",
+      "volume": "Volume (oz/ml)",
       "bottles": "Bottles",
       "stable": "→ Stable",
       "avgPerDay": "Avg. / day",
@@ -1044,7 +1047,10 @@
       "abbrev": "bib.",
       "perDay": "/j",
       "mlPerDay": "ml/j",
-      "daysLabel": "{{count}} jours"
+      "daysLabel": "{{count}} jours",
+      "noBottleRecorded": "Aucun biberon enregistré",
+      "volumeHeader": "Volume",
+      "typeHeader": "Type"
     },
     "sommeil": {
       "lastTask": "Dernière tâche effectuée",
@@ -1622,7 +1628,10 @@
       "abbrev": "bib.",
       "perDay": "/d",
       "mlPerDay": "ml/d",
-      "daysLabel": "{{count}} días"
+      "daysLabel": "{{count}} días",
+      "noBottleRecorded": "Ningún biberón registrado",
+      "volumeHeader": "Volumen",
+      "typeHeader": "Tipo"
     },
     "sommeil": {
       "lastTask": "Última tarea realizada",

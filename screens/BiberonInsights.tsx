@@ -108,7 +108,7 @@ export default function BiberonInsights({ navigation }: any) {
   const diffMl = (a: number, b: number) => {
     const d = a - b;
     if (d === 0) return { label: '=', color: '#999' };
-    return { label: (d > 0 ? '+' : '') + d + ' ml', color: d > 0 ? '#4CAF50' : '#E53935' };
+    return { label: (d > 0 ? '+' : '') + d + ' ' + t('ml'), color: d > 0 ? '#4CAF50' : '#E53935' };
   };
 
   // ── Render helpers ─────────────────────────────────────────────────────────
@@ -119,7 +119,7 @@ export default function BiberonInsights({ navigation }: any) {
       <View style={styles.tableRow} key={label}>
         <Text style={styles.tableCell}>{emoji} {label}</Text>
         <Text style={[styles.tableCell, styles.tableCellCenter]}>{data.count}</Text>
-        <Text style={[styles.tableCell, styles.tableCellRight]}>{data.ml} ml</Text>
+        <Text style={[styles.tableCell, styles.tableCellRight]}>{data.ml} {t('ml')}</Text>
       </View>
     );
   };
@@ -130,25 +130,25 @@ export default function BiberonInsights({ navigation }: any) {
       <View style={styles.totalsRow}>
         <View style={styles.totalBadge}>
           <Text style={styles.totalBadgeValue}>{stats.total.count}</Text>
-          <Text style={styles.totalBadgeLabel}>biberons</Text>
+          <Text style={styles.totalBadgeLabel}>{t('tendance.bottles')}</Text>
         </View>
         <View style={styles.totalBadge}>
           <Text style={styles.totalBadgeValue}>{stats.total.ml}</Text>
-          <Text style={styles.totalBadgeLabel}>ml</Text>
+          <Text style={styles.totalBadgeLabel}>{t('ml')}</Text>
         </View>
       </View>
       {stats.total.count === 0 ? (
-        <Text style={styles.emptyText}>Aucun biberon enregistré</Text>
+        <Text style={styles.emptyText}>{t('biberon.noBottleRecorded')}</Text>
       ) : (
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, styles.tableHeaderText]}>Type</Text>
-            <Text style={[styles.tableCell, styles.tableCellCenter, styles.tableHeaderText]}>Biberons</Text>
-            <Text style={[styles.tableCell, styles.tableCellRight, styles.tableHeaderText]}>Volume</Text>
+            <Text style={[styles.tableCell, styles.tableHeaderText]}>{t('biberon.typeHeader')}</Text>
+            <Text style={[styles.tableCell, styles.tableCellCenter, styles.tableHeaderText]}>{t('tendance.bottles')}</Text>
+            <Text style={[styles.tableCell, styles.tableCellRight, styles.tableHeaderText]}>{t('biberon.volumeHeader')}</Text>
           </View>
-          {renderSummaryRow('Maternel', '🤱', stats.maternal)}
-          {renderSummaryRow('Artificiel', '🥛', stats.artificial)}
-          {renderSummaryRow('Lait', '🍼', stats.unknown)}
+          {renderSummaryRow(t('milkType.maternal'), '🤱', stats.maternal)}
+          {renderSummaryRow(t('milkType.artificial'), '🥛', stats.artificial)}
+          {renderSummaryRow(t('milkType.title'), '🍼', stats.unknown)}
         </View>
       )}
       {dayTasks.length > 0 && (
@@ -165,8 +165,8 @@ export default function BiberonInsights({ navigation }: any) {
     return (
       <View style={styles.compareRow} key={label}>
         <Text style={styles.compareLabel}>{emoji} {label}</Text>
-        <Text style={styles.compareCell}>{isCount ? String(todayVal) : `${todayVal} ml`}</Text>
-        <Text style={styles.compareCell}>{isCount ? String(yestVal) : `${yestVal} ml`}</Text>
+        <Text style={styles.compareCell}>{isCount ? String(todayVal) : `${todayVal} ${t('ml')}`}</Text>
+        <Text style={styles.compareCell}>{isCount ? String(yestVal) : `${yestVal} ${t('ml')}`}</Text>
         <Text style={[styles.compareCell, { color: d.color, fontWeight: '700' }]}>{d.label}</Text>
       </View>
     );

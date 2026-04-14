@@ -104,7 +104,7 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
       : { label: `↘ ${Math.round(trendPct)}%`, color: '#E53935' };
 
   const maxBar = bars.reduce((m, b) => (b.value > m.value ? b : m), bars[0]);
-  const unit = metric === 'ml' ? ' ml' : '';
+  const unit = metric === 'ml' ? ` ${t('ml')}` : '';
   const periodLabel = period === '90' ? `13 ${t('tendance.weeks')}` : `${period} ${t('tendance.days')}`;
   const isHorizontal = period !== '7';
 
@@ -117,7 +117,7 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
     const avgRatio = avg / maxValue;
     return (
       <View style={{ marginTop: 20, marginBottom: 4 }}>
-        <Text style={s.yAxisLabel}>{metric === 'ml' ? 'ml' : t('stats.count').toLowerCase()}</Text>
+        <Text style={s.yAxisLabel}>{metric === 'ml' ? t('ml') : t('stats.count').toLowerCase()}</Text>
         <View style={{ height: CHART_H_VERT + 28, position: 'relative' }}>
           {avg > 0 && (
             <View style={[s.vAvgLine, { bottom: 24 + avgRatio * CHART_H_VERT }]} pointerEvents="none">
