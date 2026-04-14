@@ -9,6 +9,7 @@ import moment from 'moment';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { babiesRef } from '../config';
 import { useTranslation } from 'react-i18next';
+import Analytics from '../services/analytics';
 import { SingleDayTimeline, CompareDayTimeline } from '../components/BiberonTimeline';
 import { TendanceChart } from '../components/TendanceChart';
 import { RythmeChart } from '../components/RythmeChart';
@@ -44,6 +45,8 @@ export default function BiberonInsights({ navigation }: any) {
   const [loading, setLoading]     = useState(true);
   const [mainTab, setMainTab]     = useState<MainTab>('detail');
   const [dayTab, setDayTab]       = useState<DayTab>('today');
+
+  useEffect(() => { Analytics.logScreenView('BiberonInsights'); }, []);
 
   useEffect(() => {
     if (!user || !babyID) { setLoading(false); return; }

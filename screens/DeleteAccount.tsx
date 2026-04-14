@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider, deleteUser, signOut, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import Analytics from '../services/analytics';
 
 const DeleteAccount = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -174,6 +175,7 @@ const DeleteAccount = ({ route, navigation }) => {
               
               
               // 4. Supprimer le compte Firebase Auth
+              await Analytics.logEvent('account_deleted', { provider });
               await deleteUser(currentUser);
               
               // 5. SignOut et reset Context

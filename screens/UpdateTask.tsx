@@ -13,6 +13,8 @@ import Dodo from '../assets/dodo-color.svg';
 import Couche from '../assets/couche-color.svg';
 import Sante from '../assets/sante-color.svg';
 import Biberon from '../assets/biberon-color.svg';
+import Analytics from '../services/analytics';
+import { TASK_LABELS } from '../utils/constants';
 
 const UpdateTask = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -104,6 +106,11 @@ const UpdateTask = ({ route, navigation }) => {
 
         await updateDoc(doc(db, 'Baby', document.id), { tasks });
 
+        Analytics.logEvent('task_updated', {
+          task_type: TASK_LABELS[selectedImage] || 'unknown',
+          baby_id: babyID,
+        });
+
         // Update biberon widget if it's a bottle task
         if (selectedImage === 0) {
           const { updateBiberonWidget } = require('../utils/widgetBridge');
@@ -151,9 +158,14 @@ const UpdateTask = ({ route, navigation }) => {
               });
               await Promise.all(updatePromises);
 
+              Analytics.logEvent('task_deleted', {
+                task_type: TASK_LABELS[task.id] || 'unknown',
+                baby_id: babyID,
+              });
+
               // Nettoyer les timers sauvegardés
               await breastfeedingRef.current?.clearTimers();
-              
+
               setLoading(false);
               navigation.navigate('MainTabs');
             } catch (error: any) {

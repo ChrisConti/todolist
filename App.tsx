@@ -45,6 +45,7 @@ import { Ionicons } from '@expo/vector-icons';
 import BabyHeadIcon from './components/BabyHeadIcon';
 import { trackFirstOpen } from './utils/firstOpenTracker';
 import { configureGoogleSignIn } from './utils/socialAuth';
+import Analytics from './services/analytics';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -80,6 +81,10 @@ function RootNavigator() {
           try {
             if (firebaseUser) {
               log.info(`User authenticated: ${firebaseUser.uid}`, 'App.tsx');
+
+              // Identify user in analytics
+              Analytics.setUserId(firebaseUser.uid);
+              Analytics.setUserProperty('platform', Platform.OS);
 
               // Verify token is still valid
               try {

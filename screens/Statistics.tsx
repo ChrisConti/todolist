@@ -6,12 +6,15 @@ import AllComponent from '../stats/All';
 import { onSnapshot, query, where } from 'firebase/firestore';
 import { babiesRef } from '../config';
 import { useTranslation } from 'react-i18next';
+import Analytics from '../services/analytics';
 
 export default function Statistics({ navigation }: any) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user, babyID }: any = useContext(AuthentificationUserContext);
   const [tasks, setTasks] = useState<any[]>([]);
+
+  useEffect(() => { Analytics.logScreenView('Statistics'); }, []);
 
   useEffect(() => {
     if (!user || !babyID) { setTasks([]); return; }

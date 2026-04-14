@@ -12,6 +12,7 @@ import { auth, db } from '../config';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { log } from './logger';
 import i18next from 'i18next';
+import Analytics from '../services/analytics';
 
 /**
  * Configure Google Sign-In
@@ -58,8 +59,8 @@ export const signInWithGoogle = async () => {
     const userDocRef = doc(db, 'Users', user.uid);
     const userDoc = await getDoc(userDocRef);
 
-    if (!userDoc.exists()) {
-      // Create user document
+    const isNewUser = !userDoc.exists();
+    if (isNewUser) {
       await setDoc(userDocRef, {
         userId: user.uid,
         email: user.email || '',
@@ -71,7 +72,10 @@ export const signInWithGoogle = async () => {
         country: Localization.region || 'Unknown',
       });
       log.info('User document created in Firestore', 'socialAuth');
+      Analytics.logSignUp('google');
+      Analytics.setUserProperty('country', Localization.region || 'Unknown');
     }
+    Analytics.setUserProperty('auth_provider', 'google');
 
     return user;
   } catch (error: any) {
@@ -152,7 +156,8 @@ export const signInWithApple = async () => {
     const userDocRef = doc(db, 'Users', user.uid);
     const userDoc = await getDoc(userDocRef);
 
-    if (!userDoc.exists()) {
+    const isNewUser = !userDoc.exists();
+    if (isNewUser) {
       // ⚠️ IMPORTANT: Email is only provided on FIRST sign-in
       const displayName = fullName?.givenName && fullName?.familyName
         ? `${fullName.givenName} ${fullName.familyName}`
@@ -168,7 +173,10 @@ export const signInWithApple = async () => {
         country: Localization.region || 'Unknown',
       });
       log.info('User document created in Firestore', 'socialAuth');
+      Analytics.logSignUp('apple');
+      Analytics.setUserProperty('country', Localization.region || 'Unknown');
     }
+    Analytics.setUserProperty('auth_provider', 'apple');
 
     return user;
   } catch (error: any) {

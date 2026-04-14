@@ -11,6 +11,7 @@ import { signInWithGoogle, signInWithApple } from './utils/socialAuth';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { Ionicons } from '@expo/vector-icons';
 import GoogleLogo from './assets/GoogleLogo';
+import Analytics from './services/analytics';
 
 const ConnectionScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -41,11 +42,12 @@ const ConnectionScreen = ({ navigation }) => {
       setError('');
       const user = await signInWithGoogle();
       if (user) {
+        Analytics.logSignIn('google');
+        Analytics.setUserProperty('auth_provider', 'google');
         setUser(user);
       }
     } catch (error) {
       console.error('Google Sign-In failed', error);
-      // Error already handled in signInWithGoogle
     } finally {
       setLoading(false);
     }
@@ -57,11 +59,12 @@ const ConnectionScreen = ({ navigation }) => {
       setError('');
       const user = await signInWithApple();
       if (user) {
+        Analytics.logSignIn('apple');
+        Analytics.setUserProperty('auth_provider', 'apple');
         setUser(user);
       }
     } catch (error) {
       console.error('Apple Sign-In failed', error);
-      // Error already handled in signInWithApple
     } finally {
       setLoading(false);
     }
@@ -97,6 +100,8 @@ const ConnectionScreen = ({ navigation }) => {
             // Non-blocking — don't prevent login if Firestore check fails
           }
           
+          Analytics.logSignIn('email');
+          Analytics.setUserProperty('auth_provider', 'email');
           setUser(user);
           setLoading(false);
         })
