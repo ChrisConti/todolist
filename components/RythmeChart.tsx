@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import moment from 'moment';
 
 interface Props {
@@ -52,11 +53,11 @@ const regularityColor = (r: number | null): string => {
   return '#E53935';
 };
 
-const regularityLabel = (r: number | null): string => {
+const regularityLabel = (r: number | null, t: (key: string) => string): string => {
   if (r === null) return '—';
-  if (r >= 75) return 'Régulier';
-  if (r >= 50) return 'Variable';
-  return 'Irrégulier';
+  if (r >= 75) return t('rythme.regular');
+  if (r >= 50) return t('rythme.variable');
+  return t('rythme.irregular');
 };
 
 type SlotKey = 'morning' | 'afternoon' | 'evening' | 'night';
@@ -71,6 +72,7 @@ const getSlot = (h: number): SlotKey => {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const RythmeChart: React.FC<Props> = ({ tasks }) => {
+  const { t } = useTranslation();
   const [showTip, setShowTip] = useState(false);
 
   const stats = useMemo(() => {
@@ -136,11 +138,11 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
       : null;
 
     // ── Per-slot stats ────────────────────────────────────────────────────
-    const slotDefs: { key: SlotKey; name: string; emoji: string; range: string }[] = [
-      { key: 'morning',   name: 'Matin',       emoji: '🌅', range: '06h–12h' },
-      { key: 'afternoon', name: 'Après-midi',  emoji: '☀️',  range: '12h–18h' },
-      { key: 'evening',   name: 'Soir',        emoji: '🌆', range: '18h–22h' },
-      { key: 'night',     name: 'Nuit',        emoji: '🌙', range: '22h–06h' },
+    const slotDefs: { key: SlotKey; nameKey: string; emoji: string; range: string }[] = [
+      { key: 'morning',   nameKey: 'rythme.morning',   emoji: '🌅', range: '06h–12h' },
+      { key: 'afternoon', nameKey: 'rythme.afternoon', emoji: '☀️',  range: '12h–18h' },
+      { key: 'evening',   nameKey: 'rythme.evening',   emoji: '🌆', range: '18h–22h' },
+      { key: 'night',     nameKey: 'rythme.night',     emoji: '🌙', range: '22h–06h' },
     ];
 
     // Count bottles per slot across 7 days
@@ -149,10 +151,10 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
       slotCounts[getSlot(moment(t.date, 'YYYY-MM-DD HH:mm:ss').hours())]++;
     });
 
-    const slotStats: SlotStats[] = slotDefs.map(({ key, name, emoji, range }) => {
+    const slotStats: SlotStats[] = slotDefs.map(({ key, nameKey, emoji, range }) => {
       const ints = allIntervals.filter(i => i.slot === key).map(i => i.minutes);
       return {
-        name, emoji, range,
+        name: nameKey, emoji, range,
         avgPerDay: Math.round((slotCounts[key] / 7) * 10) / 10,
         avg: ints.length ? Math.round(ints.reduce((s, v) => s + v, 0) / ints.length) : null,
         min: ints.length ? Math.min(...ints) : null,
@@ -172,8 +174,8 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
   if (!stats) {
     return (
       <View style={s.card}>
-        <Text style={s.cardTitle}>⏱ Analyse du Rythme</Text>
-        <Text style={s.empty}>Pas assez de données sur les 7 derniers jours.</Text>
+        <Text style={s.cardTitle}>{t('rythme.title')}</Text>
+        <Text style={s.empty}>{t('rythme.notEnoughData')}</Text>
       </View>
     );
   }
@@ -182,35 +184,35 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
 
   return (
     <View style={s.card}>
-      <Text style={s.cardTitle}>⏱ Analyse du Rythme</Text>
-      <Text style={s.subtitle}>Moyennes sur les 7 derniers jours · {stats.totalBottlesPerDay} bib/j</Text>
+      <Text style={s.cardTitle}>{t('rythme.title')}</Text>
+      <Text style={s.subtitle}>{t('rythme.subtitle', { count: stats.totalBottlesPerDay })}</Text>
 
       {/* ── Section 1 : Intervalles globaux ─────────────────────────────── */}
       <View style={s.section}>
-        <Text style={s.sectionTitle}>Intervalles globaux</Text>
+        <Text style={s.sectionTitle}>{t('rythme.globalIntervals')}</Text>
         <View style={s.metricsRow}>
           <View style={s.metricBox}>
-            <Text style={s.metricLabel}>Moyen</Text>
+            <Text style={s.metricLabel}>{t('rythme.average')}</Text>
             <Text style={s.metricValue}>{fmtDuration(g.avg)}</Text>
           </View>
           <View style={s.metricBox}>
-            <Text style={s.metricLabel}>Plus court</Text>
+            <Text style={s.metricLabel}>{t('rythme.shortest')}</Text>
             <Text style={[s.metricValue, { color: '#E29656' }]}>{fmtDuration(g.min)}</Text>
           </View>
           <View style={s.metricBox}>
-            <Text style={s.metricLabel}>Plus long</Text>
+            <Text style={s.metricLabel}>{t('rythme.longest')}</Text>
             <Text style={[s.metricValue, { color: '#6B8DEA' }]}>{fmtDuration(g.max)}</Text>
           </View>
           <TouchableOpacity style={s.metricBox} onPress={() => setShowTip(v => !v)}>
             <View style={s.metricLabelRow}>
-              <Text style={s.metricLabel}>Régularité</Text>
+              <Text style={s.metricLabel}>{t('rythme.regularity')}</Text>
               <Text style={s.infoIcon}>ⓘ</Text>
             </View>
             <Text style={[s.metricValue, { color: regularityColor(g.regularity) }]}>
               {g.regularity !== null ? `${g.regularity}%` : '—'}
             </Text>
             <Text style={[s.metricSub, { color: regularityColor(g.regularity) }]}>
-              {regularityLabel(g.regularity)}
+              {regularityLabel(g.regularity, t)}
             </Text>
           </TouchableOpacity>
         </View>
@@ -219,14 +221,14 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
         {showTip && (
           <View style={s.tooltip}>
             <Text style={s.tooltipText}>
-              <Text style={{ fontWeight: '700' }}>Régularité</Text>
-              {' '}= % des intervalles entre biberons qui sont dans les ±30min autour de la moyenne.{'\n\n'}
-              <Text style={{ color: '#4CAF50', fontWeight: '700' }}>≥ 75%</Text> Régulier — bébé mange à heures fixes{'\n'}
-              <Text style={{ color: '#E29656', fontWeight: '700' }}>50–74%</Text> Variable — quelques écarts{'\n'}
-              <Text style={{ color: '#E53935', fontWeight: '700' }}>&lt; 50%</Text> Irrégulier — rythme imprévisible
+              <Text style={{ fontWeight: '700' }}>{t('rythme.regularity')}</Text>
+              {' '}{t('rythme.tooltipDesc')}{'\n\n'}
+              <Text style={{ color: '#4CAF50', fontWeight: '700' }}>≥ 75%</Text> {t('rythme.tooltipRegular')}{'\n'}
+              <Text style={{ color: '#E29656', fontWeight: '700' }}>50–74%</Text> {t('rythme.tooltipVariable')}{'\n'}
+              <Text style={{ color: '#E53935', fontWeight: '700' }}>&lt; 50%</Text> {t('rythme.tooltipIrregular')}
             </Text>
             <TouchableOpacity onPress={() => setShowTip(false)} style={s.tooltipClose}>
-              <Text style={s.tooltipCloseText}>Fermer</Text>
+              <Text style={s.tooltipCloseText}>{t('rythme.close')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -234,27 +236,27 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
 
       {/* ── Section 2 : Plage active ─────────────────────────────────────── */}
       <View style={s.section}>
-        <Text style={s.sectionTitle}>Plage active détectée</Text>
+        <Text style={s.sectionTitle}>{t('rythme.activeWindow')}</Text>
         <View style={s.activeWindowRow}>
           <View style={s.awBadge}>
-            <Text style={s.awLabel}>Premier biberon</Text>
+            <Text style={s.awLabel}>{t('rythme.firstBottle')}</Text>
             <Text style={s.awValue}>{fmtClock(aw.from)}</Text>
           </View>
           <Text style={s.awArrow}>→</Text>
           <View style={s.awBadge}>
-            <Text style={s.awLabel}>Dernier biberon</Text>
+            <Text style={s.awLabel}>{t('rythme.lastBottle')}</Text>
             <Text style={s.awValue}>{fmtClock(aw.to)}</Text>
           </View>
         </View>
         <View style={s.activeIntervalRow}>
           <View style={[s.aiChip, { backgroundColor: '#EBF5F5' }]}>
-            <Text style={s.aiChipLabel}>☀️ Intervalle diurne</Text>
+            <Text style={s.aiChipLabel}>{t('rythme.dayInterval')}</Text>
             <Text style={[s.aiChipValue, { color: BIBERON_COLOR }]}>
               {aw.activeAvg ? fmtDuration(aw.activeAvg) : '—'}
             </Text>
           </View>
           <View style={[s.aiChip, { backgroundColor: '#F0EEF9' }]}>
-            <Text style={s.aiChipLabel}>🌙 Intervalle nocturne</Text>
+            <Text style={s.aiChipLabel}>{t('rythme.nightInterval')}</Text>
             <Text style={[s.aiChipValue, { color: '#4F469F' }]}>
               {aw.nightAvg ? fmtDuration(aw.nightAvg) : '—'}
             </Text>
@@ -264,7 +266,7 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
 
       {/* ── Section 3 : Par tranche horaire ──────────────────────────────── */}
       <View style={s.section}>
-        <Text style={s.sectionTitle}>Par tranche horaire</Text>
+        <Text style={s.sectionTitle}>{t('rythme.byTimeSlot')}</Text>
         {slots.map((slot) => {
           const reg = slot.regularity;
           const regColor = regularityColor(reg);
@@ -274,39 +276,39 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
             <View key={slot.name} style={s.slotCard}>
               {/* Header */}
               <View style={s.slotHeader}>
-                <Text style={s.slotTitle}>{slot.emoji} {slot.name}</Text>
+                <Text style={s.slotTitle}>{slot.emoji} {t(slot.name)}</Text>
                 <Text style={s.slotRange}>{slot.range}</Text>
                 <View style={s.slotCountBadge}>
-                  <Text style={s.slotCount}>{slot.avgPerDay} bib/j</Text>
+                  <Text style={s.slotCount}>{slot.avgPerDay} {t('rythme.bottlesPerDay')}</Text>
                 </View>
               </View>
 
               {!hasData ? (
-                <Text style={s.slotEmpty}>Pas de données sur cette tranche</Text>
+                <Text style={s.slotEmpty}>{t('rythme.noDataForSlot')}</Text>
               ) : (
                 <View style={s.slotMetrics}>
                   <View style={s.slotMetricItem}>
-                    <Text style={s.slotMetricLabel}>Moy.</Text>
+                    <Text style={s.slotMetricLabel}>{t('rythme.avg')}</Text>
                     <Text style={s.slotMetricValue}>{fmtDuration(slot.avg!)}</Text>
                   </View>
                   <View style={s.slotDivider} />
                   <View style={s.slotMetricItem}>
-                    <Text style={s.slotMetricLabel}>Court</Text>
+                    <Text style={s.slotMetricLabel}>{t('rythme.short')}</Text>
                     <Text style={[s.slotMetricValue, { color: '#E29656' }]}>{fmtDuration(slot.min!)}</Text>
                   </View>
                   <View style={s.slotDivider} />
                   <View style={s.slotMetricItem}>
-                    <Text style={s.slotMetricLabel}>Long</Text>
+                    <Text style={s.slotMetricLabel}>{t('rythme.long')}</Text>
                     <Text style={[s.slotMetricValue, { color: '#6B8DEA' }]}>{fmtDuration(slot.max!)}</Text>
                   </View>
                   <View style={s.slotDivider} />
                   <View style={s.slotMetricItem}>
-                    <Text style={s.slotMetricLabel}>Régularité</Text>
+                    <Text style={s.slotMetricLabel}>{t('rythme.regularity')}</Text>
                     <Text style={[s.slotMetricValue, { color: regColor }]}>
                       {reg !== null ? `${reg}%` : '—'}
                     </Text>
                     <Text style={[s.slotMetricSub, { color: regColor }]}>
-                      {regularityLabel(reg)}
+                      {regularityLabel(reg, t)}
                     </Text>
                   </View>
                 </View>

@@ -73,3 +73,13 @@ EXPO_PUBLIC_FIREBASE_PROJECT_ID=...
 ## TypeScript
 
 Project uses gradual TypeScript migration with loose settings (`strict: false`). Many files use `any` types.
+
+## Internationalisation (i18n)
+
+**MANDATORY**: Every visible string in any `.tsx` component MUST use `t()` from `useTranslation`. Never hardcode text in French, English or any language.
+
+Rules:
+- Always `import { useTranslation } from 'react-i18next'` at the top of any component that renders text
+- Add keys to `translations.json` for all 3 languages (FR, EN, ES) simultaneously — never add a key to one language only
+- When creating a new component, check for i18n coverage before considering it done
+- When modifying an existing component, check that all strings in the diff are translated

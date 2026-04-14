@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import moment from 'moment';
 
 type Period = '7' | '30' | '90';
@@ -67,6 +68,7 @@ const buildWeeklyBars = (tasks: any[], metric: Metric, weeks: number): BarData[]
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const TendanceChart: React.FC<Props> = ({ tasks }) => {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState<Period>('30');
   const [metric, setMetric] = useState<Metric>('ml');
   const [chartWidth, setChartWidth] = useState(0);
@@ -96,14 +98,14 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
   const trendPct = avgFirst > 0 ? ((avgSecond - avgFirst) / avgFirst) * 100 : 0;
   const trend =
     Math.abs(trendPct) < 5
-      ? { label: '→ Stable', color: '#999' }
+      ? { label: t('tendance.stable'), color: '#999' }
       : trendPct > 0
       ? { label: `↗ +${Math.round(trendPct)}%`, color: '#4CAF50' }
       : { label: `↘ ${Math.round(trendPct)}%`, color: '#E53935' };
 
   const maxBar = bars.reduce((m, b) => (b.value > m.value ? b : m), bars[0]);
   const unit = metric === 'ml' ? ' ml' : '';
-  const periodLabel = period === '7' ? '7 jours' : period === '30' ? '30 jours' : '13 semaines';
+  const periodLabel = period === '90' ? `13 ${t('tendance.weeks')}` : `${period} ${t('tendance.days')}`;
   const isHorizontal = period !== '7';
 
   // Horizontal chart: bar area = total width minus label & value columns
@@ -115,12 +117,12 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
     const avgRatio = avg / maxValue;
     return (
       <View style={{ marginTop: 20, marginBottom: 4 }}>
-        <Text style={s.yAxisLabel}>{metric === 'ml' ? 'ml' : 'nb'}</Text>
+        <Text style={s.yAxisLabel}>{metric === 'ml' ? 'ml' : t('stats.count').toLowerCase()}</Text>
         <View style={{ height: CHART_H_VERT + 28, position: 'relative' }}>
           {avg > 0 && (
             <View style={[s.vAvgLine, { bottom: 24 + avgRatio * CHART_H_VERT }]} pointerEvents="none">
               <View style={s.vAvgDash} />
-              <Text style={s.vAvgLabel}>moy. {Math.round(avg)}{unit}</Text>
+              <Text style={s.vAvgLabel}>{t('tendance.avg')} {Math.round(avg)}{unit}</Text>
             </View>
           )}
           <View style={s.vBarsRow}>
@@ -204,7 +206,7 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
             {/* Average label at bottom of line */}
             {avgX !== null && (
               <Text style={[s.hAvgLabel, { left: LABEL_W + avgX - 12 }]}>
-                moy.{'\n'}{Math.round(avg)}{unit}
+                {t('tendance.avg')}{'\n'}{Math.round(avg)}{unit}
               </Text>
             )}
           </View>
@@ -215,13 +217,15 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
 
   return (
     <View style={s.card}>
-      <Text style={s.cardTitle}>📈 Tendance</Text>
+      <Text style={s.cardTitle}>{t('tendance.title')}</Text>
 
       {/* Period selector */}
       <View style={s.segRow}>
         {(['7', '30', '90'] as Period[]).map(p => (
           <TouchableOpacity key={p} style={[s.segBtn, period === p && s.segBtnActive]} onPress={() => setPeriod(p)}>
-            <Text style={[s.segText, period === p && s.segTextActive]}>{p}j</Text>
+            <Text style={[s.segText, period === p && s.segTextActive]}>
+              {t(`tendance.period${p}`)}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -229,10 +233,10 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
       {/* Metric toggle */}
       <View style={[s.segRow, { marginTop: 8 }]}>
         <TouchableOpacity style={[s.segBtn, metric === 'ml' && s.segBtnActive]} onPress={() => setMetric('ml')}>
-          <Text style={[s.segText, metric === 'ml' && s.segTextActive]}>Volume (ml)</Text>
+          <Text style={[s.segText, metric === 'ml' && s.segTextActive]}>{t('tendance.volume')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[s.segBtn, metric === 'count' && s.segBtnActive]} onPress={() => setMetric('count')}>
-          <Text style={[s.segText, metric === 'count' && s.segTextActive]}>Biberons</Text>
+          <Text style={[s.segText, metric === 'count' && s.segTextActive]}>{t('tendance.bottles')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -241,21 +245,26 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
       {/* Summary row */}
       <View style={s.summaryRow}>
         <View style={s.summaryBadge}>
-          <Text style={s.summaryLabel}>Moy. / {period === '90' ? 'sem.' : 'jour'}</Text>
+          <Text style={s.summaryLabel}>{period === '90' ? t('tendance.avgPerWeek') : t('tendance.avgPerDay')}</Text>
           <Text style={s.summaryValue}>{Math.round(avg)}{unit}</Text>
         </View>
         <View style={s.summaryBadge}>
-          <Text style={s.summaryLabel}>Tendance</Text>
+          <Text style={s.summaryLabel}>{t('tendance.trend')}</Text>
           <Text style={[s.summaryValue, { color: trend.color, fontSize: 13 }]}>{trend.label}</Text>
         </View>
         <View style={s.summaryBadge}>
-          <Text style={s.summaryLabel}>{period === '90' ? 'Sem. max' : 'Jour max'}</Text>
+          <Text style={s.summaryLabel}>{period === '90' ? t('tendance.maxWeek') : t('tendance.maxDay')}</Text>
           <Text style={s.summaryValue}>{Math.round(maxBar?.value ?? 0)}{unit}</Text>
         </View>
       </View>
 
       <Text style={s.periodNote}>
-        {periodLabel} • {filledBars.length}/{bars.length} {period === '90' ? 'semaines' : 'jours'} avec données
+        {t('tendance.periodNote', {
+          label: periodLabel,
+          filled: filledBars.length,
+          total: bars.length,
+          unit: period === '90' ? t('tendance.weeks') : t('tendance.days'),
+        })}
       </Text>
     </View>
   );

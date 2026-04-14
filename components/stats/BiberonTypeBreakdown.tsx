@@ -71,6 +71,7 @@ interface TypeRowProps {
 }
 
 const TypeRow: React.FC<TypeRowProps> = ({ icon, label, stats, total, days, color }) => {
+  const { t } = useTranslation();
   if (stats.count === 0) return null;
   return (
     <View style={styles.typeRow}>
@@ -78,12 +79,12 @@ const TypeRow: React.FC<TypeRowProps> = ({ icon, label, stats, total, days, colo
       <View style={styles.typeInfo}>
         <Text style={styles.typeLabel}>{icon} {label}</Text>
         <Text style={styles.typeCount}>
-          {stats.count} bib. <Text style={styles.typePct}>({pct(stats.count, total)}%)</Text>
+          {stats.count} {t('biberon.abbrev')} <Text style={styles.typePct}>({pct(stats.count, total)}%)</Text>
         </Text>
       </View>
       <View style={styles.typeRight}>
-        <Text style={styles.typeStat}>{avg(stats.count, days)}/j</Text>
-        <Text style={styles.typeStatSub}>{avg(stats.ml, days)} ml/j</Text>
+        <Text style={styles.typeStat}>{avg(stats.count, days)}{t('biberon.perDay')}</Text>
+        <Text style={styles.typeStatSub}>{avg(stats.ml, days)} {t('biberon.mlPerDay')}</Text>
       </View>
     </View>
   );
@@ -96,9 +97,9 @@ const PeriodCard: React.FC<{ period: PeriodStats }> = ({ period }) => {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{days} jours</Text>
+        <Text style={styles.cardTitle}>{t('biberon.daysLabel', { count: days })}</Text>
         <Text style={styles.cardTotal}>
-          {total.count} bib. · {avg(total.count, days)}/j · {avg(total.ml, days)} ml/j
+          {total.count} {t('biberon.abbrev')} · {avg(total.count, days)}{t('biberon.perDay')} · {avg(total.ml, days)} {t('biberon.mlPerDay')}
         </Text>
       </View>
 
