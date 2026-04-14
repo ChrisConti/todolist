@@ -12,14 +12,14 @@
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		4B8C2E66BBFA4330BC190DF8 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B245315349045738874038B /* GoogleService-Info.plist */; };
 		606F34BCDA7ABE46138D03B4 /* libPods-tribubaby.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C85126B0A960C27F85C406A1 /* libPods-tribubaby.a */; };
+		AA11BB241A000000000000AA /* WidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB221A000000000000AA /* WidgetBridge.swift */; };
+		AA11BB251A000000000000AA /* WidgetBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB231A000000000000AA /* WidgetBridge.m */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		BDFF0B952F8BF0C1009EC696 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDFF0B942F8BF0C1009EC696 /* WidgetKit.framework */; };
 		BDFF0B972F8BF0C1009EC696 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDFF0B962F8BF0C1009EC696 /* SwiftUI.framework */; };
 		BDFF0BA22F8BF0C2009EC696 /* BiberonWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BDFF0B932F8BF0C1009EC696 /* BiberonWidgetExtension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C5999D3BF1420310C302EFCA /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47807B4C80A885A0A7ED2FE /* ExpoModulesProvider.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		AA11BB241A000000000000AA /* WidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB221A000000000000AA /* WidgetBridge.swift */; };
-		AA11BB251A000000000000AA /* WidgetBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB231A000000000000AA /* WidgetBridge.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +52,8 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = tribubaby/Info.plist; sourceTree = "<group>"; };
 		3B245315349045738874038B /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "tribubaby/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		7031A36DD1432416B6A21524 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = tribubaby/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		AA11BB221A000000000000AA /* WidgetBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetBridge.swift; path = tribubaby/WidgetBridge.swift; sourceTree = "<group>"; };
+		AA11BB231A000000000000AA /* WidgetBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = WidgetBridge.m; path = tribubaby/WidgetBridge.m; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = tribubaby/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		BDFF0B932F8BF0C1009EC696 /* BiberonWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BiberonWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -67,8 +69,6 @@
 		EE4247E86FD4C1A05B77E5C8 /* Pods-tribubaby.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tribubaby.debug.xcconfig"; path = "Target Support Files/Pods-tribubaby/Pods-tribubaby.debug.xcconfig"; sourceTree = "<group>"; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = tribubaby/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* tribubaby-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "tribubaby-Bridging-Header.h"; path = "tribubaby/tribubaby-Bridging-Header.h"; sourceTree = "<group>"; };
-		AA11BB221A000000000000AA /* WidgetBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetBridge.swift; path = tribubaby/WidgetBridge.swift; sourceTree = "<group>"; };
-		AA11BB231A000000000000AA /* WidgetBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = WidgetBridge.m; path = tribubaby/WidgetBridge.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -277,6 +277,8 @@
 			knownRegions = (
 				en,
 				Base,
+				fr,
+				es,
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;

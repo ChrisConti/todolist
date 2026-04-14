@@ -4,8 +4,8 @@ import './Layout.css';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeTab: 'analytics' | 'funnel' | 'search' | 'export';
-  onTabChange: (tab: 'analytics' | 'funnel' | 'search' | 'export') => void;
+  activeTab: 'analytics' | 'trends' | 'funnel' | 'search' | 'export' | 'migration';
+  onTabChange: (tab: 'analytics' | 'trends' | 'funnel' | 'search' | 'export' | 'migration') => void;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
@@ -38,10 +38,16 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
             📊 Analytics
           </button>
           <button
+            className={`tab ${activeTab === 'trends' ? 'active' : ''}`}
+            onClick={() => onTabChange('trends')}
+          >
+            📈 Évolution
+          </button>
+          <button
             className={`tab ${activeTab === 'funnel' ? 'active' : ''}`}
             onClick={() => onTabChange('funnel')}
           >
-            📈 Funnel
+            🔀 Funnel
           </button>
           <button
             className={`tab ${activeTab === 'search' ? 'active' : ''}`}
@@ -54,6 +60,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
             onClick={() => onTabChange('export')}
           >
             📥 Export
+          </button>
+          <button
+            className={`tab ${activeTab === 'migration' ? 'active' : ''}`}
+            onClick={() => onTabChange('migration')}
+          >
+            🔧 Migration
           </button>
         </nav>
       </header>

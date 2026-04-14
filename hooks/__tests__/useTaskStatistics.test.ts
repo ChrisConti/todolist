@@ -175,3 +175,124 @@ describe('computeSleepStats — aggregation with midnight split', () => {
     expect(todaySum).toBe(0);
   });
 });
+
+// ─── Temperature stats logic ─────────────────────────────────────────────────
+
+// Mirrors the parseFloat logic from useThermoStats and All.tsx
+const parseThermoLabel = (raw: any): number | null => {
+  const temp = parseFloat(String(raw).replace(',', '.'));
+  if (isNaN(temp) || temp <= 0) return null;
+  return temp;
+};
+
+// Mirrors the min/max reduction logic
+const calcThermoStats = (tasks: { label: any }[]) => {
+  let min: number | null = null;
+  let max: number | null = null;
+  let count = 0;
+  for (const t of tasks) {
+    const temp = parseThermoLabel(t.label);
+    if (temp === null) continue;
+    count++;
+    if (min === null || temp < min) min = temp;
+    if (max === null || temp > max) max = temp;
+  }
+  return { min, max, count };
+};
+
+describe('Temperature stats — parseThermoLabel', () => {
+  it('parses normal temperature string', () => {
+    expect(parseThermoLabel('37.5')).toBe(37.5);
+  });
+
+  it('normalises French comma separator "37,5" → 37.5', () => {
+    expect(parseThermoLabel('37,5')).toBe(37.5);
+  });
+
+  it('returns null for NaN input', () => {
+    expect(parseThermoLabel('abc')).toBeNull();
+  });
+
+  it('returns null for zero (empty field saved as 0)', () => {
+    expect(parseThermoLabel(0)).toBeNull();
+    expect(parseThermoLabel('0')).toBeNull();
+  });
+
+  it('returns null for negative value', () => {
+    expect(parseThermoLabel(-1)).toBeNull();
+    expect(parseThermoLabel('-5')).toBeNull();
+  });
+
+  it('returns null for empty string', () => {
+    expect(parseThermoLabel('')).toBeNull();
+  });
+
+  it('parses integer temperature (no decimal)', () => {
+    expect(parseThermoLabel('38')).toBe(38);
+    expect(parseThermoLabel(38)).toBe(38);
+  });
+});
+
+describe('Temperature stats — min/max calculation', () => {
+  it('computes min and max from a set of readings', () => {
+    const tasks = [
+      { label: '37.2' },
+      { label: '38.1' },
+      { label: '36.8' },
+      { label: '39.0' },
+    ];
+    const stats = calcThermoStats(tasks);
+    expect(stats.min).toBeCloseTo(36.8);
+    expect(stats.max).toBeCloseTo(39.0);
+    expect(stats.count).toBe(4);
+  });
+
+  it('returns null min/max when all tasks have label: 0 (empty field)', () => {
+    const tasks = [{ label: 0 }, { label: '0' }, { label: '' }];
+    const stats = calcThermoStats(tasks);
+    expect(stats.min).toBeNull();
+    expect(stats.max).toBeNull();
+    expect(stats.count).toBe(0);
+  });
+
+  it('ignores zero task among valid readings', () => {
+    const tasks = [{ label: 0 }, { label: '37.5' }, { label: '38.2' }];
+    const stats = calcThermoStats(tasks);
+    expect(stats.min).toBeCloseTo(37.5); // 0 is NOT the min
+    expect(stats.max).toBeCloseTo(38.2);
+    expect(stats.count).toBe(2);
+  });
+
+  it('handles French comma decimals correctly', () => {
+    const tasks = [{ label: '37,2' }, { label: '38,5' }];
+    const stats = calcThermoStats(tasks);
+    expect(stats.min).toBeCloseTo(37.2);
+    expect(stats.max).toBeCloseTo(38.5);
+  });
+
+  it('returns count 0 and null min/max for empty task array', () => {
+    const stats = calcThermoStats([]);
+    expect(stats.count).toBe(0);
+    expect(stats.min).toBeNull();
+    expect(stats.max).toBeNull();
+  });
+});
+
+describe('Temperature stats — minTemp display guard', () => {
+  // Mirrors the fixed All.tsx check: stats.minTemp != null
+  const formatMinTemp = (minTemp: number | undefined | null): string =>
+    minTemp != null ? `${minTemp.toFixed(1)}°` : '-';
+
+  it('shows the temperature when minTemp is a normal value', () => {
+    expect(formatMinTemp(36.8)).toBe('36.8°');
+  });
+
+  it('shows "-" when minTemp is undefined (no data)', () => {
+    expect(formatMinTemp(undefined)).toBe('-');
+  });
+
+  it('shows the temperature even when minTemp is 0 (not hidden by falsy check)', () => {
+    // The OLD buggy check `minTemp ?` would show "-" here
+    expect(formatMinTemp(0)).toBe('0.0°');
+  });
+});

@@ -4,51 +4,46 @@
   font-size: 28px;
 }
 
-.search-form {
+.age-range-selector {
   background: white;
-  padding: 24px;
+  padding: 20px;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   margin-bottom: 24px;
-}
-
-.search-input-group {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
-.search-input {
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #C75B4A;
-}
-
-.search-button {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #C75B4A 0%, #E06854 100%);
-  color: white;
-  border: none;
+.age-btn {
+  padding: 10px 20px;
+  border: 2px solid #e2e8f0;
+  background: white;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.2s;
+  color: #4a5568;
 }
 
-.search-button:hover:not(:disabled) {
+.age-btn:hover {
+  border-color: #C75B4A;
+  color: #C75B4A;
   transform: translateY(-1px);
 }
 
-.search-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.age-btn.active {
+  background: linear-gradient(135deg, #C75B4A 0%, #E06854 100%);
+  border-color: #C75B4A;
+  color: white;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #718096;
+  font-size: 16px;
 }
 
 .error-box {
@@ -60,99 +55,127 @@
   margin-bottom: 24px;
 }
 
-.baby-info-card {
+.babies-list {
   background: white;
   padding: 24px;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.babies-list-header {
   margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e2e8f0;
 }
 
-.baby-info-card h3 {
-  margin: 0 0 16px 0;
+.babies-list-header h3 {
+  margin: 0;
   color: #1a202c;
-  font-size: 24px;
-}
-
-.baby-info-grid {
-  display: grid;
-  gap: 12px;
-}
-
-.info-item {
-  display: flex;
-  gap: 8px;
-}
-
-.info-label {
-  color: #718096;
-  font-weight: 500;
-  min-width: 100px;
-}
-
-.info-value {
-  color: #1a202c;
-}
-
-.stats-card {
-  background: linear-gradient(135deg, #C75B4A 0%, #E06854 100%);
-  padding: 30px;
-  border-radius: 8px;
-  text-align: center;
-  color: white;
-  margin-bottom: 24px;
-}
-
-.stats-card h3 {
-  margin: 0 0 12px 0;
   font-size: 20px;
 }
 
-.total-tasks {
-  font-size: 48px;
-  font-weight: 700;
+.no-results {
+  text-align: center;
+  padding: 60px 20px;
+  color: #718096;
+  font-size: 16px;
 }
 
-.task-types-grid {
+.babies-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
 
-.task-type-card {
-  background: white;
-  padding: 20px;
+.baby-card {
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.task-type-icon {
-  font-size: 32px;
+.baby-card:hover {
+  border-color: #C75B4A;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(199, 91, 74, 0.15);
+}
+
+.baby-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.baby-card-icon {
+  font-size: 40px;
   line-height: 1;
 }
 
-.task-type-content {
+.baby-card-info {
   flex: 1;
 }
 
-.task-type-label {
-  color: #718096;
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 6px;
-}
-
-.task-type-value {
-  color: #1a202c;
-  font-size: 24px;
+.baby-card-name {
+  font-size: 18px;
   font-weight: 700;
+  color: #1a202c;
   margin-bottom: 4px;
 }
 
-.task-type-detail {
+.baby-card-age {
+  font-size: 14px;
   color: #718096;
-  font-size: 13px;
+  font-weight: 500;
+}
+
+.baby-card-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+}
+
+.baby-card-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #718096;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #C75B4A;
+}
+
+.baby-card-parents {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.parent-email {
+  font-size: 12px;
+  color: #4a5568;
+  padding: 4px 8px;
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

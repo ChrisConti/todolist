@@ -1,185 +1,264 @@
-import React, { useState } from 'react';
-import type { DateRange, PresetRange, BabyStats } from '../types';
-import { DateRangeSelector } from './DateRangeSelector';
-import { searchBabyById } from '../services/searchService';
+import React, { useState, useEffect } from 'react';
+import type { Baby, User } from '../types';
+import { getAllBabies, getAllUsers } from '../services/analyticsService';
+import { BabyDetailsModal } from './BabyDetailsModal';
 import './Search.css';
 
+type AgeRange = '0-1' | '1-3' | '3-6' | '6-12' | '12-18' | '18+' | 'all';
+
+interface BabyWithAge extends Baby {
+  ageInMonths: number;
+  parentEmails: string[];
+}
+
 export const Search: React.FC = () => {
-  const [babyId, setBabyId] = useState('');
+  const [selectedRange, setSelectedRange] = useState<AgeRange>('all');
   const [loading, setLoading] = useState(false);
-  const [babyStats, setBabyStats] = useState<BabyStats | null>(null);
+  const [babies, setBabies] = useState<BabyWithAge[]>([]);
+  const [filteredBabies, setFilteredBabies] = useState<BabyWithAge[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [preset, setPreset] = useState<PresetRange>('7days');
-  const [dateRange, setDateRange] = useState<DateRange>({
-    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    end: new Date(),
-  });
+  const [selectedBaby, setSelectedBaby] = useState<Baby | null>(null);
+  const [isBabyModalOpen, setIsBabyModalOpen] = useState(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!babyId.trim()) return;
+  useEffect(() => {
+    loadBabies();
+  }, []);
 
+  useEffect(() => {
+    filterBabiesByAge();
+  }, [selectedRange, babies]);
+
+  const loadBabies = async () => {
     try {
       setLoading(true);
       setError(null);
-      setBabyStats(null);
 
-      const stats = await searchBabyById(babyId.trim(), dateRange);
-      setBabyStats(stats);
+      const [allBabies, allUsers] = await Promise.all([
+        getAllBabies(),
+        getAllUsers()
+      ]);
+
+      // Create a map of userId to email
+      const userEmailMap = new Map<string, string>();
+      allUsers.forEach((u: User) => userEmailMap.set(u.userId, u.email));
+
+      // Calculate age for each baby
+      const babiesWithAge: BabyWithAge[] = allBabies
+        .map((baby: Baby) => {
+          const ageInMonths = calculateAgeInMonths(baby.birthDate);
+          return {
+            ...baby,
+            ageInMonths,
+            parentEmails: baby.user?.map(uid => userEmailMap.get(uid) || 'N/A').filter(Boolean) || []
+          };
+        })
+        .filter((baby: BabyWithAge) => baby.ageInMonths !== null);
+
+      setBabies(babiesWithAge);
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de la recherche');
-      setBabyStats(null);
+      console.error('Error loading babies:', err);
+      setError(err.message || 'Erreur lors du chargement des bébés');
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (timestamp: any) => {
-    if (!timestamp || !timestamp.toDate) return 'N/A';
-    return timestamp.toDate().toLocaleDateString('fr-FR');
+  const calculateAgeInMonths = (birthDate: string | undefined): number => {
+    if (!birthDate) return -1;
+
+    let birth: Date;
+
+    // Parse birth date (can be DD/MM/YYYY or ISO format)
+    if (birthDate.includes('/')) {
+      let [day, month, year] = birthDate.split('/').map(Number);
+
+      // Handle 2-digit years: if year <= 50, assume 20XX, else 19XX
+      if (year < 100) {
+        year = year <= 50 ? 2000 + year : 1900 + year;
+      }
+
+      birth = new Date(year, month - 1, day);
+    } else {
+      birth = new Date(birthDate);
+    }
+
+    if (isNaN(birth.getTime())) return -1;
+
+    const now = new Date();
+
+    // Calculate months difference properly
+    const yearsDiff = now.getFullYear() - birth.getFullYear();
+    const monthsDiff = now.getMonth() - birth.getMonth();
+    const daysDiff = now.getDate() - birth.getDate();
+
+    let totalMonths = yearsDiff * 12 + monthsDiff;
+
+    // If the day hasn't been reached yet this month, subtract one month
+    if (daysDiff < 0) {
+      totalMonths--;
+    }
+
+    return totalMonths >= 0 ? totalMonths : -1;
   };
 
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h${mins.toString().padStart(2, '0')}`;
+  const filterBabiesByAge = () => {
+    if (selectedRange === 'all') {
+      setFilteredBabies([...babies].sort((a, b) => a.ageInMonths - b.ageInMonths));
+      return;
+    }
+
+    const filtered = babies.filter(baby => {
+      switch (selectedRange) {
+        case '0-1':
+          return baby.ageInMonths >= 0 && baby.ageInMonths <= 1;
+        case '1-3':
+          return baby.ageInMonths > 1 && baby.ageInMonths <= 3;
+        case '3-6':
+          return baby.ageInMonths > 3 && baby.ageInMonths <= 6;
+        case '6-12':
+          return baby.ageInMonths > 6 && baby.ageInMonths <= 12;
+        case '12-18':
+          return baby.ageInMonths > 12 && baby.ageInMonths <= 18;
+        case '18+':
+          return baby.ageInMonths > 18;
+        default:
+          return true;
+      }
+    });
+
+    setFilteredBabies(filtered.sort((a, b) => a.ageInMonths - b.ageInMonths));
+  };
+
+  const handleBabyClick = (baby: BabyWithAge) => {
+    setSelectedBaby(baby);
+    setIsBabyModalOpen(true);
+  };
+
+  const handleBabyDeleted = async () => {
+    setIsBabyModalOpen(false);
+    await loadBabies();
+  };
+
+  const getAgeLabel = (range: AgeRange): string => {
+    switch (range) {
+      case '0-1': return '0-1 mois';
+      case '1-3': return '1-3 mois';
+      case '3-6': return '3-6 mois';
+      case '6-12': return '6-12 mois';
+      case '12-18': return '12-18 mois';
+      case '18+': return '18+ mois';
+      case 'all': return 'Tous les âges';
+    }
+  };
+
+  const formatAge = (months: number): string => {
+    if (months < 0) return 'N/A';
+    if (months === 0) return 'Nouveau-né';
+    if (months === 1) return '1 mois';
+    if (months < 12) return `${months} mois`;
+    const years = Math.floor(months / 12);
+    const remainingMonths = months % 12;
+    if (remainingMonths === 0) return `${years} an${years > 1 ? 's' : ''}`;
+    return `${years} an${years > 1 ? 's' : ''} ${remainingMonths} mois`;
   };
 
   return (
     <div className="search">
-      <h2>Recherche de bébé</h2>
+      <h2>Recherche par tranche d'âge</h2>
 
-      <form onSubmit={handleSearch} className="search-form">
-        <div className="search-input-group">
-          <input
-            type="text"
-            value={babyId}
-            onChange={(e) => setBabyId(e.target.value)}
-            placeholder="ID du bébé (ex: abc123xyz)"
-            className="search-input"
-            disabled={loading}
-          />
-          <button type="submit" disabled={loading} className="search-button">
-            {loading ? 'Recherche...' : '🔍 Rechercher'}
-          </button>
-        </div>
-      </form>
+      <div className="age-range-selector">
+        <button
+          className={`age-btn ${selectedRange === 'all' ? 'active' : ''}`}
+          onClick={() => setSelectedRange('all')}
+        >
+          Tous ({babies.length})
+        </button>
+        {(['0-1', '1-3', '3-6', '6-12', '12-18', '18+'] as AgeRange[]).map(range => {
+          const count = babies.filter(baby => {
+            switch (range) {
+              case '0-1': return baby.ageInMonths >= 0 && baby.ageInMonths <= 1;
+              case '1-3': return baby.ageInMonths > 1 && baby.ageInMonths <= 3;
+              case '3-6': return baby.ageInMonths > 3 && baby.ageInMonths <= 6;
+              case '6-12': return baby.ageInMonths > 6 && baby.ageInMonths <= 12;
+              case '12-18': return baby.ageInMonths > 12 && baby.ageInMonths <= 18;
+              case '18+': return baby.ageInMonths > 18;
+              default: return false;
+            }
+          }).length;
 
+          return (
+            <button
+              key={range}
+              className={`age-btn ${selectedRange === range ? 'active' : ''}`}
+              onClick={() => setSelectedRange(range)}
+            >
+              {getAgeLabel(range)} ({count})
+            </button>
+          );
+        })}
+      </div>
+
+      {loading && <div className="loading">Chargement des bébés...</div>}
       {error && <div className="error-box">{error}</div>}
 
-      {babyStats && (
-        <>
-          <div className="baby-info-card">
-            <h3>👶 {babyStats.baby.name}</h3>
-            <div className="baby-info-grid">
-              <div className="info-item">
-                <span className="info-label">ID:</span>
-                <span className="info-value">{babyStats.baby.id}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Créé le:</span>
-                <span className="info-value">{formatDate(babyStats.baby.CreatedDate)}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Parents:</span>
-                <span className="info-value">
-                  {babyStats.parentEmails.length > 0
-                    ? babyStats.parentEmails.join(', ')
-                    : 'Aucun parent associé'}
-                </span>
-              </div>
-            </div>
+      {!loading && !error && (
+        <div className="babies-list">
+          <div className="babies-list-header">
+            <h3>
+              {filteredBabies.length} bébé{filteredBabies.length > 1 ? 's' : ''} -{' '}
+              {getAgeLabel(selectedRange)}
+            </h3>
           </div>
 
-          <DateRangeSelector
-            dateRange={dateRange}
-            onDateRangeChange={(range) => {
-              setDateRange(range);
-              // Re-trigger search with new date range
-              if (babyId.trim()) {
-                handleSearch({ preventDefault: () => {} } as React.FormEvent);
-              }
-            }}
-            preset={preset}
-            onPresetChange={setPreset}
-          />
+          {filteredBabies.length === 0 ? (
+            <div className="no-results">Aucun bébé dans cette tranche d'âge</div>
+          ) : (
+            <div className="babies-grid">
+              {filteredBabies.map(baby => (
+                <div
+                  key={baby.id}
+                  className="baby-card"
+                  onClick={() => handleBabyClick(baby)}
+                >
+                  <div className="baby-card-header">
+                    <div className="baby-card-icon">👶</div>
+                    <div className="baby-card-info">
+                      <div className="baby-card-name">{baby.name}</div>
+                      <div className="baby-card-age">{formatAge(baby.ageInMonths)}</div>
+                    </div>
+                  </div>
 
-          <div className="stats-card">
-            <h3>📊 Activité totale</h3>
-            <div className="total-tasks">{babyStats.totalTasks} tâches</div>
-          </div>
+                  <div className="baby-card-details">
+                    <div className="baby-card-stat">
+                      <span className="stat-label">Tâches:</span>
+                      <span className="stat-value">{baby.tasks?.length || 0}</span>
+                    </div>
+                    <div className="baby-card-stat">
+                      <span className="stat-label">Parents:</span>
+                      <span className="stat-value">{baby.user?.length || 0}</span>
+                    </div>
+                  </div>
 
-          <div className="task-types-grid">
-            <div className="task-type-card">
-              <div className="task-type-icon">🍼</div>
-              <div className="task-type-content">
-                <div className="task-type-label">Biberons</div>
-                <div className="task-type-value">{babyStats.tasksByType.bottles.count} tâches</div>
-                <div className="task-type-detail">
-                  {babyStats.tasksByType.bottles.totalMl} ml total
+                  {baby.parentEmails.length > 0 && (
+                    <div className="baby-card-parents">
+                      {baby.parentEmails.map((email, idx) => (
+                        <div key={idx} className="parent-email">{email}</div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
+              ))}
             </div>
-
-            <div className="task-type-card">
-              <div className="task-type-icon">💩</div>
-              <div className="task-type-content">
-                <div className="task-type-label">Couches</div>
-                <div className="task-type-value">{babyStats.tasksByType.diapers.count} tâches</div>
-                <div className="task-type-detail">
-                  S:{babyStats.tasksByType.diapers.solid} M:{babyStats.tasksByType.diapers.soft} L:
-                  {babyStats.tasksByType.diapers.liquid}
-                </div>
-              </div>
-            </div>
-
-            <div className="task-type-card">
-              <div className="task-type-icon">😴</div>
-              <div className="task-type-content">
-                <div className="task-type-label">Sommeils</div>
-                <div className="task-type-value">{babyStats.tasksByType.sleep.count} tâches</div>
-                <div className="task-type-detail">
-                  {formatDuration(babyStats.tasksByType.sleep.totalHours)} total
-                </div>
-              </div>
-            </div>
-
-            <div className="task-type-card">
-              <div className="task-type-icon">🤱</div>
-              <div className="task-type-content">
-                <div className="task-type-label">Allaitement</div>
-                <div className="task-type-value">
-                  {babyStats.tasksByType.breastfeeding.count} tâches
-                </div>
-                <div className="task-type-detail">
-                  {formatDuration(babyStats.tasksByType.breastfeeding.totalHours)} total
-                </div>
-              </div>
-            </div>
-
-            <div className="task-type-card">
-              <div className="task-type-icon">🌡️</div>
-              <div className="task-type-content">
-                <div className="task-type-label">Températures</div>
-                <div className="task-type-value">
-                  {babyStats.tasksByType.temperature.count} tâches
-                </div>
-                <div className="task-type-detail">
-                  Moy: {babyStats.tasksByType.temperature.avgTemp.toFixed(1)}°C
-                </div>
-              </div>
-            </div>
-
-            <div className="task-type-card">
-              <div className="task-type-icon">💊</div>
-              <div className="task-type-content">
-                <div className="task-type-label">Santé</div>
-                <div className="task-type-value">{babyStats.tasksByType.health.count} tâches</div>
-              </div>
-            </div>
-          </div>
-        </>
+          )}
+        </div>
       )}
+
+      <BabyDetailsModal
+        isOpen={isBabyModalOpen}
+        onClose={() => setIsBabyModalOpen(false)}
+        baby={selectedBaby}
+        onBabyDeleted={handleBabyDeleted}
+      />
     </div>
   );
 };

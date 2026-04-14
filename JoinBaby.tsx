@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import { doc, getDocs, query, updateDoc, where, arrayUnion } from 'firebase/firestore';
+import { doc, getDocsFromServer, query, updateDoc, where, arrayUnion } from 'firebase/firestore';
 import { babiesRef, db } from './config';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ const JoinBaby = ({ navigation }) => {
   const { user, setBabyID } = useContext(AuthentificationUserContext);
   const [babyIDPaste, setbabyIDPaste] = useState('');
   const [userError, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
 
   // Log screen view when the component is mounted
@@ -27,58 +28,67 @@ const JoinBaby = ({ navigation }) => {
   }, []);
 
   const onHandleModification = async () => {
+    if (loading) return;
+
     const trimmedBabyID = babyIDPaste.trim();
     if (!trimmedBabyID) {
       setError(t('error.enterCode'));
       return;
     }
 
+    setLoading(true);
+    setError('');
+
     const queryResult = query(babiesRef, where('id', '==', trimmedBabyID));
     try {
-      const querySnapshot = await getDocs(queryResult);
+      const querySnapshot = await getDocsFromServer(queryResult);
 
       if (querySnapshot.empty) {
         setError(t('error.invalidCode'));
+        setLoading(false);
         return;
       }
 
-      querySnapshot.forEach(async (document) => {
+      // Use for...of to properly await all async operations before navigating
+      for (const document of querySnapshot.docs) {
         const babyData = document.data();
         await updateDoc(doc(db, 'Baby', document.id), {
           user: arrayUnion(user.uid),
         });
-        console.log('success');
         setBabyID(trimmedBabyID);
 
         // Clean review counters when joining a new baby
-        // But keep has_reviewed_app if user already reviewed
         try {
           const hasReviewed = await AsyncStorage.getItem(`has_reviewed_app_${user.uid}`);
           await AsyncStorage.removeItem(`task_created_count_${user.uid}`);
           await AsyncStorage.removeItem(`last_review_prompt_at_count_${user.uid}`);
           await AsyncStorage.removeItem(`review_prompt_count_${user.uid}`);
-          // Only remove has_reviewed if user hasn't reviewed yet
           if (hasReviewed !== 'true') {
             await AsyncStorage.removeItem(`has_reviewed_app_${user.uid}`);
           }
-          console.log('✅ Review counters cleaned when joining baby:', trimmedBabyID, 'preserved has_reviewed:', hasReviewed === 'true');
-        } catch (storageError) {
-          console.warn('⚠️ Failed to clean review counters:', storageError);
+        } catch {
+          // Non-critical — ignore storage errors
         }
 
-        analytics.logEvent('baby_joined', {
-          baby_id: trimmedBabyID,
-          baby_name: babyData.name,
-          baby_type: babyData.type,
-          user_id: user.uid,
-          timestamp: Date.now()
-        });
-      });
+        try {
+          analytics.logEvent('baby_joined', {
+            baby_id: trimmedBabyID,
+            baby_name: babyData.name,
+            baby_type: babyData.type,
+            user_id: user.uid,
+            timestamp: Date.now()
+          });
+        } catch {
+          // Non-critical — don't fail the join if analytics throws
+        }
+      }
 
+      setLoading(false);
       Alert.alert(t('congratsjoinbaby'));
       navigation.navigate('MainTabs');
     } catch (error) {
       console.error('Error updating document:', error);
+      setLoading(false);
       setError(t('error.updateFailed'));
     }
   };
@@ -94,7 +104,7 @@ const JoinBaby = ({ navigation }) => {
           ref={inputRef}
           style={styles.input}
           placeholder={t('placeholder.code')}
-          keyboardType="email-address"
+          keyboardType="default"
           autoCapitalize="none"
           clearButtonMode="always"
           value={babyIDPaste}
@@ -103,11 +113,16 @@ const JoinBaby = ({ navigation }) => {
           accessibilityHint={t('accessibility.enterCodeHint')}
           returnKeyType="done"
           onSubmitEditing={onHandleModification}
+          editable={!loading}
         />
         {userError ? <Text style={styles.errorText}>{userError}</Text> : null}
 
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.button} onPress={onHandleModification}>
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={onHandleModification}
+            disabled={loading}
+          >
             <Text style={styles.buttonText}>{t('validate')}</Text>
           </TouchableOpacity>
         </View>
@@ -132,6 +147,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     width: 250,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: 'white',

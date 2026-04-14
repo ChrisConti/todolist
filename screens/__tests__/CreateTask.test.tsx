@@ -296,6 +296,38 @@ describe('CreateTask - Business Logic', () => {
     });
   });
 
+  describe('Date picker cancel — preserves selected date', () => {
+    it('does not reset selectedDate when picker is cancelled', () => {
+      // Simulates the fixed onCancel handler: only closes picker, does not call setSelectedDate
+      const pastDate = new Date('2025-01-01T08:00:00');
+      let selectedDate = pastDate;
+      const setIsDateTimePickerVisible = jest.fn();
+
+      // Fixed onCancel — only closes the picker
+      const onCancel = () => setIsDateTimePickerVisible(false);
+      onCancel();
+
+      // Date must be unchanged
+      expect(selectedDate).toBe(pastDate);
+      expect(setIsDateTimePickerVisible).toHaveBeenCalledWith(false);
+    });
+
+    it('updates selectedDate only when a date is confirmed', () => {
+      const originalDate = new Date('2025-01-01T08:00:00');
+      let selectedDate = originalDate;
+
+      const onConfirm = (date: Date) => {
+        selectedDate = date;
+      };
+
+      const newDate = new Date('2025-01-04T14:30:00');
+      onConfirm(newDate);
+
+      expect(selectedDate).toBe(newDate);
+      expect(selectedDate).not.toBe(originalDate);
+    });
+  });
+
   describe('Task Data Validation', () => {
     it('should create task with all required fields', () => {
       const task = {

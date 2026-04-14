@@ -191,9 +191,11 @@ export const useThermoStats = (tasks: Task[], language: string = 'en') => {
 
     tasks.forEach((task) => {
       const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
-      const temp = parseFloat(task.label);
+      // Normalise comma decimal separator (French locale: "37,5" → "37.5")
+      const temp = parseFloat(String(task.label).replace(',', '.'));
 
-      if (isNaN(temp)) return;
+      // Filter out invalid temps: NaN, zero (saved when field left empty), negatives
+      if (isNaN(temp) || temp <= 0) return;
 
       if (isToday(task.date)) todayTemps.push(temp);
       if (isYesterday(task.date)) yesterdayTemps.push(temp);

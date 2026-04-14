@@ -1,27 +1,24 @@
-import { View, Text, Button, TouchableOpacity, Dimensions, TextInput, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import React, { useContext, useEffect, useState } from 'react';
-import { addDoc, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useContext } from 'react';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
-import { getAuth, sendPasswordResetEmail, updateEmail, updatePassword } from "firebase/auth";
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../config.js';
 import { useTranslation } from 'react-i18next';
 import { KEYBOARD_CONFIG } from '../utils/constants';
 
-const ChangeEmail = ({route, navigation}) => {
+const ChangePassword = ({ route, navigation }) => {
   const { t } = useTranslation();
-  const {user, setUser, babyID, setBabyID} = useContext(AuthentificationUserContext);
+  const { user } = useContext(AuthentificationUserContext);
 
   function onHandleForgetPassword() {
     sendPasswordResetEmail(auth, user.email)
-  .then(() => {
-    console.log('success');
-    Alert.alert(t('settings.resetPassordEmailSent'));
-    navigation.goBack();
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-  });
+      .then(() => {
+        Alert.alert(t('settings.resetPassordEmailSent'));
+        navigation.goBack();
+      })
+      .catch((error) => {
+        console.error('Password reset error:', error);
+      });
   }
 
   return (
@@ -45,9 +42,9 @@ const ChangeEmail = ({route, navigation}) => {
       </View>
     </KeyboardAvoidingView>
   );
-}
+};
 
-export default ChangeEmail;
+export default ChangePassword;
 
 const styles = StyleSheet.create({
   container: {

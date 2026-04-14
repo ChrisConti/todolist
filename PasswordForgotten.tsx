@@ -1,42 +1,71 @@
-import React, { useContext, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from './config';
 import { useTranslation } from 'react-i18next';
-import { AuthentificationUserContext } from './Context/AuthentificationContext';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const PasswordForgotten = ({ navigation }) => {
   const { t } = useTranslation();
-  const { user } = useContext(AuthentificationUserContext);
   const [email, setEmail] = useState('');
   const [userError, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
 
-  function onHandleForgetPassword() {
-    const emailRegex = /^(([^<>()\[\]\.,;:\s@"]+(\.[^<>()\[\]\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    const isValidEmail = emailRegex.test(email);
+  async function onHandleForgetPassword() {
+    if (loading) return;
 
-    if (!email || !isValidEmail) {
+    const trimmed = email.trim();
+    if (!trimmed || !EMAIL_REGEX.test(trimmed)) {
       setError(t('enterValidEmail'));
       return;
     }
 
-    sendPasswordResetEmail(auth, email)
-      .then(() => {
-        console.log('success');
-        navigation.navigate('Connection');
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error(errorCode, errorMessage);
-        navigation.navigate('Connection');
-      });
+    setLoading(true);
+    setError('');
+
+    try {
+      await sendPasswordResetEmail(auth, trimmed);
+      setSent(true);
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        // Don't reveal whether the email exists — just show success to prevent enumeration
+        setSent(true);
+      } else {
+        setError(t('error.general'));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (sent) {
+    return (
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.content}>
+          <Text style={styles.successText}>{t('settings.resetPasswordEmailSentConfirm')}</Text>
+        </View>
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Connection')}>
+            <Text style={styles.buttonText}>{t('button.backToLogin')}</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    );
   }
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
-        <Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70}
+    >
+      <View style={styles.content}>
+        <Text style={styles.description}>
           {t('settings.resetPasswordInstructions')}
         </Text>
         <TextInput
@@ -44,56 +73,58 @@ const PasswordForgotten = ({ navigation }) => {
           placeholder={t('email')}
           keyboardType="email-address"
           autoCapitalize="none"
-          clearButtonMode='always'
+          autoComplete="email"
+          clearButtonMode="while-editing"
           value={email}
           onChangeText={(text) => setEmail(text)}
+          onSubmitEditing={onHandleForgetPassword}
+          returnKeyType="send"
+          editable={!loading}
         />
-        <View style={{
-          position: 'absolute',
-          bottom: 10,
-          left: 0,
-          right: 0,
-          backgroundColor: 'transparent',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          flexDirection: 'column',
-        }}>
-          <View>
-            <Text style={styles.errorText}>{userError}</Text>
-          </View>
-          <TouchableOpacity style={styles.button} onPress={onHandleForgetPassword}>
-            <Text style={styles.buttonText}>{t('settings.sendEmail')}</Text>
-          </TouchableOpacity>
-        </View>
+        {userError !== '' && <Text style={styles.errorText}>{userError}</Text>}
       </View>
-    </TouchableWithoutFeedback>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={onHandleForgetPassword}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#F6F0EB" />
+          ) : (
+            <Text style={styles.buttonText}>{t('settings.sendEmail')}</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
-}
+};
 
 export default PasswordForgotten;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, padding: 10, backgroundColor: '#FDF1E7'
+    flex: 1,
+    backgroundColor: '#FDF1E7',
   },
-  button: {
-    backgroundColor: '#C75B4A',
-    borderRadius: 8,
-    paddingVertical: 12,
+  content: {
+    flex: 1,
+    padding: 20,
+  },
+  description: {
+    fontSize: 15,
+    color: '#666',
+    marginBottom: 30,
+    lineHeight: 22,
+  },
+  successText: {
+    fontSize: 16,
+    color: '#4CAF50',
+    textAlign: 'center',
+    marginTop: 40,
+    lineHeight: 24,
     paddingHorizontal: 20,
-    alignItems: 'center',
-    marginBottom: 20,
-    width: 250
-  },
-  buttonText: {
-    color: '#F6F0EB',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   input: {
     width: '100%',
@@ -102,6 +133,36 @@ const styles = StyleSheet.create({
     borderColor: '#C75B4A',
     borderRadius: 8,
     paddingHorizontal: 10,
-    marginBottom: 20,
+    marginBottom: 10,
+    backgroundColor: '#FFF',
+  },
+  errorText: {
+    color: '#C75B4A',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingBottom: Platform.select({ ios: 30, android: 20 }),
+    alignItems: 'center',
+  },
+  button: {
+    backgroundColor: '#C75B4A',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 250,
+    minHeight: 48,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    color: '#F6F0EB',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

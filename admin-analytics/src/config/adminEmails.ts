@@ -4,7 +4,7 @@
  */
 export const ADMIN_EMAILS = [
   'continente.christopher@gmail.com',
-  'delphine.bardou@gmail.com',
+  'bardou.delphine@gmail.com',
 ];
 
 export const isAdminEmail = (email: string): boolean => {

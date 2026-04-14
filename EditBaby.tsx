@@ -21,7 +21,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { babiesRef, storage } from './config';
 import { getDocs, query, where, updateDoc, doc } from 'firebase/firestore';
-import { ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, deleteObject } from 'firebase/storage';
 import {
   validateBabyName,
   validateBirthdate,
@@ -59,7 +59,6 @@ const EditBaby = ({ navigation, route }) => {
   const [newPhotoUri, setNewPhotoUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showToast, setShowToast] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const types = [
@@ -70,17 +69,12 @@ const EditBaby = ({ navigation, route }) => {
   // Helper pour extraire le chemin du fichier depuis l'URL Firebase Storage
   const extractStoragePathFromUrl = (url: string): string | null => {
     try {
-      console.log('🔍 Extracting path from URL:', url);
       const match = url.match(/\/o\/(.+?)\?/);
-      console.log('🔍 Regex match result:', match);
       if (match && match[1]) {
-        const decoded = decodeURIComponent(match[1]);
-        console.log('🔍 Decoded path:', decoded);
-        return decoded;
+        return decodeURIComponent(match[1]);
       }
       return null;
-    } catch (error) {
-      console.error('❌ Error extracting storage path:', error);
+    } catch {
       return null;
     }
   };
@@ -152,24 +146,20 @@ const EditBaby = ({ navigation, route }) => {
   };
 
   const removePhoto = async () => {
-    // Supprimer directement sans confirmation
     if (profilePhoto) {
       try {
         const storagePath = extractStoragePathFromUrl(profilePhoto);
-        console.log('🗑️ Deleting photo at path:', storagePath);
         if (storagePath) {
           const storageRef = ref(storage, storagePath);
           await deleteObject(storageRef);
-          console.log('✅ Photo deleted from storage');
         }
-      } catch (deleteError) {
-        console.log('⚠️ Error deleting photo from storage:', deleteError);
+      } catch {
+        // Photo already deleted or path invalid — ignore
       }
     }
     setProfilePhoto(null);
     setNewPhotoUri(null);
-    
-    // Toast notification
+
     if (Platform.OS === 'android') {
       ToastAndroid.show(t('success.photoRemoved'), ToastAndroid.SHORT);
     }
@@ -179,49 +169,36 @@ const EditBaby = ({ navigation, route }) => {
     if (!newPhotoUri) return profilePhoto;
 
     try {
-      console.log('🔄 Starting photo upload...');
-      console.log('📁 Baby ID:', babyID);
-      console.log('📸 Photo URI:', newPhotoUri);
-
       // Supprimer l'ancienne photo si elle existe
       if (profilePhoto) {
         try {
           const storagePath = extractStoragePathFromUrl(profilePhoto);
-          console.log('🗑️ Deleting old photo at path:', storagePath);
           if (storagePath) {
             const oldStorageRef = ref(storage, storagePath);
             await deleteObject(oldStorageRef);
-            console.log('✅ Old photo deleted from storage');
           }
-        } catch (deleteError) {
-          console.log('⚠️ No old photo to delete or error:', deleteError);
+        } catch {
+          // Ignore — old photo may already be deleted
         }
       }
 
-      // Lire l'image en base64
-      console.log('📤 Reading image as base64...');
       const base64 = await FileSystem.readAsStringAsync(newPhotoUri, {
         encoding: 'base64',
       });
-      console.log('✅ Image converted to base64');
 
       const timestamp = Date.now();
       const fileName = `babies/${babyID}/profile_${timestamp}.jpg`;
-      
-      // Upload avec fetch directement (pas de SDK Firebase)
-      console.log('⬆️ Uploading via fetch...');
+
       const idToken = await user.getIdToken();
-      
-      // Convertir base64 en Uint8Array
+
       const binaryString = atob(base64);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      
+
       const uploadUrl = `https://firebasestorage.googleapis.com/v0/b/babylist-ae85f.firebasestorage.app/o?name=${encodeURIComponent(fileName)}`;
-      console.log('📡 Upload URL:', uploadUrl);
-      
+
       const response = await fetch(uploadUrl, {
         method: 'POST',
         headers: {
@@ -233,24 +210,15 @@ const EditBaby = ({ navigation, route }) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Upload failed:', errorText);
-        throw new Error(`Upload failed: ${response.status}`);
+        throw new Error(`Upload failed: ${response.status} — ${errorText}`);
       }
 
       const result = await response.json();
-      console.log('✅ Upload complete, result:', result);
-      
-      // Récupérer le token depuis la réponse
       const downloadToken = result.downloadTokens;
-      console.log('🔑 Download token:', downloadToken);
-      
-      // Construire l'URL avec le token
       const downloadURL = `https://firebasestorage.googleapis.com/v0/b/babylist-ae85f.firebasestorage.app/o/${encodeURIComponent(fileName)}?alt=media&token=${downloadToken}`;
-      console.log('✅ Download URL with token:', downloadURL);
-      
+
       return downloadURL;
     } catch (error) {
-      console.error('❌ Error uploading photo:', error);
       throw new Error(t('error.photoUploadFailed'));
     }
   };
@@ -303,13 +271,7 @@ const EditBaby = ({ navigation, route }) => {
         setProfilePhoto(photoURL);
         setNewPhotoUri(null);
       } else if (!profilePhoto && !newPhotoUri) {
-        // Si photo supprimée, supprimer du storage
-        try {
-          const storageRef = ref(storage, `babies/${babyID}/profile.jpg`);
-          await deleteObject(storageRef);
-        } catch (deleteError) {
-          console.log('No photo to delete or error deleting:', deleteError);
-        }
+        // Photo déjà supprimée via removePhoto() — rien à faire ici
         photoURL = null;
       }
 
@@ -344,7 +306,6 @@ const EditBaby = ({ navigation, route }) => {
       const querySnapshot = await getDocs(queryResult);
 
       if (querySnapshot.empty) {
-        console.error('❌ Baby not found with ID:', babyID);
         setError(t('error.babyNotFound') || 'Baby not found');
         setLoading(false);
         return;
@@ -353,15 +314,11 @@ const EditBaby = ({ navigation, route }) => {
       const babyDoc = querySnapshot.docs[0];
       await updateDoc(babyDoc.ref, updateData);
 
-      // Toast notification
       if (Platform.OS === 'android') {
         ToastAndroid.show(t('success.babyUpdated'), ToastAndroid.SHORT);
-      } else {
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 1000);
       }
 
-      setTimeout(() => navigation.goBack(), Platform.OS === 'ios' ? 1000 : 0);
+      navigation.goBack();
     } catch (error: any) {
       console.error('Error updating baby:', error);
       setError(error.message || t('error.general'));
@@ -377,20 +334,13 @@ const EditBaby = ({ navigation, route }) => {
 
   const renderProfilePhoto = () => {
     const photoUri = newPhotoUri || profilePhoto;
-    console.log('📷 EditBaby renderProfilePhoto - newPhotoUri:', newPhotoUri);
-    console.log('📷 EditBaby renderProfilePhoto - profilePhoto:', profilePhoto);
-    console.log('📷 EditBaby renderProfilePhoto - photoUri:', photoUri);
-    
+
     if (photoUri) {
       return (
         <View style={styles.photoContainer}>
-          <Image 
-            source={{ uri: photoUri }} 
+          <Image
+            source={{ uri: photoUri }}
             style={styles.profilePhoto}
-            onError={(error) => {
-              console.error('❌ EditBaby Image loading error:', error.nativeEvent.error);
-            }}
-            onLoad={() => console.log('✅ EditBaby Image loaded successfully')}
           />
           <View style={styles.photoActions}>
             <TouchableOpacity style={styles.photoActionButton} onPress={pickImage}>
@@ -533,14 +483,6 @@ const EditBaby = ({ navigation, route }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Toast personnalisé pour iOS */}
-      {showToast && (
-        <View style={styles.customToast}>
-          <View style={styles.customToastContent}>
-            <Text style={styles.customToastText}>{t('success.babyUpdated')}</Text>
-          </View>
-        </View>
-      )}
     </KeyboardAvoidingView>
   );
 };
@@ -682,30 +624,6 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
-  },
-  customToast: {
-    position: 'absolute',
-    bottom: 100,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 9999,
-  },
-  customToastContent: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  customToastText: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '600',
   },
 });
 

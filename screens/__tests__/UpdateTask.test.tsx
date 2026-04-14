@@ -123,6 +123,47 @@ describe('UpdateTask - Business Logic', () => {
     });
   });
 
+  describe('for...of sequential await (race condition fix)', () => {
+    it('completes all updateDoc calls before resolving', async () => {
+      const callOrder: string[] = [];
+      const makeDelayedUpdate = async (docId: string) => {
+        await new Promise<void>((resolve) => setTimeout(() => {
+          callOrder.push(`update:${docId}`);
+          resolve();
+        }, 10));
+      };
+
+      const docs = [{ id: 'doc-A' }, { id: 'doc-B' }, { id: 'doc-C' }];
+
+      // for...of awaits each iteration
+      for (const d of docs) {
+        await makeDelayedUpdate(d.id);
+      }
+      callOrder.push('done');
+
+      expect(callOrder).toEqual(['update:doc-A', 'update:doc-B', 'update:doc-C', 'done']);
+    });
+
+    it('fires navigation only after all docs are updated', async () => {
+      const events: string[] = [];
+      const mockUpdateDoc = jest.fn(async () => {
+        events.push('firestore:write');
+      });
+      const mockNavigateBack = jest.fn(() => {
+        events.push('navigate:back');
+      });
+
+      const docs = [{ id: 'doc-1' }, { id: 'doc-2' }];
+      for (const d of docs) {
+        await mockUpdateDoc(d.id);
+      }
+      mockNavigateBack();
+
+      expect(events).toEqual(['firestore:write', 'firestore:write', 'navigate:back']);
+      expect(events.indexOf('navigate:back')).toBeGreaterThan(events.lastIndexOf('firestore:write'));
+    });
+  });
+
   describe('Task Deletion Logic', () => {
     const existingTasks = [
       { uid: 'task-keep-1', id: 0, label: 100 },
