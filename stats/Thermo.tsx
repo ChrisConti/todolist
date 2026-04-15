@@ -26,8 +26,8 @@ const Thermo: React.FC<ThermoProps> = ({ navigation, tasks }) => {
       <View style={styles.tableContainer}>
         {/* Header */}
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderText, { flex: 1 }]}>Heure</Text>
-          <Text style={[styles.tableHeaderText, { flex: 1 }]}>Température</Text>
+          <Text style={[styles.tableHeaderText, { flex: 1 }]}>{t('thermo.tableTime')}</Text>
+          <Text style={[styles.tableHeaderText, { flex: 1 }]}>{t('thermo.tableTemp')}</Text>
         </View>
 
         {/* Rows */}

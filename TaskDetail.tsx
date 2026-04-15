@@ -26,13 +26,6 @@ const TaskDetail = ({ route, navigation }) => {
     { id: 5, rq: require('./assets/allaitement.png') },
   ];
 
-  const imagesDiapers = [
-    { id: 0, name: 'Caca' },
-    { id: 1, name: 'Pipi' },
-    { id: 2, name: 'Caca et Pipi' },
-    { id: 3, name: 'Sec' },
-  ];
-
   const removeTaskFromBabyTasks = async () => {
     try {
       const queryResult = query(babiesRef, where('id', '==', babySelected));

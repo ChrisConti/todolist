@@ -45,7 +45,7 @@ export default function Statistics({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        <Text style={styles.headerTitle}>{t('title.stats') || 'Statistiques'}</Text>
+        <Text style={styles.headerTitle}>{t('title.stats')}</Text>
       </View>
       <View style={styles.content}>
         <AllComponent tasks={tasks} navigation={navigation} />
