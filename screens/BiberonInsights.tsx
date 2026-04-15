@@ -179,17 +179,17 @@ export default function BiberonInsights({ navigation }: any) {
     <View style={styles.card}>
       <View style={[styles.compareRow, styles.compareHeaderRow]}>
         <Text style={[styles.compareLabel, styles.compareHeaderText]}> </Text>
-        <Text style={[styles.compareCell, styles.compareHeaderText]}>Auj.</Text>
-        <Text style={[styles.compareCell, styles.compareHeaderText]}>Hier</Text>
-        <Text style={[styles.compareCell, styles.compareHeaderText]}>Écart</Text>
+        <Text style={[styles.compareCell, styles.compareHeaderText]}>{t('biberon.today')}</Text>
+        <Text style={[styles.compareCell, styles.compareHeaderText]}>{t('biberon.yesterday')}</Text>
+        <Text style={[styles.compareCell, styles.compareHeaderText]}>{t('biberon.compareGap')}</Text>
       </View>
-      <Text style={styles.compareSection}>Total</Text>
-      {renderCompareRow('Biberons', '🍼', todayStats.total.count, yesterdayStats.total.count, true)}
-      {renderCompareRow('Volume', '💧', todayStats.total.ml, yesterdayStats.total.ml, false)}
+      <Text style={styles.compareSection}>{t('biberon.compareTotal')}</Text>
+      {renderCompareRow(t('tendance.bottles'), '🍼', todayStats.total.count, yesterdayStats.total.count, true)}
+      {renderCompareRow(t('biberon.volumeHeader'), '💧', todayStats.total.ml, yesterdayStats.total.ml, false)}
       {([
-        { label: 'Maternel', emoji: '🤱', key: 'maternal' as const },
-        { label: 'Artificiel', emoji: '🥛', key: 'artificial' as const },
-        { label: 'Lait', emoji: '🍼', key: 'unknown' as const },
+        { label: t('milkType.maternal'), emoji: '🤱', key: 'maternal' as const },
+        { label: t('milkType.artificial'), emoji: '🥛', key: 'artificial' as const },
+        { label: t('milkType.title'), emoji: '🍼', key: 'unknown' as const },
       ]).map(({ label, emoji, key }) => {
         const tDay = todayStats[key];
         const yDay = yesterdayStats[key];
@@ -197,8 +197,8 @@ export default function BiberonInsights({ navigation }: any) {
         return (
           <View key={key}>
             <Text style={styles.compareSection}>{emoji} {label}</Text>
-            {renderCompareRow('Biberons', '', tDay.count, yDay.count, true)}
-            {renderCompareRow('Volume', '', tDay.ml, yDay.ml, false)}
+            {renderCompareRow(t('tendance.bottles'), '', tDay.count, yDay.count, true)}
+            {renderCompareRow(t('biberon.volumeHeader'), '', tDay.ml, yDay.ml, false)}
           </View>
         );
       })}
@@ -214,16 +214,16 @@ export default function BiberonInsights({ navigation }: any) {
   // ── Main render ────────────────────────────────────────────────────────────
 
   const MAIN_TABS: { key: MainTab; label: string }[] = [
-    { key: 'detail',   label: 'Détail' },
-    { key: 'tendance', label: 'Tendance' },
-    { key: 'rythme',   label: 'Rythme' },
-    { key: 'type',     label: 'Type' },
+    { key: 'detail',   label: t('biberon.viewDetail') },
+    { key: 'tendance', label: t('biberon.tabTrend') },
+    { key: 'rythme',   label: t('biberon.tabRhythm') },
+    { key: 'type',     label: t('biberon.viewType') },
   ];
 
   const DAY_TABS: { key: DayTab; label: string }[] = [
-    { key: 'today',     label: "Aujourd'hui" },
-    { key: 'yesterday', label: 'Hier' },
-    { key: 'compare',   label: 'Comparatif' },
+    { key: 'today',     label: t('biberon.today') },
+    { key: 'yesterday', label: t('biberon.yesterday') },
+    { key: 'compare',   label: t('biberon.tabCompare') },
   ];
 
   return (
@@ -233,7 +233,7 @@ export default function BiberonInsights({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={26} color="#F6F0EB" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Bilan Biberon</Text>
+        <Text style={styles.headerTitle}>{t('biberon.insightsTitle')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -277,8 +277,8 @@ export default function BiberonInsights({ navigation }: any) {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {mainTab === 'detail' && dayTab === 'today'     && renderDayView(todayStats, "Aujourd'hui", todayTasks)}
-          {mainTab === 'detail' && dayTab === 'yesterday' && renderDayView(yesterdayStats, 'Hier', yesterdayTasks)}
+          {mainTab === 'detail' && dayTab === 'today'     && renderDayView(todayStats, t('biberon.today'), todayTasks)}
+          {mainTab === 'detail' && dayTab === 'yesterday' && renderDayView(yesterdayStats, t('biberon.yesterday'), yesterdayTasks)}
           {mainTab === 'detail' && dayTab === 'compare'   && renderCompareView()}
           {mainTab === 'tendance' && <TendanceChart tasks={tasks} />}
           {mainTab === 'rythme'   && <RythmeChart tasks={tasks} />}

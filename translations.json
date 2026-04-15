@@ -41,8 +41,11 @@
       "code": "Enter the code",
       "millilitres": "Oz/ml",
       "medicaments": "Medecine",
-      "sleepTime": "Sleep time (min)",
+      "sleepHours": "hour",
+      "sleepMinutes": "min",
       "temperature": "Temperature",
+      "sleepHoursMax": "Max 24h",
+      "sleepMinutesMax": "Max 180 min",
       "weight": "Weight (kg/lb)",
       "height": "Height (cm/in)"
     },
@@ -454,7 +457,13 @@
       "daysLabel": "{{count}} days",
       "noBottleRecorded": "No bottle recorded",
       "volumeHeader": "Volume",
-      "typeHeader": "Type"
+      "typeHeader": "Type",
+      "insightsTitle": "Bottle Summary",
+      "tabTrend": "Trend",
+      "tabRhythm": "Rhythm",
+      "tabCompare": "Comparison",
+      "compareGap": "Gap",
+      "compareTotal": "Total"
     },
     "sommeil": {
       "lastTask": "Last task done",
@@ -651,8 +660,11 @@
       "code": "Entrez le code",
       "millilitres": "Mililitres",
       "medicaments": "Médicaments",
-      "sleepTime": "Temps de sommeil (min)",
+      "sleepHours": "heure",
+      "sleepMinutes": "min",
       "temperature": "Température",
+      "sleepHoursMax": "Max 24h",
+      "sleepMinutesMax": "Max 180 min",
       "weight": "Poids (kg)",
       "height": "Taille (cm)"
     },
@@ -1050,7 +1062,13 @@
       "daysLabel": "{{count}} jours",
       "noBottleRecorded": "Aucun biberon enregistré",
       "volumeHeader": "Volume",
-      "typeHeader": "Type"
+      "typeHeader": "Type",
+      "insightsTitle": "Bilan Biberon",
+      "tabTrend": "Tendance",
+      "tabRhythm": "Rythme",
+      "tabCompare": "Comparatif",
+      "compareGap": "Écart",
+      "compareTotal": "Total"
     },
     "sommeil": {
       "lastTask": "Dernière tâche effectuée",
@@ -1247,8 +1265,11 @@
       "code": "Introduce el código",
       "millilitres": "Mililitros",
       "medicaments": "Medicamentos",
-      "sleepTime": "Tiempo de sueño (min)",
+      "sleepHours": "hora",
+      "sleepMinutes": "min",
       "temperature": "Temperatura",
+      "sleepHoursMax": "Máx 24h",
+      "sleepMinutesMax": "Máx 180 min",
       "weight": "Peso (kg)",
       "height": "Altura (cm)"
     },
@@ -1631,7 +1652,13 @@
       "daysLabel": "{{count}} días",
       "noBottleRecorded": "Ningún biberón registrado",
       "volumeHeader": "Volumen",
-      "typeHeader": "Tipo"
+      "typeHeader": "Tipo",
+      "insightsTitle": "Resumen Biberón",
+      "tabTrend": "Tendencia",
+      "tabRhythm": "Ritmo",
+      "tabCompare": "Comparativo",
+      "compareGap": "Diferencia",
+      "compareTotal": "Total"
     },
     "sommeil": {
       "lastTask": "Última tarea realizada",

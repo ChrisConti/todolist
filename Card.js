@@ -36,7 +36,11 @@ const Card = ({ task, navigation, editable }) => {
 
   const handleCategory = (id) => {
     if (id == 0) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>{t('ml')}</Text>;
-    if (id == 3) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>{t('min')}</Text>;
+    if (id == 3) {
+      const totalMins = parseInt(String(task.label));
+      if (!isNaN(totalMins) && totalMins >= 60) return null;
+      return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>{t('min')}</Text>;
+    }
     if (id == 4) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>{t('celsius')}</Text>;
   };
 
@@ -131,6 +135,14 @@ const Card = ({ task, navigation, editable }) => {
         return <Text>{imagesDiapers[diaperType].name}</Text>;
       }
       return <Text>-</Text>;
+    }
+    if (task.id == 3 && task.label) {
+      const totalMins = parseInt(String(task.label));
+      if (!isNaN(totalMins) && totalMins >= 60) {
+        const hours = Math.floor(totalMins / 60);
+        const mins = totalMins % 60;
+        return <Text>{`${hours}h${mins.toString().padStart(2, '0')}`}</Text>;
+      }
     }
     return <Text>{task.label}</Text>;
   };

@@ -29,6 +29,9 @@ const UpdateTask = ({ route, navigation }) => {
   const [diaperContent, setDiaperContent] = useState<number | null>(task.diaperContent ?? null);
   const [diaperType, setDiaperType] = useState<number | null>(task.diaperType ?? task.idCaca ?? null);
   const [sleepLocation, setSleepLocation] = useState<string | null>(task.sleepLocation || null);
+  const _sleepTotal = task.id === 3 ? parseInt(String(task.label || '0')) || 0 : 0;
+  const [sleepHours, setSleepHours] = useState<string>(_sleepTotal > 0 ? (Math.floor(_sleepTotal / 60) > 0 ? String(Math.floor(_sleepTotal / 60)) : '') : '');
+  const [sleepMinutes, setSleepMinutes] = useState<string>(_sleepTotal > 0 ? String(_sleepTotal % 60) : '');
   const [selectedDate, setSelectedDate] = useState(task.date ? new Date(task.date) : new Date());
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -50,7 +53,19 @@ const UpdateTask = ({ route, navigation }) => {
 
   const updateBabyTasks = async () => {
     if (loading) return;
-    
+
+    // Sleep: block save if values exceed limits
+    if (selectedImage === 3) {
+      if (sleepHours && parseInt(sleepHours) > 24) {
+        Alert.alert(t('error.title'), t('placeholder.sleepHoursMax'));
+        return;
+      }
+      if (sleepMinutes && parseInt(sleepMinutes) > 180) {
+        Alert.alert(t('error.title'), t('placeholder.sleepMinutesMax'));
+        return;
+      }
+    }
+
     setLoading(true);
     
     const queryResult = query(babiesRef, where('id', '==', babyID));
@@ -72,7 +87,9 @@ const UpdateTask = ({ route, navigation }) => {
               ...t,
               id: selectedImage,
               date: time,
-              label: label || 0,
+              label: selectedImage === 3
+                ? ((sleepHours || sleepMinutes) ? String(parseInt(sleepHours || '0') * 60 + parseInt(sleepMinutes || '0')) : 0)
+                : (label || 0),
               // Only include diaperType and diaperContent for diaper tasks (id === 1)
               ...(selectedImage === 1 && diaperType !== null && { diaperType }),
               ...(selectedImage === 1 && diaperType !== null && { idCaca: diaperType }), // Backward compatibility only if selected
@@ -232,18 +249,30 @@ const UpdateTask = ({ route, navigation }) => {
 
       } else if (id == 3) {
         return (
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            onChangeText={(inputText) => setLabel(inputText)}
-            value={label}
-            returnKeyLabel='Done'
-            returnKeyType='done'
-            onSubmitEditing={Keyboard.dismiss}
-            maxLength={10}
-            placeholder={t('placeholder.sleepTime')}
-            placeholderTextColor="#9BA3A4"
-          />
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16 }}>
+            <TextInput
+              style={[styles.input, { width: 120, textAlign: 'center' }]}
+              keyboardType="numeric"
+              onChangeText={(v) => setSleepHours(v.replace(/[^0-9]/g, ''))}
+              value={sleepHours}
+              maxLength={2}
+              placeholder={t('placeholder.sleepHours')}
+              placeholderTextColor="#9BA3A4"
+              returnKeyType='done'
+              onSubmitEditing={Keyboard.dismiss}
+            />
+            <TextInput
+              style={[styles.input, { width: 120, textAlign: 'center' }]}
+              keyboardType="numeric"
+              onChangeText={(v) => setSleepMinutes(v.replace(/[^0-9]/g, ''))}
+              value={sleepMinutes}
+              maxLength={3}
+              placeholder={t('placeholder.sleepMinutes')}
+              placeholderTextColor="#9BA3A4"
+              returnKeyType='done'
+              onSubmitEditing={Keyboard.dismiss}
+            />
+          </View>
         );
 
       } else if (id == 4) {
