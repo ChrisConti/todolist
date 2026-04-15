@@ -5,6 +5,8 @@
 "widget.title" = "Biberón";
 "widget.empty" = "Sin biberón\nregistrado";
 "widget.madeAt" = "A las %@";
+"widget.displayName" = "Último biberón";
+"widget.description" = "Muestra el último biberón dado.";
 
 /* Time ago */
 "time.now" = "Ahora mismo";

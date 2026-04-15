@@ -148,8 +148,8 @@ struct BiberonWidget: Widget {
       BiberonWidgetView(entry: entry)
         .containerBackground(Color(red: 0.204, green: 0.467, blue: 0.482).gradient, for: .widget)
     }
-    .configurationDisplayName("Dernier biberon")
-    .description("Affiche le dernier biberon donné.")
+    .configurationDisplayName(LocalizedStringKey("widget.displayName"))
+    .description(LocalizedStringKey("widget.description"))
     .supportedFamilies([.systemSmall])
   }
 }

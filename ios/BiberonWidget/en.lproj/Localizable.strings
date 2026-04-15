@@ -5,6 +5,8 @@
 "widget.title" = "Bottle";
 "widget.empty" = "No bottle\nrecorded";
 "widget.madeAt" = "At %@";
+"widget.displayName" = "Last bottle";
+"widget.description" = "Shows the last bottle given.";
 
 /* Time ago */
 "time.now" = "Just now";
