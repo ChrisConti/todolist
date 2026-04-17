@@ -7,7 +7,7 @@ import { AuthentificationUserContext } from '../Context/AuthentificationContext'
 import { useTranslation } from 'react-i18next';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider, deleteUser, signOut, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import * as AppleAuthentication from 'expo-apple-authentication';
+const AppleAuthentication = Platform.OS === 'ios' ? require('expo-apple-authentication') : null;
 import Analytics from '../services/analytics';
 
 const DeleteAccount = ({ route, navigation }) => {

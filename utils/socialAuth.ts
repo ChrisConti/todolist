@@ -1,6 +1,7 @@
-import { Platform, Alert } from 'react-native';
+import { Alert } from 'react-native';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import * as AppleAuthentication from 'expo-apple-authentication';
+import { Platform } from 'react-native';
+const AppleAuthentication = Platform.OS === 'ios' ? require('expo-apple-authentication') : null;
 import * as Localization from 'expo-localization';
 import {
   signInWithCredential,
@@ -20,8 +21,9 @@ import Analytics from '../services/analytics';
  */
 export const configureGoogleSignIn = () => {
   GoogleSignin.configure({
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID, // Will set in .env
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    androidClientId: '347055639005-pfgnj9r2lijq1octda69b55s5om0l565.apps.googleusercontent.com',
     offlineAccess: false,
   });
 };
