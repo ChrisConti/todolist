@@ -39,3 +39,8 @@ yarn-error.*
 *.tsbuildinfo
 
 .env.local
+
+# Secrets
+KEYSTORE_CREDENTIALS.txt
+*.keystore
+*.jks
