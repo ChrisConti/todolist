@@ -2,4 +2,20 @@
   <string name="app_name">Tribubaby</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
+
+  <!-- Widget -->
+  <string name="widget_title">Bottle</string>
+  <string name="widget_empty">No bottle\nrecorded</string>
+  <string name="widget_made_at">At %s</string>
+  <string name="widget_display_name">Last bottle</string>
+  <string name="widget_description">Shows the last bottle given.</string>
+
+  <!-- Unit -->
+  <string name="unit_ml">ml</string>
+
+  <!-- Time ago -->
+  <string name="time_now">Just now</string>
+  <string name="time_minutes">%d min ago</string>
+  <string name="time_hours">%dh ago</string>
+  <string name="time_hours_minutes">%dh%dm ago</string>
 </resources>

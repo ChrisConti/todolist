@@ -78,7 +78,7 @@ const validateEmail = (value: string): string => {
 
       try {
         // Récupérer le pays de l'utilisateur
-        const userCountry = Localization.region || 'Unknown';
+        const userCountry = Localization.getLocales()[0]?.regionCode || 'Unknown';
 
         // Vérifier si un document User existe déjà pour cet userId
         const userQuery = query(

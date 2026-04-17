@@ -77,7 +77,12 @@ private func timeAgo(_ date: Date) -> String {
 private func formattedTime(_ date: Date) -> String {
   let f = DateFormatter()
   f.locale = Locale.current
-  f.setLocalizedDateFormatFromTemplate("HHmm")
+  let lang = Locale.current.language.languageCode?.identifier ?? ""
+  if lang == "en" {
+    f.dateFormat = "h:mm a"
+  } else {
+    f.setLocalizedDateFormatFromTemplate("jmm")
+  }
   return f.string(from: date)
 }
 

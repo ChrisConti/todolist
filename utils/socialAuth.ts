@@ -69,11 +69,11 @@ export const signInWithGoogle = async () => {
         provider: 'google',
         photoURL: user.photoURL,
         emailOptIn: false,
-        country: Localization.region || 'Unknown',
+        country: Localization.getLocales()[0]?.regionCode || 'Unknown',
       });
       log.info('User document created in Firestore', 'socialAuth');
       Analytics.logSignUp('google');
-      Analytics.setUserProperty('country', Localization.region || 'Unknown');
+      Analytics.setUserProperty('country', Localization.getLocales()[0]?.regionCode || 'Unknown');
     }
     Analytics.setUserProperty('auth_provider', 'google');
 
@@ -170,11 +170,11 @@ export const signInWithApple = async () => {
         creationDate: serverTimestamp(),
         provider: 'apple',
         emailOptIn: false,
-        country: Localization.region || 'Unknown',
+        country: Localization.getLocales()[0]?.regionCode || 'Unknown',
       });
       log.info('User document created in Firestore', 'socialAuth');
       Analytics.logSignUp('apple');
-      Analytics.setUserProperty('country', Localization.region || 'Unknown');
+      Analytics.setUserProperty('country', Localization.getLocales()[0]?.regionCode || 'Unknown');
     }
     Analytics.setUserProperty('auth_provider', 'apple');
 
