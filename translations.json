@@ -618,6 +618,14 @@
       "period7": "7d",
       "period30": "30d",
       "period90": "13 wks"
+    },
+    "timeAgo": {
+      "now": "Just now",
+      "minutes": "{{count}} min ago",
+      "hours": "{{count}}h ago",
+      "hoursMinutes": "{{hours}}h {{minutes}}min ago",
+      "daysHours": "{{days}}d {{hours}}h ago",
+      "days": "{{count}}d ago"
     }
   },
   "fr": {
@@ -1225,6 +1233,14 @@
       "period7": "7j",
       "period30": "30j",
       "period90": "13 sem."
+    },
+    "timeAgo": {
+      "now": "À l'instant",
+      "minutes": "Il y a {{count}} min",
+      "hours": "Il y a {{count}}h",
+      "hoursMinutes": "Il y a {{hours}}h {{minutes}}min",
+      "daysHours": "Il y a {{days}}j {{hours}}h",
+      "days": "Il y a {{count}}j"
     }
   },
   "es": {
@@ -1817,6 +1833,14 @@
       "period7": "7d",
       "period30": "30d",
       "period90": "13 sem."
+    },
+    "timeAgo": {
+      "now": "Ahora mismo",
+      "minutes": "Hace {{count}} min",
+      "hours": "Hace {{count}}h",
+      "hoursMinutes": "Hace {{hours}}h {{minutes}}min",
+      "daysHours": "Hace {{days}}d {{hours}}h",
+      "days": "Hace {{count}}d"
     }
   }
 }

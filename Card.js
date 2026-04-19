@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import React from 'react';
+import { useTimeAgo } from './hooks/useTimeAgo';
 import * as Localization from 'expo-localization';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -75,6 +76,7 @@ const Card = ({ task, navigation, editable }) => {
   };
 
   const formattedTimes = formatTimeBasedOnLocale(task.date);
+  const timeAgo = useTimeAgo(task.date);
 
   const getDiaperContentIcon = () => {
     if (task.id !== 1) return null;
@@ -191,14 +193,16 @@ const Card = ({ task, navigation, editable }) => {
         </View>
       </View>
       <View style={styles.timeSection}>
-        <Text style={styles.timeText}>
-          {formattedTimes.time}
-        </Text>
-        {formattedTimes.isEnglish && (
-          <Text style={styles.periodText}>
-            {formattedTimes.period}
-          </Text>
-        )}
+        <View style={styles.timeRow}>
+          <Text style={styles.timeText}>{formattedTimes.time}</Text>
+          {formattedTimes.isEnglish && (
+            <Text style={styles.periodText}>{formattedTimes.period}</Text>
+          )}
+        </View>
+        <View style={styles.timeAgoRow}>
+          <Ionicons name="time-outline" size={12} color="#F6F0EB" style={{ opacity: 0.75 }} />
+          <Text style={styles.timeAgoText}>{timeAgo}</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -227,9 +231,12 @@ const styles = StyleSheet.create({
   emojiIcon: { fontSize: 20, lineHeight: 20 },
   centerSection: { flexDirection: 'row' },
   labelText: { color: '#F6F0EB', fontSize: 25, marginRight: 8, alignSelf: 'flex-end' },
-  timeSection: { flexDirection: 'row', alignItems: 'flex-start' },
+  timeSection: { flexDirection: 'column', alignItems: 'flex-end' },
+  timeRow: { flexDirection: 'row', alignItems: 'flex-start' },
   timeText: { color: '#F6F0EB', fontSize: 25 },
   periodText: { color: '#F6F0EB', fontSize: 15, marginLeft: 2 },
+  timeAgoRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  timeAgoText: { color: '#F6F0EB', fontSize: 11, opacity: 0.75 },
 });
 
 export default React.memo(Card);
