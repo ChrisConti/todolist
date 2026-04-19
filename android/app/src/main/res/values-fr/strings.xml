@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_title">Biberon</string>
+    <string name="widget_empty">Aucun biberon\nenregistré</string>
+    <string name="widget_made_at">Fait à %s</string>
+    <string name="widget_display_name">Dernier biberon</string>
+    <string name="widget_description">Affiche le dernier biberon donné.</string>
+    <string name="unit_ml">ml</string>
+    <string name="time_now">À l\'instant</string>
+    <string name="time_minutes">Il y a %d min</string>
+    <string name="time_hours">Il y a %dh</string>
+    <string name="time_hours_minutes">Il y a %dh%dm</string>
+</resources>

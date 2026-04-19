@@ -37,6 +37,7 @@
         <data android:scheme="exp+todolist"/>
       </intent-filter>
     </activity>
+
     <receiver
         android:name=".BiberonWidget"
         android:exported="true"
