@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Baby, User } from '../types';
 import { getAllBabies, getAllUsers } from '../services/analyticsService';
 import { BabyDetailsModal } from './BabyDetailsModal';
+import { UserDetailsModal } from './UserDetailsModal';
 import './Search.css';
 
 type AgeRange = '0-1' | '1-3' | '3-6' | '6-12' | '12-18' | '18+' | 'all';
@@ -20,6 +21,14 @@ export const Search: React.FC = () => {
   const [selectedBaby, setSelectedBaby] = useState<Baby | null>(null);
   const [isBabyModalOpen, setIsBabyModalOpen] = useState(false);
 
+  // User search
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [userQuery, setUserQuery] = useState('');
+  const [userResults, setUserResults] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     loadBabies();
   }, []);
@@ -33,14 +42,16 @@ export const Search: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const [allBabies, allUsers] = await Promise.all([
+      const [allBabies, fetchedUsers] = await Promise.all([
         getAllBabies(),
         getAllUsers()
       ]);
 
+      setAllUsers(fetchedUsers);
+
       // Create a map of userId to email
       const userEmailMap = new Map<string, string>();
-      allUsers.forEach((u: User) => userEmailMap.set(u.userId, u.email));
+      fetchedUsers.forEach((u: User) => userEmailMap.set(u.userId, u.email));
 
       // Calculate age for each baby
       const babiesWithAge: BabyWithAge[] = allBabies
@@ -139,6 +150,26 @@ export const Search: React.FC = () => {
     await loadBabies();
   };
 
+  const handleUserSearch = (query: string) => {
+    setUserQuery(query);
+    if (!query.trim()) {
+      setUserResults([]);
+      return;
+    }
+    const q = query.toLowerCase().trim();
+    const results = allUsers
+      .filter(u => u.username?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q))
+      .slice(0, 10);
+    setUserResults(results);
+  };
+
+  const handleUserSelect = (user: User) => {
+    setSelectedUser(user);
+    setIsUserModalOpen(true);
+    setUserQuery('');
+    setUserResults([]);
+  };
+
   const getAgeLabel = (range: AgeRange): string => {
     switch (range) {
       case '0-1': return '0-1 mois';
@@ -164,6 +195,35 @@ export const Search: React.FC = () => {
 
   return (
     <div className="search">
+      <div className="user-search-block" ref={searchRef}>
+        <h2>Recherche par utilisateur</h2>
+        <div className="user-search-input-wrap">
+          <input
+            type="text"
+            className="user-search-input"
+            placeholder="Nom, prénom ou email..."
+            value={userQuery}
+            onChange={e => handleUserSearch(e.target.value)}
+          />
+          {userQuery && (
+            <button className="user-search-clear" onClick={() => { setUserQuery(''); setUserResults([]); }}>✕</button>
+          )}
+        </div>
+        {userResults.length > 0 && (
+          <div className="user-search-dropdown">
+            {userResults.map(u => (
+              <div key={u.userId} className="user-search-result" onClick={() => handleUserSelect(u)}>
+                <span className="user-result-name">{u.username || '—'}</span>
+                <span className="user-result-email">{u.email}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {userQuery.trim() && userResults.length === 0 && !loading && (
+          <div className="user-search-empty">Aucun utilisateur trouvé</div>
+        )}
+      </div>
+
       <h2>Recherche par tranche d'âge</h2>
 
       <div className="age-range-selector">
@@ -258,6 +318,12 @@ export const Search: React.FC = () => {
         onClose={() => setIsBabyModalOpen(false)}
         baby={selectedBaby}
         onBabyDeleted={handleBabyDeleted}
+      />
+
+      <UserDetailsModal
+        isOpen={isUserModalOpen}
+        onClose={() => setIsUserModalOpen(false)}
+        user={selectedUser}
       />
     </div>
   );

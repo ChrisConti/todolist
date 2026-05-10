@@ -4,8 +4,8 @@ import './Layout.css';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeTab: 'analytics' | 'trends' | 'funnel' | 'search' | 'export' | 'migration';
-  onTabChange: (tab: 'analytics' | 'trends' | 'funnel' | 'search' | 'export' | 'migration') => void;
+  activeTab: 'analytics' | 'trends' | 'acquisition' | 'funnel' | 'search' | 'export' | 'migration';
+  onTabChange: (tab: 'analytics' | 'trends' | 'acquisition' | 'funnel' | 'search' | 'export' | 'migration') => void;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
@@ -42,6 +42,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
             onClick={() => onTabChange('trends')}
           >
             📈 Évolution
+          </button>
+          <button
+            className={`tab ${activeTab === 'acquisition' ? 'active' : ''}`}
+            onClick={() => onTabChange('acquisition')}
+          >
+            📥 Acquisition
           </button>
           <button
             className={`tab ${activeTab === 'funnel' ? 'active' : ''}`}

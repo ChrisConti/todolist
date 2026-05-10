@@ -14,8 +14,8 @@
 
 .distribution-content {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
+  grid-template-columns: 364px 1fr;
+  gap: 24px;
   align-items: center;
 }
 
@@ -27,76 +27,75 @@
 
 .chart-wrapper {
   width: 100%;
-  max-width: 400px;
-  height: 400px;
+  height: 364px;
 }
 
 .distribution-details {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  align-content: center;
 }
 
 .distribution-item {
   background: #f7fafc;
-  padding: 16px;
-  border-radius: 8px;
-  transition: all 0.2s;
+  border-radius: 7px;
+  padding: 7px 12px;
 }
 
-.distribution-item:hover {
-  background: #edf2f7;
-  transform: translateX(4px);
-}
-
-.distribution-item-header {
-  display: flex;
+.distribution-main-row {
+  display: grid;
+  grid-template-columns: 20px 100px 80px 36px;
   align-items: center;
   gap: 10px;
-  margin-bottom: 8px;
+}
+
+.distribution-sub {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  padding-left: 30px;
+}
+
+.distribution-sub-item {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.distribution-sub-label {
+  font-size: 11px;
+  color: #a0aec0;
+}
+
+.distribution-sub-val {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4a5568;
 }
 
 .distribution-icon {
-  font-size: 24px;
-  line-height: 1;
+  font-size: 14px;
+  text-align: center;
 }
 
 .distribution-label {
-  font-size: 15px;
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.distribution-stats {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 8px;
+  font-size: 13px;
+  color: #4a5568;
+  font-weight: 500;
 }
 
 .distribution-count {
-  font-size: 24px;
+  font-size: 13px;
   font-weight: 700;
   color: #1a202c;
+  text-align: right;
 }
 
 .distribution-percentage {
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 700;
-}
-
-.distribution-bar {
-  width: 100%;
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.distribution-bar-fill {
-  height: 100%;
-  transition: width 0.3s ease;
-  border-radius: 4px;
+  text-align: right;
 }
 
 @media (max-width: 1024px) {

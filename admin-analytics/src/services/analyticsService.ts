@@ -1,6 +1,13 @@
 import { getDocsFromServer } from 'firebase/firestore';
 import { usersRef, babiesRef, appInstallsRef } from '../config/firebase';
 import type { AnalyticsMetrics, DateRange, User, Baby } from '../types';
+import { parseBabyDate } from '../types';
+
+// Test accounts to exclude from all stats
+const TEST_EMAILS = new Set([
+  'android@android.com',
+  'test@apple.com',
+]);
 
 interface AppInstall {
   platform: string;
@@ -15,20 +22,27 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
   try {
     console.log('🔄 [DEBUG] Fetching data from Firestore at:', new Date().toISOString());
 
-    // ALWAYS fetch all data (CreatedDate is a string, not Timestamp, so we can't query on it)
+    // ALWAYS fetch all data (date filtering done client-side to support both old string and new Timestamp formats)
     // Use getDocsFromServer to bypass cache and get fresh data after deletions
     const usersSnapshot = await getDocsFromServer(usersRef);
     const babiesSnapshot = await getDocsFromServer(babiesRef);
 
-    const allUsers: User[] = usersSnapshot.docs.map(doc => ({
+    const allUsersRaw: User[] = usersSnapshot.docs.map(doc => ({
       userId: doc.id,
       ...doc.data()
     } as User));
 
-    const allBabies: Baby[] = babiesSnapshot.docs.map(doc => ({
+    const allBabiesRaw: Baby[] = babiesSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     } as Baby));
+
+    // Exclude test accounts and their babies from all stats
+    const testUserIds = new Set(allUsersRaw.filter(u => TEST_EMAILS.has(u.email)).map(u => u.userId));
+    const allUsers = allUsersRaw.filter(u => !TEST_EMAILS.has(u.email));
+    const allBabies = allBabiesRaw.filter(b =>
+      !b.admin || !testUserIds.has(b.admin)
+    );
 
     console.log('📊 [DEBUG] Fetched from Firestore:', {
       usersCount: allUsers.length,
@@ -67,18 +81,9 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
         return userDate >= dateRange.start! && userDate <= dateRange.end!;
       });
 
-      // Filter babies by CreatedDate (string format: 'YYYY-MM-DD HH:mm:ss')
       babies = allBabies.filter(b => {
-        if (!b.CreatedDate) return false;
-
-        // Parse string date
-        const babyDate = new Date(b.CreatedDate);
-
-        // Check if date is valid
-        if (isNaN(babyDate.getTime())) {
-          return false;
-        }
-
+        const babyDate = parseBabyDate(b);
+        if (!babyDate) return false;
         return babyDate >= dateRange.start! && babyDate <= dateRange.end!;
       });
     }
@@ -406,11 +411,9 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
         return userDate >= previousStart && userDate <= previousEnd;
       });
 
-      // Filter babies for previous period
       const previousBabies = allBabies.filter(b => {
-        if (!b.CreatedDate) return false;
-        const babyDate = new Date(b.CreatedDate);
-        if (isNaN(babyDate.getTime())) return false;
+        const babyDate = parseBabyDate(b);
+        if (!babyDate) return false;
         return babyDate >= previousStart && babyDate <= previousEnd;
       });
 
@@ -434,6 +437,250 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
       };
     }
 
+    // Role distribution — aggregate across all baby.memberRoles
+    const roleDistribution: Record<string, number> = {};
+    babies.forEach(baby => {
+      if (!baby.memberRoles) return;
+      Object.values(baby.memberRoles).forEach(role => {
+        if (role) roleDistribution[role] = (roleDistribution[role] || 0) + 1;
+      });
+    });
+
+    // Age range distribution — from User.parentAgeRange
+    const ageRangeDistribution: Record<string, number> = {};
+    allUsers.forEach(u => {
+      if (u.parentAgeRange) {
+        ageRangeDistribution[u.parentAgeRange] = (ageRangeDistribution[u.parentAgeRange] || 0) + 1;
+      }
+    });
+
+    // First child count — true entries across all baby.firstChildFor
+    let firstChildCount = 0;
+    babies.forEach(baby => {
+      if (!baby.firstChildFor) return;
+      Object.values(baby.firstChildFor).forEach(val => {
+        if (val === true) firstChildCount++;
+      });
+    });
+
+    // Retention: computed from last task date in tasks[] — works for all babies including historical ones
+    let retentionByAge: AnalyticsMetrics['retentionByAge'];
+    const RETENTION_THRESHOLDS = [1, 3, 7, 15, 20, 25, 30, 45, 60, 75, 90];
+    const retentionCounts: Record<number, number> = {};
+    RETENTION_THRESHOLDS.forEach(t => { retentionCounts[t] = 0; });
+    let totalWithDate = 0;
+    babies.forEach(baby => {
+      const createdAt = parseBabyDate(baby);
+      if (!createdAt || !baby.tasks?.length) return;
+      const lastTaskTime = Math.max(...baby.tasks.map(t => {
+        const d = new Date(t.date);
+        return isNaN(d.getTime()) ? 0 : d.getTime();
+      }));
+      if (!lastTaskTime) return;
+      totalWithDate++;
+      const daysActive = Math.floor((lastTaskTime - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      RETENTION_THRESHOLDS.forEach(t => { if (daysActive >= t) retentionCounts[t]++; });
+    });
+    if (totalWithDate > 0) {
+      retentionByAge = {
+        d1: retentionCounts[1], d3: retentionCounts[3], d7: retentionCounts[7],
+        d15: retentionCounts[15], d20: retentionCounts[20], d25: retentionCounts[25],
+        d30: retentionCounts[30], d45: retentionCounts[45], d60: retentionCounts[60],
+        d75: retentionCounts[75], d90: retentionCounts[90], totalWithDate,
+      };
+    }
+
+    // Dropout analysis
+    const TASK_LABEL: Record<string, string> = {
+      biberon: 'Biberon', couche: 'Couche', Sante: 'Santé',
+      sommeil: 'Sommeil', thermo: 'Température', allaitement: 'Allaitement',
+    };
+
+    // Build userId → creationDate map for delay calculations
+    const userCreationMap = new Map<string, Date>();
+    allUsers.forEach(u => {
+      if (!u.creationDate) return;
+      const d = typeof u.creationDate === 'object' && 'toDate' in u.creationDate
+        ? (u.creationDate as any).toDate()
+        : new Date(u.creationDate);
+      if (!isNaN(d.getTime())) userCreationMap.set(u.userId, d);
+    });
+
+    let exactly0Tasks = 0, exactly1Task = 0, tasks2to5 = 0;
+    const firstTaskTypeFor1Task: Record<string, number> = {};
+    let totalAccToBaby = 0, countAccToBaby = 0, minAccToBaby = Infinity, maxAccToBaby = 0;
+    let totalAccToFirst = 0, countAccToFirst = 0, minAccToFirst = Infinity, maxAccToFirst = 0;
+    let totalBabyToFirst = 0, countBabyToFirst = 0, minBabyToFirst = Infinity, maxBabyToFirst = 0;
+    let totalDaysActive2to5 = 0, countDaysActive2to5 = 0;
+    let totalBabyAgeAtLast = 0, countBabyAgeAtLast = 0;
+    const activeDurationBuckets = { under7: 0, d7to30: 0, d30to90: 0, over90: 0 };
+    const babyAgeAtLastTaskBuckets = { under30: 0, d30to90: 0, d90to180: 0, d180to365: 0, over365: 0 };
+
+    babies.forEach(baby => {
+      const taskCount = baby.tasks?.length || 0;
+
+      if (taskCount === 0) { exactly0Tasks++; return; }
+
+      // Sort tasks by date ascending
+      const sorted = [...(baby.tasks || [])].sort((a, b) =>
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+
+      const firstTaskDate = new Date(sorted[0].date);
+      const lastTaskDate = new Date(sorted[sorted.length - 1].date);
+      if (isNaN(firstTaskDate.getTime()) || isNaN(lastTaskDate.getTime())) return;
+
+      const babyCreatedAt = parseBabyDate(baby);
+      const adminCreatedAt = baby.admin ? userCreationMap.get(baby.admin) : undefined;
+
+      // Delay: account creation → baby creation
+      if (adminCreatedAt && babyCreatedAt) {
+        const delay = Math.max(0, Math.floor((babyCreatedAt.getTime() - adminCreatedAt.getTime()) / 86400000));
+        totalAccToBaby += delay; countAccToBaby++;
+        if (delay < minAccToBaby) minAccToBaby = delay;
+        if (delay > maxAccToBaby) maxAccToBaby = delay;
+      }
+
+      // Delay: account creation → first task
+      if (adminCreatedAt && !isNaN(firstTaskDate.getTime())) {
+        const delay = Math.max(0, Math.floor((firstTaskDate.getTime() - adminCreatedAt.getTime()) / 86400000));
+        totalAccToFirst += delay; countAccToFirst++;
+        if (delay < minAccToFirst) minAccToFirst = delay;
+        if (delay > maxAccToFirst) maxAccToFirst = delay;
+      }
+
+      // Delay: baby creation → first task
+      if (babyCreatedAt && !isNaN(firstTaskDate.getTime())) {
+        const delay = Math.max(0, Math.floor((firstTaskDate.getTime() - babyCreatedAt.getTime()) / 86400000));
+        totalBabyToFirst += delay; countBabyToFirst++;
+        if (delay < minBabyToFirst) minBabyToFirst = delay;
+        if (delay > maxBabyToFirst) maxBabyToFirst = delay;
+      }
+
+      // Baby age at last task (from birthDate)
+      if (baby.birthDate) {
+        let birthDate: Date;
+        if (baby.birthDate.includes('/')) {
+          const [d, m, y] = baby.birthDate.split('/').map(Number);
+          birthDate = new Date(y, m - 1, d);
+        } else {
+          birthDate = new Date(baby.birthDate);
+        }
+        if (!isNaN(birthDate.getTime())) {
+          const ageAtLast = Math.floor((lastTaskDate.getTime() - birthDate.getTime()) / 86400000);
+          if (ageAtLast >= 0) {
+            totalBabyAgeAtLast += ageAtLast;
+            countBabyAgeAtLast++;
+            if (ageAtLast < 30) babyAgeAtLastTaskBuckets.under30++;
+            else if (ageAtLast < 90) babyAgeAtLastTaskBuckets.d30to90++;
+            else if (ageAtLast < 180) babyAgeAtLastTaskBuckets.d90to180++;
+            else if (ageAtLast < 365) babyAgeAtLastTaskBuckets.d180to365++;
+            else babyAgeAtLastTaskBuckets.over365++;
+          }
+        }
+      }
+
+      if (taskCount === 1) {
+        exactly1Task++;
+        const label = TASK_LABEL[sorted[0].labelTask] || sorted[0].labelTask;
+        firstTaskTypeFor1Task[label] = (firstTaskTypeFor1Task[label] || 0) + 1;
+      } else if (taskCount <= 5) {
+        tasks2to5++;
+        const daysActive = Math.floor((lastTaskDate.getTime() - firstTaskDate.getTime()) / 86400000);
+        totalDaysActive2to5 += daysActive;
+        countDaysActive2to5++;
+      }
+
+      // Active duration buckets (all babies with ≥2 tasks)
+      if (taskCount >= 2) {
+        const daysActive = Math.floor((lastTaskDate.getTime() - firstTaskDate.getTime()) / 86400000);
+        if (daysActive < 7) activeDurationBuckets.under7++;
+        else if (daysActive < 30) activeDurationBuckets.d7to30++;
+        else if (daysActive < 90) activeDurationBuckets.d30to90++;
+        else activeDurationBuckets.over90++;
+      }
+    });
+
+    const dropoutAnalysis = babies.length > 0 ? {
+      exactly0Tasks,
+      exactly1Task,
+      tasks2to5,
+      firstTaskTypeFor1Task,
+      avgDaysAccountToBaby: countAccToBaby > 0 ? Math.round(totalAccToBaby / countAccToBaby) : 0,
+      minDaysAccountToBaby: countAccToBaby > 0 ? minAccToBaby : 0,
+      maxDaysAccountToBaby: countAccToBaby > 0 ? maxAccToBaby : 0,
+      avgDaysAccountToFirstTask: countAccToFirst > 0 ? Math.round(totalAccToFirst / countAccToFirst) : 0,
+      minDaysAccountToFirstTask: countAccToFirst > 0 ? minAccToFirst : 0,
+      maxDaysAccountToFirstTask: countAccToFirst > 0 ? maxAccToFirst : 0,
+      avgDaysBabyToFirstTask: countBabyToFirst > 0 ? Math.round(totalBabyToFirst / countBabyToFirst) : 0,
+      minDaysBabyToFirstTask: countBabyToFirst > 0 ? minBabyToFirst : 0,
+      maxDaysBabyToFirstTask: countBabyToFirst > 0 ? maxBabyToFirst : 0,
+      avgDaysActiveFor2to5: countDaysActive2to5 > 0 ? Math.round(totalDaysActive2to5 / countDaysActive2to5) : 0,
+      avgBabyAgeAtLastTaskDays: countBabyAgeAtLast > 0 ? Math.round(totalBabyAgeAtLast / countBabyAgeAtLast) : 0,
+      activeDurationBuckets,
+      babyAgeAtLastTaskBuckets,
+    } : undefined;
+
+    // milkType breakdown — separate for biberon and allaitement
+    const biberonMilkDist = { artificial: 0, maternal: 0, unknown: 0 };
+    const allaitementTimer = { timer: 0, manual: 0 };
+    babies.forEach(baby => {
+      baby.tasks?.forEach(task => {
+        if (task.labelTask === 'biberon') {
+          if (task.milkType === 'artificial') biberonMilkDist.artificial++;
+          else if (task.milkType === 'maternal') biberonMilkDist.maternal++;
+          else biberonMilkDist.unknown++;
+        } else if (task.labelTask === 'allaitement') {
+          const hasTimer = (task.boobLeft && task.boobLeft > 0) || (task.boobRight && task.boobRight > 0);
+          if (hasTimer) allaitementTimer.timer++;
+          else allaitementTimer.manual++;
+        }
+      });
+    });
+    const biberonMilkType = (biberonMilkDist.artificial + biberonMilkDist.maternal + biberonMilkDist.unknown) > 0
+      ? biberonMilkDist : undefined;
+    const allaitementTimerType = (allaitementTimer.timer + allaitementTimer.manual) > 0
+      ? allaitementTimer : undefined;
+
+    // diaperContent distribution
+    const diaperDist = { pee: 0, poop: 0, both: 0 };
+    babies.forEach(baby => {
+      baby.tasks?.forEach(task => {
+        if (task.labelTask === 'couche') {
+          if (task.diaperContent === 0) diaperDist.pee++;
+          else if (task.diaperContent === 1) diaperDist.poop++;
+          else if (task.diaperContent === 2) diaperDist.both++;
+        }
+      });
+    });
+    const diaperContentDistribution = (diaperDist.pee + diaperDist.poop + diaperDist.both) > 0
+      ? diaperDist : undefined;
+
+    // User funnel: what users do after account creation
+    // A user either created a baby (admin), joined one (member but not admin), or did nothing.
+    // Multi-baby is not allowed by the app, so each user maps to exactly one category.
+    const babyAdminSet = new Set<string>();
+    const babyMemberSet = new Set<string>(); // in user[] but not admin
+    allBabies.forEach(baby => {
+      if (baby.admin) babyAdminSet.add(baby.admin);
+      baby.user?.forEach(uid => {
+        if (uid !== baby.admin) babyMemberSet.add(uid);
+      });
+    });
+
+    let funnelCreated = 0, funnelJoined = 0, funnelNoBaby = 0;
+    allUsers.forEach(u => {
+      if (babyAdminSet.has(u.userId)) funnelCreated++;
+      else if (babyMemberSet.has(u.userId)) funnelJoined++;
+      else funnelNoBaby++;
+    });
+    const userFunnel = allUsers.length > 0 ? {
+      createdBaby: funnelCreated,
+      joinedBaby: funnelJoined,
+      noBaby: funnelNoBaby,
+      total: allUsers.length,
+    } : undefined;
+
     return {
       totalAccounts,
       totalBabies,
@@ -455,6 +702,15 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
       averageStats,
       taskDistribution,
       taskDistributionByAge,
+      dropoutAnalysis,
+      roleDistribution: Object.keys(roleDistribution).length > 0 ? roleDistribution : undefined,
+      ageRangeDistribution: Object.keys(ageRangeDistribution).length > 0 ? ageRangeDistribution : undefined,
+      firstChildCount,
+      retentionByAge,
+      biberonMilkType,
+      allaitementTimerType,
+      diaperContentDistribution,
+      userFunnel,
     };
   } catch (error) {
     console.error('Error fetching analytics:', error);
@@ -466,24 +722,28 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
  * Get all users (for listing)
  */
 export const getAllUsers = async (): Promise<User[]> => {
-  // Use getDocsFromServer to bypass cache and get fresh data after deletions
   const snapshot = await getDocsFromServer(usersRef);
-  return snapshot.docs.map(doc => ({
-    userId: doc.id,
-    ...doc.data()
-  } as User));
+  return snapshot.docs
+    .map(doc => ({ userId: doc.id, ...doc.data() } as User))
+    .filter(u => !TEST_EMAILS.has(u.email));
 };
 
 /**
  * Get all babies (for listing)
  */
 export const getAllBabies = async (searchTerm?: string): Promise<Baby[]> => {
-  // Use getDocsFromServer to bypass cache and get fresh data after deletions
+  const usersSnap = await getDocsFromServer(usersRef);
+  const testIds = new Set(
+    usersSnap.docs
+      .map(doc => ({ userId: doc.id, ...doc.data() } as User))
+      .filter(u => TEST_EMAILS.has(u.email))
+      .map(u => u.userId)
+  );
+
   const snapshot = await getDocsFromServer(babiesRef);
-  let babies = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  } as Baby));
+  let babies = snapshot.docs
+    .map(doc => ({ id: doc.id, ...doc.data() } as Baby))
+    .filter(b => !b.admin || !testIds.has(b.admin));
 
   // Filter by baby name if search term is provided
   if (searchTerm && searchTerm.trim() !== '') {

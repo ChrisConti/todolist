@@ -242,7 +242,7 @@ export default function BiberonInsights({ navigation }: any) {
         {MAIN_TABS.map(({ key, label }) => (
           <TouchableOpacity
             key={key}
-            onPress={() => setMainTab(key)}
+            onPress={() => { setMainTab(key); Analytics.logEvent('tab_selected', { screen: 'BiberonInsights', tab: key }); }}
             style={[styles.mainTabBtn, mainTab === key && styles.mainTabBtnActive]}
           >
             <Text style={[styles.mainTabText, mainTab === key && styles.mainTabTextActive]}>
@@ -258,7 +258,7 @@ export default function BiberonInsights({ navigation }: any) {
           {DAY_TABS.map(({ key, label }) => (
             <TouchableOpacity
               key={key}
-              onPress={() => setDayTab(key)}
+              onPress={() => { setDayTab(key); Analytics.logEvent('tab_selected', { screen: 'BiberonInsights', tab: `detail_${key}` }); }}
               style={[styles.dayTabBtn, dayTab === key && styles.dayTabBtnActive]}
             >
               <Text style={[styles.dayTabText, dayTab === key && styles.dayTabTextActive]}>

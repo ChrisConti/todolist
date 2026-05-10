@@ -5,6 +5,7 @@ import { db, userRef } from '../config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
 import { getAuth, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
+import Analytics from '../services/analytics';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -14,6 +15,7 @@ const ChangeEmail = ({ route, navigation }) => {
   const [email, setEmail] = useState(userInfo.email || '');
   const [password, setPassword] = useState('');
   const [userError, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const isReadOnly = (userInfo?.provider || 'email') !== 'email';
@@ -56,6 +58,7 @@ const ChangeEmail = ({ route, navigation }) => {
   };
 
   async function updateUserEmail() {
+    if (loading) return;
     const trimmedEmail = email.trim();
 
     if (!trimmedEmail || !EMAIL_REGEX.test(trimmedEmail)) {
@@ -68,15 +71,19 @@ const ChangeEmail = ({ route, navigation }) => {
       return;
     }
 
+    setLoading(true);
     try {
       await reauthAndUpdateEmail();
       await updateFirestoreEmail();
       setUserInfo({ ...userInfo, email: trimmedEmail });
       Alert.alert(t('success.title'), t('success.emailChanged'));
+      Analytics.logEvent('user_email_changed');
       navigation.goBack();
     } catch (error) {
       console.error('Error updating email:', error);
       setError(t('error.emailUpdateFailed'));
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -130,7 +137,7 @@ const ChangeEmail = ({ route, navigation }) => {
       {!isReadOnly && (
         <View style={styles.footer}>
           <Text style={styles.errorText}>{userError}</Text>
-          <TouchableOpacity style={styles.button} onPress={updateUserEmail}>
+          <TouchableOpacity style={[styles.button, loading && { opacity: 0.6 }]} onPress={updateUserEmail} disabled={loading}>
             <Text style={styles.buttonText}>{t('validate')}</Text>
           </TouchableOpacity>
         </View>

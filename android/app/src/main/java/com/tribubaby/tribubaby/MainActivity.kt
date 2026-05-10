@@ -1,4 +1,6 @@
 package com.tribubaby.tribubaby
+
+import com.tribubaby.app.BuildConfig
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

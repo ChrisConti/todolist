@@ -5,6 +5,7 @@ import { useAllaitementStats, useAllaitementCountStats } from '../hooks/useTaskS
 import { Task } from '../types/stats';
 import StatsContainer from '../components/stats/StatsContainer';
 import { STATS_CONFIG } from '../constants/statsConfig';
+import Analytics from '../services/analytics';
 
 type ViewMode = 'duration' | 'count';
 
@@ -112,7 +113,7 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
         {/* View Mode Selector */}
         <View style={styles.viewModeContainer}>
           <TouchableOpacity
-            onPress={() => setViewMode('count')}
+            onPress={() => { setViewMode('count'); Analytics.logEvent('tab_selected', { screen: 'Allaitement', tab: 'count' }); }}
             style={[styles.viewModeButton, viewMode === 'count' && styles.viewModeButtonActive]}
           >
             <Text style={[styles.viewModeText, viewMode === 'count' && styles.viewModeTextActive]}>
@@ -120,7 +121,7 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setViewMode('duration')}
+            onPress={() => { setViewMode('duration'); Analytics.logEvent('tab_selected', { screen: 'Allaitement', tab: 'duration' }); }}
             style={[styles.viewModeButton, viewMode === 'duration' && styles.viewModeButtonActive]}
           >
             <Text style={[styles.viewModeText, viewMode === 'duration' && styles.viewModeTextActive]}>

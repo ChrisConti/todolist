@@ -36,6 +36,7 @@
       "email": "Email",
       "password": "Password",
       "name": "Name",
+      "firstName": "First name",
       "birthdate": "DD/MM/YYYY",
       "comment": "Comment",
       "code": "Enter the code",
@@ -86,8 +87,12 @@
       "name": "Please enter a name (min 2 characters).",
       "birthdate": "Please enter a valid birthdate.",
       "enterCode": "Please enter the code.",
+      "invalidCode": "This code doesn't match any baby. Please check and try again.",
       "validCode": "Please enter a valid code.",
       "notAuthenticated": "You must be logged in to perform this action.",
+      "roleRequired": "Please select your role.",
+      "firstChildRequired": "Please indicate if this is your first child.",
+      "ageRangeRequired": "Please select your age range.",
       "accountCreationFailed": "Unable to create account. Please try again.",
       "babyCreationFailed": "Unable to create baby. Please try again.",
       "taskCreationFailed": "Unable to create task. Please try again.",
@@ -116,7 +121,12 @@
       "photoUploadFailed": "Failed to upload photo. Please try again.",
       "uploadPhoto": "Error uploading photo",
       "galleryPermission": "Permission to access gallery is required!",
-      "cameraPermission": "Permission to access camera is required!"
+      "cameraPermission": "Permission to access camera is required!",
+      "updateFailed": "An error occurred. Please try again."
+    },
+    "accessibility": {
+      "enterCode": "Enter baby code",
+      "enterCodeHint": "Enter the code shared by the baby's creator"
     },
     "success": {
       "title": "Success",
@@ -219,7 +229,7 @@
       "removePhotoConfirm": "Are you sure you want to remove this photo?",
       "remove": "Remove",
       "photoRemoved": "Photo removed successfully!",
-      "name": "Name",
+      "name": "First name",
       "birthdate": "Birthdate",
       "essentialInfo": "Essential information",
       "additionalInfo": "Additional information (optional)",
@@ -254,7 +264,35 @@
       "kg": "kg/lb",
       "cm": "cm/in",
       "openSettings": "Open Settings",
-      "codeLabel": "Code"
+      "codeLabel": "Code",
+      "whoAreYou": "And you?",
+      "whoAreYouSubtitle": "To personalize your experience.",
+      "roles": {
+        "maman": "Mom",
+        "papa": "Dad",
+        "mamie": "Grandma",
+        "papy": "Grandpa",
+        "nounou": "Nanny",
+        "tata": "Aunt",
+        "tonton": "Uncle",
+        "autre": "Other",
+        "famille": "Family"
+      },
+      "editRole": "Edit my role",
+      "yourRole": "Your role",
+      "firstChild": "Is this your first child?",
+      "firstChildYes": "Yes",
+      "firstChildNo": "No",
+      "ageRange": "Your age range",
+      "ageRanges": {
+        "under25": "< 25",
+        "r25to30": "25-30",
+        "r30to35": "30-35",
+        "r35to40": "35-40",
+        "over40": "40+"
+      },
+      "joiningBaby": "You are joining {{name}}!",
+      "continueProfile": "Continue"
     },
     "task": {
       "createdBy": "Created by",
@@ -321,7 +359,9 @@
       "deleteAccountReauthInstruction": "You will need to reconnect with {{provider}} to confirm the deletion of your account.",
       "emailOptIn": "Email communications",
       "emailOptInDescription": "Receive feedback requests and app improvement messages",
-      "emailOptInUpdated": "Preference updated"
+      "emailOptInUpdated": "Preference updated",
+      "signOutConfirm": "You will be signed out of your account.",
+      "feedbackSub": "Share an idea"
     },
     "title": {
       "signup": "Sign Up",
@@ -626,6 +666,49 @@
       "hoursMinutes": "{{hours}}h {{minutes}}min ago",
       "daysHours": "{{days}}d {{hours}}h ago",
       "days": "{{count}}d ago"
+    },
+    "premium": {
+      "title": "Tribu Premium",
+      "subtitle": "Unlock everything for your family, for life.",
+      "badgeTitle": "Tribu Premium · for life",
+      "cta": "Get Tribu Premium · {{price}}",
+      "restore": "Restore purchase",
+      "oneTime": "One-time payment",
+      "purchaseError": "An error occurred. Please try again.",
+      "restoreSuccess": "Purchase restored! Welcome to the tribe.",
+      "restoreError": "No purchase found for this account.",
+      "activeBadge": "Tribu Premium · Active ✓",
+      "upsellTitle": "Get Tribu Premium",
+      "upsellSubtitle": "Advanced stats, unlimited export, widget",
+      "exportCta": "Export my data · Premium",
+      "feature": {
+        "export": {
+          "title": "Unlimited exports",
+          "subtitle": "CSV, no limits"
+        },
+        "stats": {
+          "title": "Advanced stats",
+          "subtitle": "Trends, comparisons"
+        },
+        "widget": {
+          "title": "Bottle widget",
+          "subtitle": "Quick access from home screen"
+        },
+        "support": {
+          "title": "Support Tribu",
+          "subtitle": "No ads, no data selling"
+        }
+      },
+      "exportCtaTitle": "Export my data",
+      "exportCtaSub": "CSV · Tribu Premium only",
+      "preview": {
+        "colTime": "Time",
+        "colType": "Type",
+        "colQty": "Qty.",
+        "widgetName": "Bottle",
+        "widgetAgo": "1h 12 ago",
+        "team": "A team of 2 parents"
+      }
     }
   },
   "fr": {
@@ -665,6 +748,7 @@
       "email": "Email",
       "password": "Mot de passe",
       "name": "Nom",
+      "firstName": "Prénom",
       "birthdate": "JJ/MM/AAAA",
       "comment": "Commentaire",
       "code": "Entrez le code",
@@ -715,8 +799,12 @@
       "name": "Merci de remplir le nom (min 2 caractères).",
       "birthdate": "Merci de remplir la date correctement.",
       "enterCode": "Veuillez entrer le code.",
+      "invalidCode": "Ce code ne correspond à aucun bébé. Vérifiez et réessayez.",
       "validCode": "Veuillez entrer un code valide.",
       "notAuthenticated": "Vous devez être connecté pour effectuer cette action.",
+      "roleRequired": "Veuillez sélectionner votre rôle.",
+      "firstChildRequired": "Veuillez indiquer si c'est votre premier enfant.",
+      "ageRangeRequired": "Veuillez sélectionner votre tranche d'âge.",
       "accountCreationFailed": "Impossible de créer le compte. Veuillez réessayer.",
       "babyCreationFailed": "Impossible de créer le bébé. Veuillez réessayer.",
       "taskCreationFailed": "Impossible de créer la tâche. Veuillez réessayer.",
@@ -745,7 +833,12 @@
       "photoUploadFailed": "Échec du téléchargement de la photo. Veuillez réessayer.",
       "uploadPhoto": "Erreur lors du téléchargement de la photo",
       "galleryPermission": "L'autorisation d'accès à la galerie est requise !",
-      "cameraPermission": "L'autorisation d'accès à la caméra est requise !"
+      "cameraPermission": "L'autorisation d'accès à la caméra est requise !",
+      "updateFailed": "Une erreur est survenue. Veuillez réessayer."
+    },
+    "accessibility": {
+      "enterCode": "Saisir le code du bébé",
+      "enterCodeHint": "Entrez le code partagé par le créateur du bébé"
     },
     "success": {
       "title": "Succès",
@@ -848,7 +941,7 @@
       "removePhotoConfirm": "Êtes-vous sûr de vouloir supprimer cette photo ?",
       "remove": "Supprimer",
       "photoRemoved": "Photo supprimée avec succès!",
-      "name": "Nom",
+      "name": "Prénom",
       "birthdate": "Date de naissance",
       "essentialInfo": "Informations essentielles",
       "additionalInfo": "Informations complémentaires (optionnel)",
@@ -883,7 +976,35 @@
       "kg": "kg",
       "cm": "cm",
       "openSettings": "Ouvrir les réglages",
-      "codeLabel": "Code"
+      "codeLabel": "Code",
+      "whoAreYou": "Et vous ?",
+      "whoAreYouSubtitle": "Pour personnaliser votre expérience.",
+      "roles": {
+        "maman": "Maman",
+        "papa": "Papa",
+        "mamie": "Mamie",
+        "papy": "Papy",
+        "nounou": "Nounou",
+        "tata": "Tata",
+        "tonton": "Tonton",
+        "autre": "Autre",
+        "famille": "Famille"
+      },
+      "editRole": "Modifier mon rôle",
+      "yourRole": "Votre rôle",
+      "firstChild": "C'est votre premier enfant ?",
+      "firstChildYes": "Oui",
+      "firstChildNo": "Non",
+      "ageRange": "Votre tranche d'âge",
+      "ageRanges": {
+        "under25": "< 25",
+        "r25to30": "25-30",
+        "r30to35": "30-35",
+        "r35to40": "35-40",
+        "over40": "40+"
+      },
+      "joiningBaby": "Vous rejoignez {{name}} !",
+      "continueProfile": "Continuer"
     },
     "task": {
       "createdBy": "Créé par",
@@ -950,7 +1071,9 @@
       "deleteAccountReauthInstruction": "Vous devrez vous reconnecter avec {{provider}} pour confirmer la suppression de votre compte.",
       "emailOptIn": "Communications email",
       "emailOptInDescription": "Recevoir des demandes de retour et messages d'amélioration de l'app",
-      "emailOptInUpdated": "Préférence mise à jour"
+      "emailOptInUpdated": "Préférence mise à jour",
+      "signOutConfirm": "Tu vas être déconnecté de ton compte.",
+      "feedbackSub": "Partage une idée"
     },
     "enterValidName": "Veuillez entrer un nom valide",
     "modification": "Modification",
@@ -1241,6 +1364,49 @@
       "hoursMinutes": "Il y a {{hours}}h {{minutes}}min",
       "daysHours": "Il y a {{days}}j {{hours}}h",
       "days": "Il y a {{count}}j"
+    },
+    "premium": {
+      "title": "Tribu Premium",
+      "subtitle": "Tout débloquer pour ta tribu, à vie.",
+      "badgeTitle": "Tribu Premium · à vie",
+      "cta": "Obtenir Tribu Premium · {{price}}",
+      "restore": "Restaurer un achat",
+      "oneTime": "Paiement unique",
+      "purchaseError": "Une erreur est survenue. Réessaie.",
+      "restoreSuccess": "Achat restauré ! Bienvenue dans la tribu.",
+      "restoreError": "Aucun achat trouvé pour ce compte.",
+      "activeBadge": "Tribu Premium · Activé ✓",
+      "upsellTitle": "Passer à Tribu Premium",
+      "upsellSubtitle": "Stats avancées, export illimité, widget",
+      "exportCta": "Exporter mes données · Premium",
+      "feature": {
+        "export": {
+          "title": "Exports illimités",
+          "subtitle": "CSV, sans limite"
+        },
+        "stats": {
+          "title": "Stats avancées",
+          "subtitle": "Tendances, comparaisons"
+        },
+        "widget": {
+          "title": "Widget biberon",
+          "subtitle": "Accès rapide écran d'accueil"
+        },
+        "support": {
+          "title": "Soutenir Tribu",
+          "subtitle": "Sans pub, ni revente de data"
+        }
+      },
+      "exportCtaTitle": "Exporter mes données",
+      "exportCtaSub": "CSV · réservé à Tribu Premium",
+      "preview": {
+        "colTime": "Heure",
+        "colType": "Type",
+        "colQty": "Qté.",
+        "widgetName": "Biberon",
+        "widgetAgo": "il y a 1h12",
+        "team": "Une équipe de 2 parents"
+      }
     }
   },
   "es": {
@@ -1280,6 +1446,7 @@
       "email": "Correo electrónico",
       "password": "Contraseña",
       "name": "Nombre",
+      "firstName": "Nombre",
       "birthdate": "DD/MM/AAAA",
       "comment": "Comentario",
       "code": "Introduce el código",
@@ -1330,8 +1497,12 @@
       "name": "Por favor, ingrese un nombre (mínimo 2 caracteres).",
       "birthdate": "Por favor, ingrese una fecha de nacimiento válida.",
       "enterCode": "Por favor, introduce el código.",
+      "invalidCode": "Este código no corresponde a ningún bebé. Verifica e inténtalo de nuevo.",
       "validCode": "Por favor, introduce un código válido.",
       "notAuthenticated": "Debes iniciar sesión para realizar esta acción.",
+      "roleRequired": "Por favor selecciona tu rol.",
+      "firstChildRequired": "Por favor indica si es tu primer hijo.",
+      "ageRangeRequired": "Por favor selecciona tu rango de edad.",
       "babyCreationFailed": "No se pudo crear el bebé. Inténtalo de nuevo.",
       "taskCreationFailed": "No se pudo crear la tarea. Inténtalo de nuevo.",
       "taskUpdateFailed": "No se pudo actualizar la tarea. Inténtalo de nuevo.",
@@ -1359,7 +1530,12 @@
       "photoUploadFailed": "Error al subir la foto. Por favor, inténtelo de nuevo.",
       "uploadPhoto": "Error al subir la foto",
       "galleryPermission": "¡Se requiere permiso para acceder a la galería!",
-      "cameraPermission": "¡Se requiere permiso para acceder a la cámara!"
+      "cameraPermission": "¡Se requiere permiso para acceder a la cámara!",
+      "updateFailed": "Se produjo un error. Por favor, inténtalo de nuevo."
+    },
+    "accessibility": {
+      "enterCode": "Ingresar código del bebé",
+      "enterCodeHint": "Introduce el código compartido por el creador del bebé"
     },
     "success": {
       "copied": "¡Código copiado!"
@@ -1451,7 +1627,7 @@
       "removePhotoConfirm": "¿Estás seguro de que quieres eliminar esta foto?",
       "remove": "Eliminar",
       "photoRemoved": "¡Foto eliminada con éxito!",
-      "name": "Nombre",
+      "name": "Nombre propio",
       "birthdate": "Fecha de nacimiento",
       "essentialInfo": "Información esencial",
       "additionalInfo": "Información adicional (opcional)",
@@ -1486,7 +1662,35 @@
       "kg": "kg",
       "cm": "cm",
       "openSettings": "Abrir ajustes",
-      "codeLabel": "Código"
+      "codeLabel": "Código",
+      "whoAreYou": "¿Y usted?",
+      "whoAreYouSubtitle": "Para personalizar tu experiencia.",
+      "roles": {
+        "maman": "Mamá",
+        "papa": "Papá",
+        "mamie": "Abuela",
+        "papy": "Abuelo",
+        "nounou": "Niñera",
+        "tata": "Tía",
+        "tonton": "Tío",
+        "autre": "Otro",
+        "famille": "Familia"
+      },
+      "editRole": "Editar mi rol",
+      "yourRole": "Tu rol",
+      "firstChild": "¿Es tu primer hijo?",
+      "firstChildYes": "Sí",
+      "firstChildNo": "No",
+      "ageRange": "Tu rango de edad",
+      "ageRanges": {
+        "under25": "< 25",
+        "r25to30": "25-30",
+        "r30to35": "30-35",
+        "r35to40": "35-40",
+        "over40": "40+"
+      },
+      "joiningBaby": "¡Te unes a {{name}}!",
+      "continueProfile": "Continuar"
     },
     "task": {
       "createdBy": "Creado por",
@@ -1553,7 +1757,9 @@
       "deleteAccountReauthInstruction": "Deberás reconectarte con {{provider}} para confirmar la eliminación de tu cuenta.",
       "emailOptIn": "Comunicaciones por email",
       "emailOptInDescription": "Recibir solicitudes de opinión y mensajes de mejora de la app",
-      "emailOptInUpdated": "Preferencia actualizada"
+      "emailOptInUpdated": "Preferencia actualizada",
+      "signOutConfirm": "Cerrarás sesión en tu cuenta.",
+      "feedbackSub": "Comparte una idea"
     },
     "enterValidName": "Por favor, introduce un nombre válido",
     "enterValidEmail": "Por favor, introduce un correo válido",
@@ -1841,6 +2047,49 @@
       "hoursMinutes": "Hace {{hours}}h {{minutes}}min",
       "daysHours": "Hace {{days}}d {{hours}}h",
       "days": "Hace {{count}}d"
+    },
+    "premium": {
+      "title": "Tribu Premium",
+      "subtitle": "Desbloquea todo para tu tribu, de por vida.",
+      "badgeTitle": "Tribu Premium · de por vida",
+      "cta": "Obtener Tribu Premium · {{price}}",
+      "restore": "Restaurar compra",
+      "oneTime": "Pago único",
+      "purchaseError": "Ha ocurrido un error. Inténtalo de nuevo.",
+      "restoreSuccess": "¡Compra restaurada! Bienvenido a la tribu.",
+      "restoreError": "No se encontró ninguna compra para esta cuenta.",
+      "activeBadge": "Tribu Premium · Activo ✓",
+      "upsellTitle": "Pasar a Tribu Premium",
+      "upsellSubtitle": "Estadísticas avanzadas, exportación ilimitada, widget",
+      "exportCta": "Exportar mis datos · Premium",
+      "feature": {
+        "export": {
+          "title": "Exportaciones ilimitadas",
+          "subtitle": "CSV, sin límites"
+        },
+        "stats": {
+          "title": "Estadísticas avanzadas",
+          "subtitle": "Tendencias, comparaciones"
+        },
+        "widget": {
+          "title": "Widget biberón",
+          "subtitle": "Acceso rápido desde la pantalla de inicio"
+        },
+        "support": {
+          "title": "Apoyar Tribu",
+          "subtitle": "Sin publicidad, sin venta de datos"
+        }
+      },
+      "exportCtaTitle": "Exportar mis datos",
+      "exportCtaSub": "CSV · exclusivo Tribu Premium",
+      "preview": {
+        "colTime": "Hora",
+        "colType": "Tipo",
+        "colQty": "Cant.",
+        "widgetName": "Biberón",
+        "widgetAgo": "hace 1h12",
+        "team": "Un equipo de 2 padres"
+      }
     }
   }
 }

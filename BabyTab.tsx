@@ -14,12 +14,13 @@ import BabyProfileTab from './BabyProfileTab';
 import BabyFamilyTab from './BabyFamilyTab';
 
 const BabyTab = ({ navigation }) => {
-  const { user, babyID, setBabyID } = useContext(AuthentificationUserContext);
+  const { user, babyID, setBabyID, userInfo } = useContext(AuthentificationUserContext);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'profile' | 'family'>('profile');
   const [loading, setLoading] = useState(false);
   const [babyData, setBabyData] = useState<any>(null);
+  const [babyDocId, setBabyDocId] = useState<string>('');
   const [userListDisplay, setUserListDisplay] = useState([]);
 
   useFocusEffect(
@@ -44,14 +45,45 @@ const BabyTab = ({ navigation }) => {
       if (!querySnapshot.empty) {
         const data = querySnapshot.docs[0].data();
         setBabyData(data);
+        setBabyDocId(querySnapshot.docs[0].id);
 
-        // Load users directly
+        // Load users — query each member individually to avoid 'in' edge cases
         if (data.user && data.user.length > 0) {
-          const usersQuery = query(userRef, where('userId', 'in', data.user));
-          const usersSnapshot = await getDocs(usersQuery);
+          const memberUids: string[] = data.user;
+          const results: any[] = [];
 
-          const users = usersSnapshot.docs.map((doc) => doc.data());
-          setUserListDisplay(users);
+          await Promise.all(
+            memberUids.map(async (uid) => {
+              try {
+                const q = query(userRef, where('userId', '==', uid));
+                const snap = await getDocsFromServer(q);
+                if (!snap.empty) {
+                  results.push(snap.docs[0].data());
+                } else if (uid === user.uid) {
+                  // Current user has no Users doc — build from auth object
+                  results.push({
+                    userId: user.uid,
+                    username: user.displayName || user.email?.split('@')[0] || user.email || '',
+                    email: user.email || '',
+                  });
+                }
+              } catch {
+                if (uid === user.uid) {
+                  results.push({
+                    userId: user.uid,
+                    username: user.displayName || user.email?.split('@')[0] || user.email || '',
+                    email: user.email || '',
+                  });
+                }
+              }
+            })
+          );
+
+          // Preserve original order (same as memberUids)
+          const ordered = memberUids
+            .map((uid) => results.find((r) => r.userId === uid))
+            .filter(Boolean);
+          setUserListDisplay(ordered);
         }
       } else {
         setBabyData(null);
@@ -81,6 +113,7 @@ const BabyTab = ({ navigation }) => {
       const updatePromises = querySnapshot.docs.map(async (document) => {
         await updateDoc(doc(db, 'Baby', document.id), {
           user: arrayRemove(user.uid),
+          premiumUserIds: arrayRemove(user.uid),
         });
       });
 
@@ -173,7 +206,7 @@ const BabyTab = ({ navigation }) => {
               onPress={() => {
                 const parentNav = navigation.getParent();
                 if (parentNav) {
-                  parentNav.navigate('Baby');
+                  parentNav.navigate('CreateBaby');
                 }
               }}
             >
@@ -217,7 +250,7 @@ const BabyTab = ({ navigation }) => {
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'profile' && styles.activeTab]}
-          onPress={() => setActiveTab('profile')}
+          onPress={() => { setActiveTab('profile'); analytics.logEvent('tab_selected', { screen: 'Baby', tab: 'profile' }); }}
         >
           <Text style={[styles.tabText, activeTab === 'profile' && styles.activeTabText]}>
             {t('baby.profile')}
@@ -225,7 +258,7 @@ const BabyTab = ({ navigation }) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'family' && styles.activeTab]}
-          onPress={() => setActiveTab('family')}
+          onPress={() => { setActiveTab('family'); analytics.logEvent('tab_selected', { screen: 'Baby', tab: 'family' }); }}
         >
           <Text style={[styles.tabText, activeTab === 'family' && styles.activeTabText]}>
             {t('baby.family')}
@@ -239,10 +272,13 @@ const BabyTab = ({ navigation }) => {
       ) : (
         <BabyFamilyTab
           babyID={babyID}
+          babyDocId={babyDocId}
           usersList={userListDisplay}
+          memberRoles={babyData.memberRoles || {}}
           currentUserId={user.uid}
           adminId={babyData.admin}
           onLeaveBaby={deleteBaby}
+          onRoleUpdated={loadBabyAndUsers}
         />
       )}
     </View>

@@ -26,6 +26,11 @@ const BabyList = ({ navigation }) => {
   const [babyExist, setBabyExist] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<number | null>(null); // null = All, 0-5 = category
+
+  const handleFilterChange = useCallback((id: number | null) => {
+    setSelectedFilter(id);
+    analytics.logEvent('category_filter_selected', { filter: id === null ? 'all' : id });
+  }, []);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
@@ -164,7 +169,7 @@ const BabyList = ({ navigation }) => {
       {babyExist && tasks.length > 0 && (
         <FilterBar
           selectedFilter={selectedFilter}
-          onFilterChange={setSelectedFilter}
+          onFilterChange={handleFilterChange}
           t={t}
         />
       )}
@@ -180,7 +185,7 @@ const BabyList = ({ navigation }) => {
             { label: t('title.addBaby'), onPress: () => {
               const parentNav = navigation.getParent();
               if (parentNav) {
-                parentNav.navigate('Baby');
+                parentNav.navigate('CreateBaby');
               }
             }, primary: true },
             { label: t('settings.joinBaby'), onPress: () => {

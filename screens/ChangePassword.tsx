@@ -5,6 +5,7 @@ import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../config.js';
 import { useTranslation } from 'react-i18next';
 import { KEYBOARD_CONFIG } from '../utils/constants';
+import Analytics from '../services/analytics';
 
 const ChangePassword = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -14,6 +15,7 @@ const ChangePassword = ({ route, navigation }) => {
     sendPasswordResetEmail(auth, user.email)
       .then(() => {
         Alert.alert(t('settings.resetPassordEmailSent'));
+        Analytics.logEvent('user_password_reset_requested');
         navigation.goBack();
       })
       .catch((error) => {

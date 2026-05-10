@@ -5,6 +5,7 @@ import { useSommeilStats, useSommeilCountStats } from '../hooks/useTaskStatistic
 import { Task } from '../types/stats';
 import StatsContainer from '../components/stats/StatsContainer';
 import { STATS_CONFIG } from '../constants/statsConfig';
+import Analytics from '../services/analytics';
 
 interface SommeilProps {
   navigation: any;
@@ -86,7 +87,7 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
         {/* View Mode Selector */}
         <View style={styles.viewModeContainer}>
           <TouchableOpacity
-            onPress={() => setViewMode('count')}
+            onPress={() => { setViewMode('count'); Analytics.logEvent('tab_selected', { screen: 'Sommeil', tab: 'count' }); }}
             style={[styles.viewModeButton, viewMode === 'count' && styles.viewModeButtonActive]}
           >
             <Text style={[styles.viewModeText, viewMode === 'count' && styles.viewModeTextActive]}>
@@ -94,7 +95,7 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setViewMode('duration')}
+            onPress={() => { setViewMode('duration'); Analytics.logEvent('tab_selected', { screen: 'Sommeil', tab: 'duration' }); }}
             style={[styles.viewModeButton, viewMode === 'duration' && styles.viewModeButtonActive]}
           >
             <Text style={[styles.viewModeText, viewMode === 'duration' && styles.viewModeTextActive]}>

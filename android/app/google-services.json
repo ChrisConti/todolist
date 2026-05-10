@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "347055639005-3pp5df1khsb53gpc2ooor7ga16grbte5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tribubaby.app",
+            "certificate_hash": "98a20e6d8cc98b615f8e299da3ec89ac022d13c4"
+          }
+        },
+        {
           "client_id": "347055639005-pfgnj9r2lijq1octda69b55s5om0l565.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -58,6 +66,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "347055639005-686vnuqhec47bpgqnu0gsvidat80i8i1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tribubaby.tribubaby",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
         {
           "client_id": "347055639005-grq9l4efqt9ctbccbm77jitq1rqorcjh.apps.googleusercontent.com",
           "client_type": 3

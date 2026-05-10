@@ -44,6 +44,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const { user, setUser, babyID, setBabyID, userInfo } = useContext(AuthentificationUserContext);
   const [babySelected, setBabySelected] = useState(babyID);
   const [selectedImage, setSelectedImage] = useState(task ? task.id : 0);
+  const categoryEnterTimeRef = useRef<number>(Date.now());
   const [time, setTime] = useState(moment().format('YYYY-MM-DD HH:mm:ss'));
   const [label, setLabel] = useState('');
   const [note, setNote] = useState('');
@@ -59,9 +60,6 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
 
-  useEffect(() => {
-    analytics.logScreenView('CreateTask');
-  }, []);
 
   // date picker
   const showDateTimePicker = () => {
@@ -171,13 +169,26 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
 
       console.log('Task created successfully');
       
+      // Track time spent on final category before submit
+      analytics.logEvent('category_time_spent', {
+        category: returnLabel(selectedImage),
+        category_id: selectedImage,
+        duration_sec: Math.round((Date.now() - categoryEnterTimeRef.current) / 1000),
+        submitted: true,
+      });
+
       // Track task creation
       analytics.logEvent('task_created', {
         task_type: returnLabel(selectedImage),
         task_id: selectedImage,
         has_label: !!label,
         has_note: !!note,
-        user_id: user.uid
+        user_id: user.uid,
+        ...(selectedImage === 0 && milkType !== null && { milk_type: milkType }),
+        ...(selectedImage === 1 && diaperType !== null && { diaper_type: diaperType }),
+        ...(selectedImage === 1 && diaperContent !== null && { diaper_content: diaperContent }),
+        ...(selectedImage === 3 && sleepLocation !== null && { sleep_location: sleepLocation }),
+        ...(selectedImage === 5 && bfValues?.mode && { breastfeeding_mode: bfValues.mode }),
       });
       
       // Incrémente le compteur et affiche la modal si besoin
@@ -329,6 +340,13 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                   key={index}
                   onPress={() => {
                     Keyboard.dismiss();
+                    const duration = Math.round((Date.now() - categoryEnterTimeRef.current) / 1000);
+                    analytics.logEvent('category_time_spent', {
+                      category: returnLabel(selectedImage),
+                      category_id: selectedImage,
+                      duration_sec: duration,
+                    });
+                    categoryEnterTimeRef.current = Date.now();
                     setSelectedImage(image.id);
                     setLabel('');
                   }}

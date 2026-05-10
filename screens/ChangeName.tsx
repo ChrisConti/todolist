@@ -4,12 +4,14 @@ import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { db, userRef } from '../config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
+import Analytics from '../services/analytics';
 
 const ChangeName = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { user, userInfo, setUserInfo } = useContext(AuthentificationUserContext);
   const [name, setName] = useState(userInfo?.username || '');
   const [userError, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const queryResult = query(userRef, where('userId', '==', user.uid));
@@ -20,10 +22,12 @@ const ChangeName = ({ route, navigation }) => {
   }, []);
 
   const onHandleModification = async () => {
+    if (loading) return;
     if (!name) {
       setError(t('enterValidName'));
       return;
     }
+    setLoading(true);
     try {
       const querySnapshot = await getDocs(queryResult);
       if (querySnapshot.empty) {
@@ -39,17 +43,13 @@ const ChangeName = ({ route, navigation }) => {
 
       setUserInfo({ ...userInfo, username: name });
       Alert.alert(t('nameChanged'));
-
-      // Log analytics event for successful name change
-
-
+      Analytics.logEvent('user_name_changed');
       navigation.goBack();
     } catch (error) {
       console.error('Error updating document:', error);
       setError(t('errorUpdatingName'));
-
-      // Log analytics event for error
-
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,7 +80,7 @@ const ChangeName = ({ route, navigation }) => {
 
       <View style={styles.footer}>
         <Text style={styles.errorText}>{userError}</Text>
-        <TouchableOpacity style={styles.button} onPress={onHandleModification}>
+        <TouchableOpacity style={[styles.button, loading && { opacity: 0.6 }]} onPress={onHandleModification} disabled={loading}>
           <Text style={styles.buttonText}>{t('validate')}</Text>
         </TouchableOpacity>
       </View>

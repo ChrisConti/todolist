@@ -313,6 +313,11 @@ const EditBaby = ({ navigation, route }) => {
 
       const babyDoc = querySnapshot.docs[0];
       await updateDoc(babyDoc.ref, updateData);
+      analytics.logEvent('baby_profile_updated', {
+        has_name: !!trimmedName,
+        has_weight: weightNum !== undefined,
+        has_height: heightNum !== undefined,
+      });
 
       if (Platform.OS === 'android') {
         ToastAndroid.show(t('success.babyUpdated'), ToastAndroid.SHORT);
@@ -403,20 +408,21 @@ const EditBaby = ({ navigation, route }) => {
         {/* Sélection du sexe */}
         <Text style={styles.label}>{t('baby.sex')}</Text>
         <View style={styles.typeSelector}>
-          <TouchableOpacity
-            onPress={() => setSelectedType(0)}
-            style={[styles.typeOption, selectedType === 0 && styles.typeOptionSelected]}
-          >
-            <Boy height={60} width={60} />
-            <Text style={styles.typeText}>{t('baby.boy')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedType(1)}
-            style={[styles.typeOption, selectedType === 1 && styles.typeOptionSelected]}
-          >
-            <Girl height={60} width={60} />
-            <Text style={styles.typeText}>{t('baby.girl')}</Text>
-          </TouchableOpacity>
+          {[0, 1].map((i) => (
+            <TouchableOpacity
+              key={i}
+              onPress={() => setSelectedType(i)}
+              style={[styles.typeOption, selectedType === i && styles.typeOptionSelected]}
+            >
+              {selectedType === i && (
+                <View style={styles.sexCheck}>
+                  <Text style={styles.sexCheckText}>✓</Text>
+                </View>
+              )}
+              {i === 0 ? <Boy height={44} width={44} /> : <Girl height={44} width={44} />}
+              <Text style={styles.typeText}>{i === 0 ? t('baby.boy') : t('baby.girl')}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Nom */}
@@ -425,7 +431,7 @@ const EditBaby = ({ navigation, route }) => {
         </Text>
         <TextInput
           style={styles.input}
-          placeholder={t('placeholder.name')}
+          placeholder={t('placeholder.firstName')}
           value={name}
           onChangeText={setName}
           autoCapitalize="words"
@@ -567,23 +573,42 @@ const styles = StyleSheet.create({
   },
   typeSelector: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    gap: 12,
     marginBottom: 15,
   },
   typeOption: {
-    width: '45%',
-    padding: 15,
-    borderRadius: 12,
-    borderWidth: 3,
-    borderColor: 'transparent',
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 2.5,
+    borderColor: 'transparent',
     backgroundColor: '#FFF',
+    position: 'relative',
   },
   typeOptionSelected: {
     borderColor: '#C75B4A',
   },
+  sexCheck: {
+    position: 'absolute',
+    top: 7,
+    right: 7,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#C75B4A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sexCheckText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
   typeText: {
-    marginTop: 8,
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
@@ -591,8 +616,6 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     height: 50,
-    borderWidth: 1,
-    borderColor: '#C75B4A',
     borderRadius: 8,
     paddingHorizontal: 15,
     backgroundColor: '#FFF',

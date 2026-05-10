@@ -390,7 +390,7 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
               <div className="overview-card">
                 <div className="overview-label">Dernière tâche</div>
                 <div className="overview-value">
-                  {lastTask ? new Date(lastTask.date).toLocaleDateString('fr-FR') : 'N/A'}
+                  {lastTask ? new Date(lastTask.date).toLocaleDateString('fr-FR') + ' ' + new Date(lastTask.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                 </div>
               </div>
               <div className="overview-card">

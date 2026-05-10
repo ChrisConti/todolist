@@ -23,7 +23,7 @@ export const configureGoogleSignIn = () => {
   GoogleSignin.configure({
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: '347055639005-pfgnj9r2lijq1octda69b55s5om0l565.apps.googleusercontent.com',
+    androidClientId: '347055639005-3pp5df1khsb53gpc2ooor7ga16grbte5.apps.googleusercontent.com',
     offlineAccess: false,
   });
 };

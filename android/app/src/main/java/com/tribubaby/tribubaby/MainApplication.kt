@@ -1,5 +1,6 @@
 package com.tribubaby.tribubaby
 
+import com.tribubaby.app.BuildConfig
 import android.app.Application
 import android.content.res.Configuration
 

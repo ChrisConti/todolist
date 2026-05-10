@@ -1,8 +1,10 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+apply plugin: "com.google.firebase.crashlytics"
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
+def reactNativeRoot = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -38,13 +40,13 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.tribubaby.tribubaby'
+    namespace 'com.tribubaby.app'
     defaultConfig {
-        applicationId 'com.tribubaby.tribubaby'
+        applicationId 'com.tribubaby.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "1.2.2"
+        versionCode 12
+        versionName "1.2.7"
     }
     signingConfigs {
         debug {

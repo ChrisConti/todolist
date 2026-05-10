@@ -6,6 +6,7 @@ import { Task } from '../types/stats';
 import StatsContainer from '../components/stats/StatsContainer';
 import StackedBarChart from '../components/stats/charts/StackedBarChart';
 import { STATS_CONFIG } from '../constants/statsConfig';
+import Analytics from '../services/analytics';
 
 interface DiaperProps {
   navigation: any;
@@ -114,7 +115,7 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'count' && styles.tabButtonActive]}
-          onPress={() => setSelectedTab('count')}
+          onPress={() => { setSelectedTab('count'); Analytics.logEvent('tab_selected', { screen: 'Diaper', tab: 'count' }); }}
         >
           <Text style={[styles.tabText, selectedTab === 'count' && styles.tabTextActive]}>
             {t('diapers.generalCount')}
@@ -122,7 +123,7 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'type' && styles.tabButtonActive]}
-          onPress={() => setSelectedTab('type')}
+          onPress={() => { setSelectedTab('type'); Analytics.logEvent('tab_selected', { screen: 'Diaper', tab: 'type' }); }}
         >
           <Text style={[styles.tabText, selectedTab === 'type' && styles.tabTextActive]}>
             {t('diapers.typeStats')}
@@ -130,7 +131,7 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'content' && styles.tabButtonActive]}
-          onPress={() => setSelectedTab('content')}
+          onPress={() => { setSelectedTab('content'); Analytics.logEvent('tab_selected', { screen: 'Diaper', tab: 'content' }); }}
         >
           <Text style={[styles.tabText, selectedTab === 'content' && styles.tabTextActive]}>
             {t('diapers.contentStats')}

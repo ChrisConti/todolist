@@ -1,5 +1,6 @@
 package com.tribubaby.tribubaby
 
+import com.tribubaby.app.R
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context

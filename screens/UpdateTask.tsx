@@ -126,6 +126,10 @@ const UpdateTask = ({ route, navigation }) => {
         Analytics.logEvent('task_updated', {
           task_type: TASK_LABELS[selectedImage] || 'unknown',
           baby_id: babyID,
+          ...(selectedImage === 0 && milkType !== null && { milk_type: milkType }),
+          ...(selectedImage === 1 && diaperType !== null && { diaper_type: diaperType }),
+          ...(selectedImage === 1 && diaperContent !== null && { diaper_content: diaperContent }),
+          ...(selectedImage === 3 && sleepLocation !== null && { sleep_location: sleepLocation }),
         });
 
         // Update biberon widget if it's a bottle task

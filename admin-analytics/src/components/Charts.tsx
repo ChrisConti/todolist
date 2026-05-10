@@ -14,6 +14,7 @@ import {
 import type { ChartOptions } from 'chart.js';
 import { Line, Pie, Bar } from 'react-chartjs-2';
 import type { User, Baby } from '../types';
+import { parseBabyDate } from '../types';
 import './Charts.css';
 
 ChartJS.register(
@@ -73,9 +74,8 @@ export const Charts: React.FC<ChartsProps> = ({ users, babies, iosDownloads, and
     nextDay.setDate(nextDay.getDate() + 1);
 
     return babies.filter(b => {
-      if (!b.CreatedDate) return false;
-      const babyDate = new Date(b.CreatedDate);
-      if (isNaN(babyDate.getTime())) return false;
+      const babyDate = parseBabyDate(b);
+      if (!babyDate) return false;
       return babyDate >= day && babyDate < nextDay;
     }).length;
   });

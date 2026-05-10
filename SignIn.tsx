@@ -117,6 +117,7 @@ const validateEmail = (value: string): string => {
           method: 'email',
           country: userCountry
         });
+        analytics.setUserProperty('auth_provider', 'email');
         
         setLoading(false);
         

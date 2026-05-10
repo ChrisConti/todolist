@@ -22,6 +22,7 @@ const Settings = ({ navigation }) => {
   }, []);
 
   const handleSignOut = () => {
+    analytics.logEvent('sign_out', { provider });
     signOut(auth)
       .then(() => {
         setUser(null);
@@ -62,25 +63,26 @@ const Settings = ({ navigation }) => {
             <Text style={styles.titleParameter}>{t('settings.personalOptions')}</Text>
           </View>
           <View>
-            <TouchableOpacity onPress={() => navigation.navigate('ChangeName')}>
+            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'change_name' }); navigation.navigate('ChangeName'); }}>
               <ItemParameter title={t('settings.myName')} icon="account-edit" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('ChangeEmail')}>
+            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'change_email' }); navigation.navigate('ChangeEmail'); }}>
               <ItemParameter title={t('settings.myEmail')} icon="email-edit" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
             {provider === 'email' && (
-              <TouchableOpacity onPress={() => navigation.navigate('ChangePassword')}>
+              <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'change_password' }); navigation.navigate('ChangePassword'); }}>
                 <ItemParameter title={t('settings.myPassword')} icon="lock-reset" iconFamily="MaterialCommunityIcons" />
               </TouchableOpacity>
             )}
             <TouchableOpacity
               onPress={() => {
+                analytics.logEvent('settings_item_tapped', { item: 'delete_account' });
                 navigation.navigate('DeleteAccount');
               }}
             >
               <ItemParameter title={t('settings.deleteAccount')} icon="account-remove" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('EmailOptIn')}>
+            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'email_opt_in' }); navigation.navigate('EmailOptIn'); }}>
               <ItemParameter title={t('settings.emailOptIn')} icon="email-newsletter" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleSignOut}>
@@ -106,7 +108,7 @@ const Settings = ({ navigation }) => {
                 />
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={handleFeedback}>
+            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'feedback' }); handleFeedback(); }}>
               <ItemParameter
                 title={t('settings.feedback')}
                 icon="lightbulb-on"
@@ -116,13 +118,13 @@ const Settings = ({ navigation }) => {
                 textColor="white"
               />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
+            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'privacy_policy' }); navigation.navigate('PrivacyPolicy'); }}>
               <ItemParameter title={t('settings.privacyPolicy')} icon="shield-lock" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('TermsOfUse')}>
+            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'terms_of_use' }); navigation.navigate('TermsOfUse'); }}>
               <ItemParameter title={t('settings.termsOfUse')} icon="file-document" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleContactUs}>
+            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'contact_us' }); handleContactUs(); }}>
               <ItemParameter title={t('settings.contactUs')} icon="email" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
 

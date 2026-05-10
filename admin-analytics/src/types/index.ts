@@ -8,6 +8,10 @@ export interface User {
   provider?: 'email' | 'google' | 'apple';
   emailOptIn?: boolean;
   country?: string;
+  parentAgeRange?: string;
+  lastLoginDate?: string;
+  appVersion?: string;
+  linkedBaby?: Baby;
 }
 
 export interface Task {
@@ -27,12 +31,24 @@ export interface Task {
   comment: string;
 }
 
+export const parseBabyDate = (baby: { CreatedDate?: string; createdDate?: any }): Date | null => {
+  if (baby.createdDate && typeof baby.createdDate === 'object' && 'toDate' in baby.createdDate) {
+    return (baby.createdDate as any).toDate();
+  }
+  if (baby.CreatedDate) {
+    const d = new Date(baby.CreatedDate);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  return null;
+};
+
 export interface Baby {
   id: string;
   name: string;
   type?: 'Boy' | 'Girl';
   birthDate?: string;
-  CreatedDate: string; // Note: Capital D
+  CreatedDate?: string;
+  createdDate?: any; // Firestore Timestamp (new format)
   tasks?: Task[];
   user?: string[]; // Array of user IDs (parents)
   admin?: string;
@@ -41,7 +57,10 @@ export interface Baby {
   profilePhoto?: string;
   height?: number;
   weight?: number;
-  parentEmails?: string[]; // Added for analytics display
+  parentEmails?: string[];
+  linkedUsers?: User[];
+  memberRoles?: Record<string, string>;
+  firstChildFor?: Record<string, boolean>;
 }
 
 export interface AnalyticsMetrics {
@@ -86,6 +105,41 @@ export interface AnalyticsMetrics {
     temperature: { count: number; percentage: number };
     allaitement: { count: number; percentage: number };
   };
+  // Parent profile distributions
+  roleDistribution?: Record<string, number>;
+  ageRangeDistribution?: Record<string, number>;
+  firstChildCount?: number;
+  // Retention: babies active at X days after creation
+  retentionByAge?: {
+    d1: number; d3: number; d7: number; d15: number; d20: number; d25: number;
+    d30: number; d45: number; d60: number; d75: number; d90: number;
+    totalWithDate: number;
+  };
+  // User funnel: what users do after creating an account
+  userFunnel?: {
+    createdBaby: number;
+    joinedBaby: number;
+    noBaby: number;
+    total: number;
+  };
+  // Dropout analysis
+  dropoutAnalysis?: {
+    exactly0Tasks: number;
+    exactly1Task: number;
+    tasks2to5: number;
+    firstTaskTypeFor1Task: Record<string, number>;
+    avgDaysAccountToBaby: number; minDaysAccountToBaby: number; maxDaysAccountToBaby: number;
+    avgDaysAccountToFirstTask: number; minDaysAccountToFirstTask: number; maxDaysAccountToFirstTask: number;
+    avgDaysBabyToFirstTask: number; minDaysBabyToFirstTask: number; maxDaysBabyToFirstTask: number;
+    avgDaysActiveFor2to5: number;
+    avgBabyAgeAtLastTaskDays: number;
+    activeDurationBuckets: { under7: number; d7to30: number; d30to90: number; over90: number };
+    babyAgeAtLastTaskBuckets: { under30: number; d30to90: number; d90to180: number; d180to365: number; over365: number };
+  };
+  // per-category sub-breakdowns
+  biberonMilkType?: { artificial: number; maternal: number; unknown: number };
+  allaitementTimerType?: { timer: number; manual: number };
+  diaperContentDistribution?: { pee: number; poop: number; both: number };
   // Task distribution by baby age
   taskDistributionByAge?: {
     totalBabies: number;

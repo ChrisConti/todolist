@@ -10,6 +10,8 @@ export interface UserInfo {
   provider?: 'email' | 'google' | 'apple';
   photoURL?: string;
   emailOptIn?: boolean;
+  parentAgeRange?: string;
+  lastLoginDate?: string;
 }
 
 export interface Task {
@@ -36,15 +38,17 @@ export interface Baby {
   type: 'Boy' | 'Girl';
   name: string;
   birthDate: string;
-  profilePhoto?: string; // URL Firebase Storage
-  height?: number; // en cm
-  weight?: number; // en kg (avec décimales)
+  profilePhoto?: string;
+  height?: number;
+  weight?: number;
   CreatedDate: string;
   user: string[];
   admin: string;
   userName: string;
   userEmail: string;
   tasks: Task[];
+  memberRoles?: Record<string, string>;
+  firstChildFor?: Record<string, boolean>;
 }
 
 export interface AuthUserContextType {

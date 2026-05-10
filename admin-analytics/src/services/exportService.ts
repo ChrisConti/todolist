@@ -1,6 +1,7 @@
 import { getDocs } from 'firebase/firestore';
 import { usersRef, babiesRef } from '../config/firebase';
 import type { DateRange, User, Baby } from '../types';
+import { parseBabyDate } from '../types';
 import * as XLSX from 'xlsx';
 
 interface ExportOptions {
@@ -78,16 +79,15 @@ export const exportToExcel = async (options: ExportOptions): Promise<void> => {
       // Filter by date if specified
       if (dateRange.start && dateRange.end) {
         babiesData = babiesData.filter(data => {
-          if (!data.CreatedDate) return false;
-          const babyDate = new Date(data.CreatedDate);
-          return babyDate >= dateRange.start! && babyDate <= dateRange.end!;
+          const babyDate = parseBabyDate(data);
+          return babyDate !== null && babyDate >= dateRange.start! && babyDate <= dateRange.end!;
         });
       }
 
       const babies = babiesData.map((data) => ({
         'Baby ID': data.docId,
         'Nom': data.name || '',
-        'Date de création': data.CreatedDate || '',
+        'Date de création': parseBabyDate(data)?.toLocaleDateString('fr-FR') || '',
         'Nombre de tâches': data.tasks?.length || 0,
         'Parents (IDs)': data.user?.join(', ') || '',
         'Email': data.userEmail || '',

@@ -7,10 +7,11 @@ import { Funnel } from './components/Funnel';
 import { Search } from './components/Search';
 import { Export } from './components/Export';
 import { Trends } from './components/Trends';
+import { Acquisition } from './components/Acquisition';
 import { Migration } from './components/Migration';
 import './App.css';
 
-type TabType = 'analytics' | 'trends' | 'funnel' | 'search' | 'export' | 'migration';
+type TabType = 'analytics' | 'trends' | 'acquisition' | 'funnel' | 'search' | 'export' | 'migration';
 
 const AppContent: React.FC = () => {
   const { currentUser, isAdmin, loading } = useAuth();
@@ -35,6 +36,8 @@ const AppContent: React.FC = () => {
         return <Analytics />;
       case 'trends':
         return <Trends />;
+      case 'acquisition':
+        return <Acquisition />;
       case 'funnel':
         return <Funnel />;
       case 'search':

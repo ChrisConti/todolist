@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import Analytics from '../services/analytics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -202,7 +203,7 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
 
   const getCategoryNavTarget = (category: string): (() => void) => {
     if (category === 'biberon') {
-      return () => navigation.navigate('BiberonInsights');
+      return () => { Analytics.logEvent('stats_category_tapped', { category }); navigation.navigate('BiberonInsights'); };
     }
     const idMap: Record<string, number> = {
       allaitement: 5,
@@ -210,7 +211,7 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
       couche: 1,
       temperature: 4,
     };
-    return () => navigation.navigate('CategoryDetail', { categoryId: idMap[category] });
+    return () => { Analytics.logEvent('stats_category_tapped', { category }); navigation.navigate('CategoryDetail', { categoryId: idMap[category] }); };
   };
 
   const renderCategoryRow = (
@@ -328,7 +329,7 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
         {/* Export Button */}
         <TouchableOpacity
           style={styles.exportButton}
-          onPress={() => navigation.navigate('ExportTasks')}
+          onPress={() => { Analytics.logEvent('stats_export_tapped'); navigation.navigate('ExportTasks'); }}
         >
           <MaterialCommunityIcons name="file-download" size={24} color="#FFF" />
           <Text style={styles.exportButtonText}>{t('export.page.exportButton')}</Text>

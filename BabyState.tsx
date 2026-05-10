@@ -16,6 +16,7 @@ const BabyState = ({ navigation }) => {
   const { user, babyID, setBabyID } = useContext(AuthentificationUserContext);
   const [activeTab, setActiveTab] = useState<'profile' | 'family'>('profile');
   const [babyData, setBabyData] = useState<any>(null);
+  const [babyDocId, setBabyDocId] = useState<string>('');
   const [userListDisplay, setUserListDisplay] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,6 +40,7 @@ const BabyState = ({ navigation }) => {
       if (!querySnapshot.empty) {
         const data = querySnapshot.docs[0].data();
         setBabyData(data);
+        setBabyDocId(querySnapshot.docs[0].id);
         
         // Load users directly
         if (data.user && data.user.length > 0) {
@@ -189,10 +191,13 @@ const BabyState = ({ navigation }) => {
       ) : (
         <BabyFamilyTab
           babyID={babyID}
+          babyDocId={babyDocId}
           usersList={userListDisplay}
+          memberRoles={babyData.memberRoles || {}}
           currentUserId={user.uid}
           adminId={babyData.admin}
           onLeaveBaby={deleteBaby}
+          onRoleUpdated={loadBabyAndUsers}
         />
       )}
     </View>

@@ -30,7 +30,8 @@ import JoinBaby from './JoinBaby';
 import AuthentificationUserProvider, { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { ReviewPromptProvider } from './Context/ReviewPromptContext';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './config';
+import { auth, db, userRef } from './config';
+import { query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { useFonts, Pacifico_400Regular } from '@expo-google-fonts/pacifico';
 import PrivacyPolicy from './screens/PrivacyPolicy';
 import TermsOfUse from './screens/TermsOfUse';
@@ -45,7 +46,8 @@ import { Ionicons } from '@expo/vector-icons';
 import BabyHeadIcon from './components/BabyHeadIcon';
 import { trackFirstOpen } from './utils/firstOpenTracker';
 import { configureGoogleSignIn } from './utils/socialAuth';
-import Analytics from './services/analytics';
+import Analytics, { initAmplitude, initAppsFlyer, getPendingAcquisitionData, clearPendingAcquisitionData } from './services/analytics';
+import Constants from 'expo-constants';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -62,6 +64,9 @@ function RootNavigator() {
 
   // Store unsubscribe so the auth listener is properly cleaned up on unmount
   const unsubscribeAuthRef = useRef<(() => void) | null>(null);
+  const navigationRef = useRef<any>(null);
+  const currentScreenRef = useRef<string>('');
+  const screenEnterTimeRef = useRef<number>(0);
 
   useEffect(() => {
     async function loadResourcesAndDataAsync() {
@@ -76,7 +81,11 @@ function RootNavigator() {
         // Configure Google Sign-In
         configureGoogleSignIn();
 
-        log.debug('Setting up authentication listener...', 'App.tsx');
+        // Initialize Amplitude + AppsFlyer
+        initAmplitude();
+        initAppsFlyer();
+
+log.debug('Setting up authentication listener...', 'App.tsx');
         unsubscribeAuthRef.current = onAuthStateChanged(auth, async (firebaseUser) => {
           try {
             if (firebaseUser) {
@@ -104,6 +113,33 @@ function RootNavigator() {
               });
 
               setUser(firebaseUser);
+
+              // Persist last login date + acquisition data on User document (non-critical)
+              try {
+                const userQuery = query(userRef, where('userId', '==', firebaseUser.uid));
+                const userSnap = await getDocs(userQuery);
+                if (!userSnap.empty) {
+                  const userDocData = userSnap.docs[0].data();
+                  const updates: Record<string, any> = {
+                    lastLoginDate: new Date().toISOString(),
+                    platform: Platform.OS,
+                    appVersion: Constants.expoConfig?.version ?? null,
+                  };
+
+                  // Save acquisition data only once (first install)
+                  if (!userDocData.acquisition_status) {
+                    const acquisitionData = getPendingAcquisitionData();
+                    if (acquisitionData) {
+                      Object.assign(updates, acquisitionData);
+                      clearPendingAcquisitionData();
+                    }
+                  }
+
+                  await updateDoc(doc(db, 'Users', userSnap.docs[0].id), updates);
+                }
+              } catch {
+                // Non-critical
+              }
             } else {
               log.info('No user authenticated', 'App.tsx');
               setUser(null);
@@ -145,10 +181,35 @@ function RootNavigator() {
     );
   }
 
+  const onNavigationReady = () => {
+    const name = navigationRef.current?.getCurrentRoute()?.name ?? '';
+    currentScreenRef.current = name;
+    screenEnterTimeRef.current = Date.now();
+    Analytics.logScreenView(name);
+  };
+
+  const onNavigationStateChange = () => {
+    const name = navigationRef.current?.getCurrentRoute()?.name ?? '';
+    if (name && name !== currentScreenRef.current) {
+      const duration = Date.now() - screenEnterTimeRef.current;
+      Analytics.logEvent('screen_exit', {
+        screen: currentScreenRef.current,
+        duration_sec: Math.round(duration / 1000),
+      });
+      currentScreenRef.current = name;
+      screenEnterTimeRef.current = Date.now();
+      Analytics.logScreenView(name);
+    }
+  };
+
   return (
     <SafeAreaProvider>
       <I18nextProvider i18n={i18n}>
-        <NavigationContainer>
+        <NavigationContainer
+          ref={navigationRef}
+          onReady={onNavigationReady}
+          onStateChange={onNavigationStateChange}
+        >
           <StatusBar barStyle="light-content" backgroundColor="#C75B4A" />
           {isLoading ? (
             <AuthStack /> //loader a mettre
@@ -321,9 +382,9 @@ function MainStack() {
           headerBackTitle: ''
         }}
       />
-      <Stack.Screen 
-        name="Baby" 
-        component={Baby} 
+      <Stack.Screen
+        name="CreateBaby"
+        component={Baby}
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',

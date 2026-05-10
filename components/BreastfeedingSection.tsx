@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, AppState } from 'react-native
 import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import Analytics from '../services/analytics';
 
 export interface BreastfeedingValues {
   timer1: number;
@@ -159,7 +160,7 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
       {/* Mode Switch */}
       <View style={styles.modeRow}>
         <TouchableOpacity
-          onPress={() => setMode('timer')}
+          onPress={() => { setMode('timer'); Analytics.logEvent('tab_selected', { screen: 'CreateTask_Breastfeeding', tab: 'timer' }); }}
           style={[styles.modeButton, mode === 'timer' && styles.modeButtonSelected]}
         >
           <Text style={[styles.modeText, mode === 'timer' && styles.modeTextSelected]}>
@@ -167,7 +168,7 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => setMode('manual')}
+          onPress={() => { setMode('manual'); Analytics.logEvent('tab_selected', { screen: 'CreateTask_Breastfeeding', tab: 'manual' }); }}
           style={[styles.modeButton, mode === 'manual' && styles.modeButtonSelected]}
         >
           <Text style={[styles.modeText, mode === 'manual' && styles.modeTextSelected]}>
