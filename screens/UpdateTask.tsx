@@ -25,15 +25,18 @@ const UpdateTask = ({ route, navigation }) => {
   const [time, setTime] = useState(moment(route.params.task.date).format('YYYY-MM-DD HH:mm:ss'));
   const [label, setLabel] = useState(task.label || '');
   const [note, setNote] = useState(task.comment || '');
-  const [milkType, setMilkType] = useState<string | null>(task.milkType || null);
+  const [milkType, setMilkType] = useState<string>(task.milkType || 'artificial');
   const [diaperContent, setDiaperContent] = useState<number | null>(task.diaperContent ?? null);
   const [diaperType, setDiaperType] = useState<number | null>(task.diaperType ?? task.idCaca ?? null);
+  const [sleepType, setSleepType] = useState<string>(task.sleepType || 'nap');
   const [sleepLocation, setSleepLocation] = useState<string | null>(task.sleepLocation || null);
   const _sleepTotal = task.id === 3 ? parseInt(String(task.label || '0')) || 0 : 0;
   const [sleepHours, setSleepHours] = useState<string>(_sleepTotal > 0 ? (Math.floor(_sleepTotal / 60) > 0 ? String(Math.floor(_sleepTotal / 60)) : '') : '');
   const [sleepMinutes, setSleepMinutes] = useState<string>(_sleepTotal > 0 ? String(_sleepTotal % 60) : '');
   const [selectedDate, setSelectedDate] = useState(task.date ? new Date(task.date) : new Date());
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
+  const [temperatureDuration, setTemperatureDuration] = useState<string>(task.temperatureDuration ? String(task.temperatureDuration) : '');
+  const [labelSource, setLabelSource] = useState<'chip' | 'manual'>('manual');
   const [loading, setLoading] = useState(false);
   const breastfeedingRef = useRef<BreastfeedingRef>(null);
 
@@ -98,7 +101,9 @@ const UpdateTask = ({ route, navigation }) => {
               boobRight: bfValues ? (bfValues.mode === 'manual' ? bfValues.manualRight * 60 : bfValues.timer2) : (task.boobRight || 0),
               breastfeedingMode: selectedImage === 5 ? (bfValues?.mode ?? task.breastfeedingMode ?? 'timer') : null,
               milkType: selectedImage === 0 ? milkType : null,
+              sleepType: selectedImage === 3 ? sleepType : null,
               sleepLocation: selectedImage === 3 ? sleepLocation : null,
+              ...(selectedImage === 4 && temperatureDuration && { temperatureDuration: parseInt(temperatureDuration) }),
               // NE PAS MODIFIER user et createdBy - garder les valeurs originales
               comment: note,
             };
@@ -127,8 +132,10 @@ const UpdateTask = ({ route, navigation }) => {
           task_type: TASK_LABELS[selectedImage] || 'unknown',
           baby_id: babyID,
           ...(selectedImage === 0 && milkType !== null && { milk_type: milkType }),
+          ...((selectedImage === 0 || selectedImage === 2) && label && { label_source: labelSource }),
           ...(selectedImage === 1 && diaperType !== null && { diaper_type: diaperType }),
           ...(selectedImage === 1 && diaperContent !== null && { diaper_content: diaperContent }),
+          ...(selectedImage === 3 && { sleep_type: sleepType }),
           ...(selectedImage === 3 && sleepLocation !== null && { sleep_location: sleepLocation }),
         });
 
@@ -218,37 +225,91 @@ const UpdateTask = ({ route, navigation }) => {
 
   const handleCategorie = (id) => {
       if (id == 0) {
+        const ML_CHIPS = [[60, 80, 90, 100], [110, 120, 150, 180]];
         return (
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            onChangeText={(inputText) => setLabel(inputText)}
-            value={label}
-            returnKeyLabel='Done'
-            returnKeyType='done'
-            onSubmitEditing={Keyboard.dismiss}
-            maxLength={10}
-            placeholder={t('placeholder.millilitres')}
-          placeholderTextColor="#9BA3A4"
-          />
+          <View style={{ alignSelf: 'center', alignItems: 'center', gap: 10 }}>
+            <View style={{ position: 'relative' }}>
+              <TextInput
+                style={[styles.input, { paddingRight: label.length > 0 ? 40 : 12 }]}
+                keyboardType="numeric"
+                onChangeText={(inputText) => { setLabel(inputText); setLabelSource('manual'); }}
+                value={label}
+                returnKeyLabel='Done'
+                returnKeyType='done'
+                onSubmitEditing={Keyboard.dismiss}
+                maxLength={10}
+                placeholder={t('placeholder.millilitres')}
+                placeholderTextColor="#9BA3A4"
+              />
+              {label.length > 0 && (
+                <TouchableOpacity onPress={() => setLabel('')} style={styles.medClearBtn}>
+                  <Text style={styles.medClearText}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            {ML_CHIPS.map((row, i) => (
+              <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
+                {row.map((ml) => {
+                  const isSelected = label === String(ml);
+                  return (
+                    <TouchableOpacity
+                      key={ml}
+                      onPress={() => { const next = isSelected ? '' : String(ml); setLabel(next); setLabelSource(next ? 'chip' : 'manual'); if (!isSelected) Keyboard.dismiss(); }}
+                      style={[styles.chipCard, isSelected && styles.chipCardSelected]}
+                    >
+                      {isSelected && <View style={styles.chipCheck}><Text style={styles.chipCheckText}>✓</Text></View>}
+                      <Text style={[styles.chipLabel, isSelected && styles.chipLabelSelected]}>{ml}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ))}
+          </View>
         );
       } else if (id == 1) {
         return null; // Diaper type selector moved to inline section below
 
       } else if (id == 2) {
+        const MED_CHIPS = [
+          t('medChips.vitaminD'), t('medChips.gaviscon'), t('medChips.doliprane'), t('medChips.inexium'),
+          t('medChips.aspirin'), t('medChips.probiotics'), t('medChips.pediakid'), t('medChips.camilia'),
+        ];
         return (
-          <TextInput
-            style={styles.input}
-            keyboardType='default'
-            onChangeText={(inputText) => setLabel(inputText)}
-            value={label}
-            returnKeyLabel='Done'
-            returnKeyType='done'
-            onSubmitEditing={Keyboard.dismiss}
-            maxLength={20}
-            placeholder={t('placeholder.medicaments')}
-            placeholderTextColor="#9BA3A4"
-          />
+          <View style={{ width: 280, alignSelf: 'center', alignItems: 'center', gap: 10 }}>
+            <View style={{ position: 'relative', width: 280 }}>
+              <TextInput
+                style={[styles.input, { paddingRight: label.length > 0 ? 40 : 12 }]}
+                keyboardType='default'
+                onChangeText={(inputText) => { setLabel(inputText); setLabelSource('manual'); }}
+                value={label}
+                returnKeyLabel='Done'
+                returnKeyType='done'
+                onSubmitEditing={Keyboard.dismiss}
+                maxLength={30}
+                placeholder={t('placeholder.medicaments')}
+                placeholderTextColor="#9BA3A4"
+              />
+              {label.length > 0 && (
+                <TouchableOpacity onPress={() => setLabel('')} style={styles.medClearBtn}>
+                  <Text style={styles.medClearText}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <View style={{ width: 280, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
+              {MED_CHIPS.map((chip) => {
+                const isSelected = label.toLowerCase() === chip.toLowerCase();
+                return (
+                  <TouchableOpacity
+                    key={chip}
+                    onPress={() => { const next = isSelected ? '' : chip; setLabel(next); setLabelSource(next ? 'chip' : 'manual'); if (!isSelected) Keyboard.dismiss(); }}
+                    style={[styles.chipCard, isSelected && styles.chipCardSelected]}
+                  >
+                    <Text style={[styles.chipLabel, isSelected && styles.chipLabelSelected]}>{chip}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
         );
 
       } else if (id == 3) {
@@ -281,18 +342,38 @@ const UpdateTask = ({ route, navigation }) => {
 
       } else if (id == 4) {
         return (
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            onChangeText={(inputText) => setLabel(inputText)}
-            value={label}
-            returnKeyLabel='Done'
-            returnKeyType='done'
-            onSubmitEditing={Keyboard.dismiss}
-            maxLength={10}
-            placeholder={t('placeholder.temperature')}
-            placeholderTextColor="#9BA3A4"
-          />
+          <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+            <View style={{ alignItems: 'center', gap: 4 }}>
+              <Text style={{ fontSize: 22 }}>🌡️</Text>
+              <TextInput
+                style={[styles.input, { width: 120, textAlign: 'center' }]}
+                keyboardType="numeric"
+                onChangeText={(inputText) => setLabel(inputText)}
+                value={label}
+                returnKeyLabel='Done'
+                returnKeyType='done'
+                onSubmitEditing={Keyboard.dismiss}
+                maxLength={5}
+                placeholder={t('placeholder.temperature')}
+                placeholderTextColor="#9BA3A4"
+              />
+            </View>
+            <View style={{ alignItems: 'center', gap: 4 }}>
+              <Text style={{ fontSize: 22 }}>⏱️</Text>
+              <TextInput
+                style={[styles.input, { width: 120, textAlign: 'center' }]}
+                keyboardType="numeric"
+                onChangeText={(inputText) => setTemperatureDuration(inputText)}
+                value={temperatureDuration}
+                returnKeyLabel='Done'
+                returnKeyType='done'
+                onSubmitEditing={Keyboard.dismiss}
+                maxLength={4}
+                placeholder={t('placeholder.temperatureDuration')}
+                placeholderTextColor="#9BA3A4"
+              />
+            </View>
+          </View>
         );
   
       } else if (id == 5) {
@@ -315,8 +396,10 @@ const UpdateTask = ({ route, navigation }) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         <ScrollView
-          contentContainerStyle={{ paddingBottom: 120 }}
+          style={{ flex: 1, width: '100%' }}
+          contentContainerStyle={{ paddingBottom: 180, alignItems: 'center' }}
           showsVerticalScrollIndicator={true}
+          keyboardShouldPersistTaps="handled"
         >
           {/* Image Picker */}
           <View style={styles.imagePicker}>
@@ -329,106 +412,86 @@ const UpdateTask = ({ route, navigation }) => {
 
           {/* Diaper Type (consistency) - Only for diaper (id === 1) */}
           {selectedImage === 1 && (
-            <View style={{ paddingTop: 30 }}>
+            <View style={{ paddingTop: 30, width: 280 }}>
               <Text style={{ color: 'gray', paddingBottom: 12 }}>
                 {t('diapers.type')}
               </Text>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 5 }}>
-                <TouchableOpacity
-                  onPress={() => setDiaperType(diaperType === 0 ? null : 0)}
-                  style={[
-                    styles.milkTypeButton,
-                    diaperType === 0 && styles.milkTypeButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.milkTypeText,
-                    diaperType === 0 && styles.milkTypeTextSelected
-                  ]}>
-                    {t('diapers.dur')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setDiaperType(diaperType === 1 ? null : 1)}
-                  style={[
-                    styles.milkTypeButton,
-                    diaperType === 1 && styles.milkTypeButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.milkTypeText,
-                    diaperType === 1 && styles.milkTypeTextSelected
-                  ]}>
-                    {t('diapers.mou')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setDiaperType(diaperType === 2 ? null : 2)}
-                  style={[
-                    styles.milkTypeButton,
-                    diaperType === 2 && styles.milkTypeButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.milkTypeText,
-                    diaperType === 2 && styles.milkTypeTextSelected
-                  ]}>
-                    {t('diapers.liquide')}
-                  </Text>
-                </TouchableOpacity>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 8 }}>
+                {[
+                  { value: 0, labelKey: 'diapers.dur' },
+                  { value: 1, labelKey: 'diapers.mou' },
+                  { value: 2, labelKey: 'diapers.liquide' },
+                ].map(({ value, labelKey }) => (
+                  <TouchableOpacity
+                    key={value}
+                    onPress={() => setDiaperType(diaperType === value ? null : value)}
+                    style={[styles.chipCard, diaperType === value && styles.chipCardSelected]}
+                  >
+                    <Text style={[styles.chipLabel, diaperType === value && styles.chipLabelSelected]}>
+                      {t(labelKey)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
           )}
 
           {/* Diaper Content - Only for diaper (id === 1) */}
           {selectedImage === 1 && (
-            <View style={{ paddingTop: 30 }}>
+            <View style={{ paddingTop: 30, width: 280 }}>
               <Text style={{ color: 'gray', paddingBottom: 12 }}>
                 {t('diapers.content')}
               </Text>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 5 }}>
-                <TouchableOpacity
-                  onPress={() => setDiaperContent(diaperContent === 0 ? null : 0)}
-                  style={[
-                    styles.milkTypeButton,
-                    diaperContent === 0 && styles.milkTypeButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.milkTypeText,
-                    diaperContent === 0 && styles.milkTypeTextSelected
-                  ]}>
-                    💦 {t('diapers.pee')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setDiaperContent(diaperContent === 1 ? null : 1)}
-                  style={[
-                    styles.milkTypeButton,
-                    diaperContent === 1 && styles.milkTypeButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.milkTypeText,
-                    diaperContent === 1 && styles.milkTypeTextSelected
-                  ]}>
-                    💩 {t('diapers.poop')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setDiaperContent(diaperContent === 2 ? null : 2)}
-                  style={[
-                    styles.milkTypeButton,
-                    diaperContent === 2 && styles.milkTypeButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.milkTypeText,
-                    diaperContent === 2 && styles.milkTypeTextSelected
-                  ]}>
-                    💦💩 {t('diapers.both')}
-                  </Text>
-                </TouchableOpacity>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 8 }}>
+                {[
+                  { value: 0, emoji: '💦', labelKey: 'diapers.pee' },
+                  { value: 1, emoji: '💩', labelKey: 'diapers.poop' },
+                  { value: 2, emoji: '💦💩', labelKey: 'diapers.both' },
+                ].map(({ value, emoji, labelKey }) => (
+                  <TouchableOpacity
+                    key={value}
+                    onPress={() => setDiaperContent(diaperContent === value ? null : value)}
+                    style={[styles.chipCard, diaperContent === value && styles.chipCardSelected]}
+                  >
+                    <Text style={[styles.chipLabel, diaperContent === value && styles.chipLabelSelected]}>
+                      {emoji} {t(labelKey)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Sleep Type - Only for sleep (id === 3) */}
+          {selectedImage === 3 && (
+            <View style={{ paddingTop: 30, width: 280 }}>
+              <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                {t('sleepType.title')}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'center' }}>
+                {[
+                  { value: 'nap',   emoji: '😴', labelKey: 'sleepType.nap'   },
+                  { value: 'night', emoji: '🌙', labelKey: 'sleepType.night' },
+                ].map(({ value, emoji, labelKey }) => {
+                  const isSelected = sleepType === value;
+                  return (
+                    <TouchableOpacity
+                      key={value}
+                      onPress={() => setSleepType(value)}
+                      style={[styles.milkCard, isSelected && styles.milkCardSelected]}
+                    >
+                      {isSelected && (
+                        <View style={styles.milkCheck}>
+                          <Text style={styles.milkCheckText}>✓</Text>
+                        </View>
+                      )}
+                      <Text style={styles.milkEmoji}>{emoji}</Text>
+                      <Text style={[styles.milkLabel, isSelected && styles.milkLabelSelected]}>
+                        {t(labelKey)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
           )}
@@ -439,97 +502,30 @@ const UpdateTask = ({ route, navigation }) => {
               <Text style={{ color: 'gray', paddingBottom: 12 }}>
                 {t('sleepLocation.title')}
               </Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8 }}>
-                <TouchableOpacity
-                  onPress={() => setSleepLocation(sleepLocation === 'bed' ? null : 'bed')}
-                  style={[
-                    styles.sleepLocationButton,
-                    sleepLocation === 'bed' && styles.sleepLocationButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.sleepLocationText,
-                    sleepLocation === 'bed' && styles.sleepLocationTextSelected
-                  ]}>
-                    🛏️ {t('sleepLocation.bed')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setSleepLocation(sleepLocation === 'arms' ? null : 'arms')}
-                  style={[
-                    styles.sleepLocationButton,
-                    sleepLocation === 'arms' && styles.sleepLocationButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.sleepLocationText,
-                    sleepLocation === 'arms' && styles.sleepLocationTextSelected
-                  ]}>
-                    🤲 {t('sleepLocation.arms')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setSleepLocation(sleepLocation === 'breastfeeding' ? null : 'breastfeeding')}
-                  style={[
-                    styles.sleepLocationButton,
-                    sleepLocation === 'breastfeeding' && styles.sleepLocationButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.sleepLocationText,
-                    sleepLocation === 'breastfeeding' && styles.sleepLocationTextSelected
-                  ]}>
-                    🤱 {t('sleepLocation.breastfeeding')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setSleepLocation(sleepLocation === 'bottle' ? null : 'bottle')}
-                  style={[
-                    styles.sleepLocationButton,
-                    sleepLocation === 'bottle' && styles.sleepLocationButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.sleepLocationText,
-                    sleepLocation === 'bottle' && styles.sleepLocationTextSelected
-                  ]}>
-                    🍼 {t('sleepLocation.bottle')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setSleepLocation(sleepLocation === 'bouncer' ? null : 'bouncer')}
-                  style={[
-                    styles.sleepLocationButton,
-                    sleepLocation === 'bouncer' && styles.sleepLocationButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.sleepLocationText,
-                    sleepLocation === 'bouncer' && styles.sleepLocationTextSelected
-                  ]}>
-                    🪑 {t('sleepLocation.bouncer')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setSleepLocation(sleepLocation === 'other' ? null : 'other')}
-                  style={[
-                    styles.sleepLocationButton,
-                    sleepLocation === 'other' && styles.sleepLocationButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.sleepLocationText,
-                    sleepLocation === 'other' && styles.sleepLocationTextSelected
-                  ]}>
-                    💤 {t('sleepLocation.other')}
-                  </Text>
-                </TouchableOpacity>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
+                {[
+                  { value: 'bed',     emoji: '🛏️', labelKey: 'sleepLocation.bed' },
+                  { value: 'arms',    emoji: '🤲', labelKey: 'sleepLocation.arms' },
+                  { value: 'bouncer', emoji: '🪑', labelKey: 'sleepLocation.bouncer' },
+                  { value: 'other',   emoji: '💤', labelKey: 'sleepLocation.other' },
+                ].map(({ value, emoji, labelKey }) => (
+                  <TouchableOpacity
+                    key={value}
+                    onPress={() => setSleepLocation(sleepLocation === value ? null : value)}
+                    style={[styles.locationChip, sleepLocation === value && styles.chipCardSelected]}
+                  >
+                    <Text style={styles.locationChipEmoji}>{emoji}</Text>
+                    <Text style={[styles.chipLabel, sleepLocation === value && styles.chipLabelSelected]}>
+                      {t(labelKey)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
           )}
 
           {/* Time Picker - Unified for all tasks */}
-          <View style={{ paddingTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+          <View style={{ paddingTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', gap: 16 }}>
             <Text style={{ color: 'gray', paddingBottom: 12 }}>{t('task.whenTask')}</Text>
             <TouchableOpacity
               onPress={() => setIsDateTimePickerVisible(true)}
@@ -557,35 +553,30 @@ const UpdateTask = ({ route, navigation }) => {
               <Text style={{ color: 'gray', paddingBottom: 12 }}>
                 {t('milkType.title')}
               </Text>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 5 }}>
-                <TouchableOpacity
-                  onPress={() => setMilkType(milkType === 'artificial' ? null : 'artificial')}
-                  style={[
-                    styles.milkTypeButton,
-                    milkType === 'artificial' && styles.milkTypeButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.milkTypeText,
-                    milkType === 'artificial' && styles.milkTypeTextSelected
-                  ]}>
-                    🥛 {t('milkType.artificial')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setMilkType(milkType === 'maternal' ? null : 'maternal')}
-                  style={[
-                    styles.milkTypeButton,
-                    milkType === 'maternal' && styles.milkTypeButtonSelected
-                  ]}
-                >
-                  <Text style={[
-                    styles.milkTypeText,
-                    milkType === 'maternal' && styles.milkTypeTextSelected
-                  ]}>
-                    🤱 {t('milkType.maternal')}
-                  </Text>
-                </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                {[
+                  { value: 'artificial', emoji: '🥛', labelKey: 'milkType.artificial' },
+                  { value: 'maternal',   emoji: '🤱', labelKey: 'milkType.maternal'   },
+                ].map(({ value, emoji, labelKey }) => {
+                  const isSelected = milkType === value;
+                  return (
+                    <TouchableOpacity
+                      key={value}
+                      onPress={() => setMilkType(value)}
+                      style={[styles.milkCard, isSelected && styles.milkCardSelected]}
+                    >
+                      {isSelected && (
+                        <View style={styles.milkCheck}>
+                          <Text style={styles.milkCheckText}>✓</Text>
+                        </View>
+                      )}
+                      <Text style={styles.milkEmoji}>{emoji}</Text>
+                      <Text style={[styles.milkLabel, isSelected && styles.milkLabelSelected]}>
+                        {t(labelKey)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
           )}
@@ -641,7 +632,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FDF1E7',
-    alignItems: 'center',
     paddingTop: 10,
   },
   imagePicker: {
@@ -704,12 +694,15 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 10,
+    bottom: 0,
     left: 0,
     right: 0,
     alignItems: 'center',
     justifyContent: 'flex-end',
     flexDirection: 'column',
+    backgroundColor: '#FDF1E7',
+    paddingTop: 10,
+    paddingBottom: 10,
   },
   button: {
     backgroundColor: '#C75B4A',
@@ -770,6 +763,115 @@ const styles = StyleSheet.create({
   milkTypeTextSelected: {
     color: '#F6F0EB',
   },
+  medChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#C75B4A',
+    backgroundColor: 'transparent',
+  },
+  medChipSelected: {
+    backgroundColor: '#C75B4A',
+  },
+  medChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#C75B4A',
+  },
+  medChipTextSelected: {
+    color: '#FFF',
+  },
+  medClearBtn: {
+    position: 'absolute',
+    right: 8,
+    top: 11,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#C75B4A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  medClearText: {
+    fontSize: 12,
+    color: '#FFF',
+    fontWeight: '700',
+  },
+  locationChip: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  locationChipEmoji: {
+    fontSize: 20,
+    marginBottom: 4,
+  },
+  chipCard: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  chipCardSelected: { backgroundColor: '#C75B4A' },
+  chipCheck: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: 'rgba(255,255,255,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chipCheckText: { color: '#FFF', fontSize: 8, fontWeight: '700' },
+  chipLabel: { fontSize: 13, fontWeight: '600', color: '#555' },
+  chipLabelSelected: { color: '#FFF' },
+  milkCard: {
+    width: 90,
+    aspectRatio: 1,
+    borderRadius: 14,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  milkCardSelected: { backgroundColor: '#C75B4A' },
+  milkCheck: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(255,255,255,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  milkCheckText: { color: '#FFF', fontSize: 10, fontWeight: '700' },
+  milkEmoji: { fontSize: 26 },
+  milkLabel: { fontSize: 11, fontWeight: '600', color: '#555' },
+  milkLabelSelected: { color: '#FFF' },
   sleepLocationButton: {
     paddingVertical: 8,
     paddingHorizontal: 8,

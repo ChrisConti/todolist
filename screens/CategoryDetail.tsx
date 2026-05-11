@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import SommeilComponent from '../stats/Sommeil';
 import ThermoComponent from '../stats/Thermo';
 import AllaitementComponent from '../stats/Allaitement';
 import { useTranslation } from 'react-i18next';
+import Analytics from '../services/analytics';
 
 const CATEGORY_COLORS: Record<number, string> = {
   0: '#34777B',
@@ -38,6 +39,20 @@ export default function CategoryDetail({ navigation, route }: any) {
   const { user, babyID } = useContext(AuthentificationUserContext) as any;
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const enterTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    Analytics.logScreenView('StatsCategoryDetail');
+    Analytics.logEvent('stats_category_opened', { category_id: categoryId });
+    enterTimeRef.current = Date.now();
+    return () => {
+      Analytics.logEvent('stats_time_spent', {
+        screen: 'CategoryDetail',
+        category_id: categoryId,
+        duration_sec: Math.round((Date.now() - enterTimeRef.current) / 1000),
+      });
+    };
+  }, []);
 
   useEffect(() => {
     if (!user || !babyID) { setLoading(false); return; }

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity,
 } from 'react-native';
@@ -45,8 +45,22 @@ export default function BiberonInsights({ navigation }: any) {
   const [loading, setLoading]     = useState(true);
   const [mainTab, setMainTab]     = useState<MainTab>('detail');
   const [dayTab, setDayTab]       = useState<DayTab>('today');
+  const enterTimeRef = useRef(Date.now());
+  const mainTabEnterTimeRef = useRef(Date.now());
+  const dayTabEnterTimeRef = useRef(Date.now());
 
-  useEffect(() => { Analytics.logScreenView('BiberonInsights'); }, []);
+  useEffect(() => {
+    Analytics.logScreenView('BiberonInsights');
+    enterTimeRef.current = Date.now();
+    mainTabEnterTimeRef.current = Date.now();
+    dayTabEnterTimeRef.current = Date.now();
+    return () => {
+      Analytics.logEvent('stats_time_spent', {
+        screen: 'BiberonInsights',
+        duration_sec: Math.round((Date.now() - enterTimeRef.current) / 1000),
+      });
+    };
+  }, []);
 
   useEffect(() => {
     if (!user || !babyID) { setLoading(false); return; }
@@ -242,7 +256,13 @@ export default function BiberonInsights({ navigation }: any) {
         {MAIN_TABS.map(({ key, label }) => (
           <TouchableOpacity
             key={key}
-            onPress={() => { setMainTab(key); Analytics.logEvent('tab_selected', { screen: 'BiberonInsights', tab: key }); }}
+            onPress={() => {
+              const dur = Math.round((Date.now() - mainTabEnterTimeRef.current) / 1000);
+              Analytics.logEvent('stats_tab_time_spent', { screen: 'BiberonInsights', tab: mainTab, duration_sec: dur });
+              mainTabEnterTimeRef.current = Date.now();
+              setMainTab(key);
+              Analytics.logEvent('tab_selected', { screen: 'BiberonInsights', tab: key });
+            }}
             style={[styles.mainTabBtn, mainTab === key && styles.mainTabBtnActive]}
           >
             <Text style={[styles.mainTabText, mainTab === key && styles.mainTabTextActive]}>
@@ -258,7 +278,13 @@ export default function BiberonInsights({ navigation }: any) {
           {DAY_TABS.map(({ key, label }) => (
             <TouchableOpacity
               key={key}
-              onPress={() => { setDayTab(key); Analytics.logEvent('tab_selected', { screen: 'BiberonInsights', tab: `detail_${key}` }); }}
+              onPress={() => {
+                const dur = Math.round((Date.now() - dayTabEnterTimeRef.current) / 1000);
+                Analytics.logEvent('stats_tab_time_spent', { screen: 'BiberonInsights', tab: `detail_${dayTab}`, duration_sec: dur });
+                dayTabEnterTimeRef.current = Date.now();
+                setDayTab(key);
+                Analytics.logEvent('tab_selected', { screen: 'BiberonInsights', tab: `detail_${key}` });
+              }}
               style={[styles.dayTabBtn, dayTab === key && styles.dayTabBtnActive]}
             >
               <Text style={[styles.dayTabText, dayTab === key && styles.dayTabTextActive]}>

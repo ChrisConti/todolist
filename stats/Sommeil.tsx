@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSommeilStats, useSommeilCountStats } from '../hooks/useTaskStatistics';
@@ -17,6 +17,20 @@ type ViewMode = 'duration' | 'count';
 const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
   const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewMode>('count');
+  const enterTimeRef = useRef(Date.now());
+  const tabEnterTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    Analytics.logScreenView('StatsSommeil');
+    enterTimeRef.current = Date.now();
+    tabEnterTimeRef.current = Date.now();
+    return () => {
+      Analytics.logEvent('stats_time_spent', {
+        screen: 'Sommeil',
+        duration_sec: Math.round((Date.now() - enterTimeRef.current) / 1000),
+      });
+    };
+  }, []);
 
   const durationStats = useSommeilStats(tasks);
   const countStats = useSommeilCountStats(tasks);
@@ -87,7 +101,13 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
         {/* View Mode Selector */}
         <View style={styles.viewModeContainer}>
           <TouchableOpacity
-            onPress={() => { setViewMode('count'); Analytics.logEvent('tab_selected', { screen: 'Sommeil', tab: 'count' }); }}
+            onPress={() => {
+              const dur = Math.round((Date.now() - tabEnterTimeRef.current) / 1000);
+              Analytics.logEvent('stats_tab_time_spent', { screen: 'Sommeil', tab: viewMode, duration_sec: dur });
+              tabEnterTimeRef.current = Date.now();
+              setViewMode('count');
+              Analytics.logEvent('tab_selected', { screen: 'Sommeil', tab: 'count' });
+            }}
             style={[styles.viewModeButton, viewMode === 'count' && styles.viewModeButtonActive]}
           >
             <Text style={[styles.viewModeText, viewMode === 'count' && styles.viewModeTextActive]}>
@@ -95,7 +115,13 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => { setViewMode('duration'); Analytics.logEvent('tab_selected', { screen: 'Sommeil', tab: 'duration' }); }}
+            onPress={() => {
+              const dur = Math.round((Date.now() - tabEnterTimeRef.current) / 1000);
+              Analytics.logEvent('stats_tab_time_spent', { screen: 'Sommeil', tab: viewMode, duration_sec: dur });
+              tabEnterTimeRef.current = Date.now();
+              setViewMode('duration');
+              Analytics.logEvent('tab_selected', { screen: 'Sommeil', tab: 'duration' });
+            }}
             style={[styles.viewModeButton, viewMode === 'duration' && styles.viewModeButtonActive]}
           >
             <Text style={[styles.viewModeText, viewMode === 'duration' && styles.viewModeTextActive]}>

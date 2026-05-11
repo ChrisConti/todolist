@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Clipboard, ToastAndroid, Platform, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Clipboard, ToastAndroid, Platform, Modal, Share } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Copy from './assets/copy.svg';
 import { FontAwesome } from '@expo/vector-icons';
@@ -16,6 +16,7 @@ const ROLE_EMOJIS: Record<string, string> = {
 
 interface BabyFamilyTabProps {
   babyID: string;
+  babyName: string;
   babyDocId: string;
   usersList: Array<{
     userId: string;
@@ -31,6 +32,7 @@ interface BabyFamilyTabProps {
 
 const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
   babyID,
+  babyName,
   babyDocId,
   usersList,
   memberRoles,
@@ -53,6 +55,11 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2000);
     }
+  };
+
+  const shareCode = async () => {
+    await Share.share({ message: babyID });
+    analytics.logEvent('baby_code_shared', { baby_id: babyID, user_id: currentUserId });
   };
 
   const canEditRole = (userId: string) =>
@@ -133,15 +140,18 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
         {/* Partage */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('baby.shareBaby')}</Text>
-          <Text style={styles.shareDescription}>{t('baby.shareMessage')}</Text>
-          <TouchableOpacity style={styles.copyCodeButton} onPress={() => copyToClipboard(babyID)}>
-            <Text style={styles.copyCodeText}>{t('baby.copyCode')}</Text>
-            <Copy height={20} width={20} />
-          </TouchableOpacity>
           <View style={styles.codeContainer}>
             <Text style={styles.codeLabel}>{t('baby.codeLabel')} :</Text>
             <Text style={styles.codeValue}>{babyID}</Text>
           </View>
+          <TouchableOpacity style={styles.copyCodeButton} onPress={shareCode}>
+            <Text style={styles.copyCodeText}>{t('baby.shareCode')}</Text>
+            <FontAwesome name="share-alt" size={18} color="#FFF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.copySecondaryButton} onPress={() => copyToClipboard(babyID)}>
+            <Text style={styles.copySecondaryText}>{t('baby.copyCode')}</Text>
+            <Copy height={16} width={16} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -250,9 +260,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#C75B4A',
     borderRadius: 10,
     paddingVertical: 15,
-    marginBottom: 15,
+    marginTop: 12,
+    marginBottom: 8,
   },
   copyCodeText: { color: '#FFF', fontSize: 16, fontWeight: '600', marginRight: 10 },
+  copySecondaryButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#C75B4A',
+    borderRadius: 10,
+    paddingVertical: 10,
+    marginBottom: 4,
+  },
+  copySecondaryText: { color: '#C75B4A', fontSize: 14, fontWeight: '500', marginRight: 8 },
   codeContainer: {
     backgroundColor: '#FFF',
     padding: 15,

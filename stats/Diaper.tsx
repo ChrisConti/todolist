@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useDiaperStats } from '../hooks/useTaskStatistics';
@@ -18,6 +18,20 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
   const { dailyCountStats, countChartData, dailyStats, dailyContentStats, chartData, contentChartData, lastTask, isLoading, error } = useDiaperStats(tasks, t);
 
   const [selectedTab, setSelectedTab] = useState<'count' | 'type' | 'content'>('count');
+  const enterTimeRef = useRef(Date.now());
+  const tabEnterTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    Analytics.logScreenView('StatsDiaper');
+    enterTimeRef.current = Date.now();
+    tabEnterTimeRef.current = Date.now();
+    return () => {
+      Analytics.logEvent('stats_time_spent', {
+        screen: 'Diaper',
+        duration_sec: Math.round((Date.now() - enterTimeRef.current) / 1000),
+      });
+    };
+  }, []);
 
   const renderCountStats = () => {
     return (
@@ -115,7 +129,13 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'count' && styles.tabButtonActive]}
-          onPress={() => { setSelectedTab('count'); Analytics.logEvent('tab_selected', { screen: 'Diaper', tab: 'count' }); }}
+          onPress={() => {
+            const dur = Math.round((Date.now() - tabEnterTimeRef.current) / 1000);
+            Analytics.logEvent('stats_tab_time_spent', { screen: 'Diaper', tab: selectedTab, duration_sec: dur });
+            tabEnterTimeRef.current = Date.now();
+            setSelectedTab('count');
+            Analytics.logEvent('tab_selected', { screen: 'Diaper', tab: 'count' });
+          }}
         >
           <Text style={[styles.tabText, selectedTab === 'count' && styles.tabTextActive]}>
             {t('diapers.generalCount')}
@@ -123,7 +143,13 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'type' && styles.tabButtonActive]}
-          onPress={() => { setSelectedTab('type'); Analytics.logEvent('tab_selected', { screen: 'Diaper', tab: 'type' }); }}
+          onPress={() => {
+            const dur = Math.round((Date.now() - tabEnterTimeRef.current) / 1000);
+            Analytics.logEvent('stats_tab_time_spent', { screen: 'Diaper', tab: selectedTab, duration_sec: dur });
+            tabEnterTimeRef.current = Date.now();
+            setSelectedTab('type');
+            Analytics.logEvent('tab_selected', { screen: 'Diaper', tab: 'type' });
+          }}
         >
           <Text style={[styles.tabText, selectedTab === 'type' && styles.tabTextActive]}>
             {t('diapers.typeStats')}
@@ -131,7 +157,13 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'content' && styles.tabButtonActive]}
-          onPress={() => { setSelectedTab('content'); Analytics.logEvent('tab_selected', { screen: 'Diaper', tab: 'content' }); }}
+          onPress={() => {
+            const dur = Math.round((Date.now() - tabEnterTimeRef.current) / 1000);
+            Analytics.logEvent('stats_tab_time_spent', { screen: 'Diaper', tab: selectedTab, duration_sec: dur });
+            tabEnterTimeRef.current = Date.now();
+            setSelectedTab('content');
+            Analytics.logEvent('tab_selected', { screen: 'Diaper', tab: 'content' });
+          }}
         >
           <Text style={[styles.tabText, selectedTab === 'content' && styles.tabTextActive]}>
             {t('diapers.contentStats')}

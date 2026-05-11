@@ -8,6 +8,7 @@ import { signOut } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
 import analytics from './services/analytics';
 import { useReviewPrompt } from './Context/ReviewPromptContext';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const Settings = ({ navigation }) => {
   const { user, setUser, babyID, setBabyID, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
@@ -165,7 +166,20 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
+    gap: 12,
   },
+  premiumBanner: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: '#C75B4A', borderRadius: 14, padding: 16, marginBottom: 4,
+  },
+  premiumBannerLeft: { flex: 1 },
+  premiumBannerTitle: { fontSize: 15, fontWeight: '800', color: '#FFF', marginBottom: 2 },
+  premiumBannerSub: { fontSize: 12, color: 'rgba(255,255,255,0.8)' },
+  premiumActiveBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: '#FFF3CD', borderRadius: 14, padding: 14, marginBottom: 4,
+  },
+  premiumActiveText: { fontSize: 14, fontWeight: '700', color: '#C75B4A' },
 });
 
 

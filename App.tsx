@@ -29,6 +29,8 @@ import PasswordForgotten from './PasswordForgotten';
 import JoinBaby from './JoinBaby';
 import AuthentificationUserProvider, { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { ReviewPromptProvider } from './Context/ReviewPromptContext';
+import { PremiumProvider } from './Context/PremiumContext';
+import PaywallScreen from './screens/PaywallScreen';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db, userRef } from './config';
 import { query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
@@ -393,9 +395,9 @@ function MainStack() {
           headerBackTitle: ''
         }}
       />
-      <Stack.Screen 
-        name="BabyState" 
-        component={BabyState} 
+      <Stack.Screen
+        name="BabyState"
+        component={BabyState}
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
           headerTintColor: '#fff',
@@ -524,8 +526,8 @@ function MainStack() {
           headerBackTitle: ''
         }}
       />
-      <Stack.Screen 
-        name="TermsOfUse" 
+      <Stack.Screen
+        name="TermsOfUse"
         component={TermsOfUse}
         options={{
           headerStyle: { backgroundColor: '#C75B4A' },
@@ -535,6 +537,11 @@ function MainStack() {
           headerBackTitle: ''
         }}
       />
+      <Stack.Screen
+        name="Paywall"
+        component={PaywallScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
     </Stack.Navigator>
   );
 }
@@ -543,9 +550,11 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthentificationUserProvider>
-        <ReviewPromptProvider>
-          <RootNavigator />
-        </ReviewPromptProvider>
+        <PremiumProvider>
+          <ReviewPromptProvider>
+            <RootNavigator />
+          </ReviewPromptProvider>
+        </PremiumProvider>
       </AuthentificationUserProvider>
     </ErrorBoundary>
   );

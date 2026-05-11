@@ -45,6 +45,7 @@
       "sleepHours": "hour",
       "sleepMinutes": "min",
       "temperature": "Temperature",
+      "temperatureDuration": "Duration (s)",
       "sleepHoursMax": "Max 24h",
       "sleepMinutesMax": "Max 180 min",
       "weight": "Weight (kg/lb)",
@@ -55,13 +56,28 @@
       "artificial": "Formula",
       "maternal": "Breast milk"
     },
+    "sleepType": {
+      "title": "Sleep type",
+      "nap": "Nap",
+      "night": "Night"
+    },
+    "medChips": {
+      "vitaminD": "Vitamin D",
+      "gaviscon": "Gaviscon",
+      "doliprane": "Paracetamol",
+      "inexium": "Nexium",
+      "aspirin": "Aspirin",
+      "probiotics": "Probiotics",
+      "pediakid": "Pediakid",
+      "camilia": "Camilia"
+    },
     "sleepLocation": {
       "title": "Sleep location",
-      "bed": "In bed",
-      "arms": "In arms",
+      "bed": "Bed",
+      "arms": "Arms",
       "breastfeeding": "While breastfeeding",
       "bottle": "While bottle feeding",
-      "bouncer": "In bouncer",
+      "bouncer": "Bouncer",
       "other": "Other"
     },
     "breastfeeding": {
@@ -250,8 +266,10 @@
       "familyMembers": "Family Members",
       "shareBaby": "Share Baby",
       "copyCode": "Copy code",
+      "shareCode": "Share code",
       "manageFamily": "Manage Family",
       "shareMessage": "Here is a code to share with your friends to join your baby.",
+      "shareInvite": "👶 Join me on TribuBaby! 🎉\nEnter this code in the app to follow {{name}}:\n\n{{code}}",
       "leaveBaby": "Leave Baby",
       "days": "days",
       "weeks": "weeks",
@@ -757,6 +775,7 @@
       "sleepHours": "heure",
       "sleepMinutes": "min",
       "temperature": "Température",
+      "temperatureDuration": "Durée (s)",
       "sleepHoursMax": "Max 24h",
       "sleepMinutesMax": "Max 180 min",
       "weight": "Poids (kg)",
@@ -767,13 +786,28 @@
       "artificial": "Artificiel",
       "maternal": "Maternel"
     },
+    "sleepType": {
+      "title": "Type de sommeil",
+      "nap": "Sieste",
+      "night": "Nuit"
+    },
+    "medChips": {
+      "vitaminD": "Vitamine D",
+      "gaviscon": "Gaviscon",
+      "doliprane": "Doliprane",
+      "inexium": "Inexium",
+      "aspirin": "Aspirine",
+      "probiotics": "Probiotiques",
+      "pediakid": "Pediakid",
+      "camilia": "Camilia"
+    },
     "sleepLocation": {
       "title": "Lieu de sommeil",
-      "bed": "Dans son lit",
-      "arms": "Dans les bras",
+      "bed": "Lit",
+      "arms": "Bras",
       "breastfeeding": "Pendant l'allaitement",
       "bottle": "Au biberon",
-      "bouncer": "Sur un transat",
+      "bouncer": "Transat",
       "other": "Autre"
     },
     "breastfeeding": {
@@ -962,8 +996,10 @@
       "familyMembers": "Membres de la famille",
       "shareBaby": "Partager le bébé",
       "copyCode": "Copier le code",
+      "shareCode": "Partager le code",
       "manageFamily": "Gérer la famille",
       "shareMessage": "Voici un code à communiquer à vos amis, pour rejoindre votre bébé.",
+      "shareInvite": "👶 Rejoins-moi sur TribuBaby ! 🎉\nEntre ce code dans l'app pour suivre {{name}} :\n\n{{code}}",
       "leaveBaby": "Quitter le bébé",
       "days": "jours",
       "weeks": "semaines",
@@ -1455,6 +1491,7 @@
       "sleepHours": "hora",
       "sleepMinutes": "min",
       "temperature": "Temperatura",
+      "temperatureDuration": "Duración (s)",
       "sleepHoursMax": "Máx 24h",
       "sleepMinutesMax": "Máx 180 min",
       "weight": "Peso (kg)",
@@ -1465,13 +1502,28 @@
       "artificial": "Artificial",
       "maternal": "Materna"
     },
+    "sleepType": {
+      "title": "Tipo de sueño",
+      "nap": "Siesta",
+      "night": "Noche"
+    },
+    "medChips": {
+      "vitaminD": "Vitamina D",
+      "gaviscon": "Gaviscon",
+      "doliprane": "Paracetamol",
+      "inexium": "Nexium",
+      "aspirin": "Aspirina",
+      "probiotics": "Probióticos",
+      "pediakid": "Pediakid",
+      "camilia": "Camilia"
+    },
     "sleepLocation": {
       "title": "Lugar de sueño",
-      "bed": "En su cama",
-      "arms": "En brazos",
+      "bed": "Cama",
+      "arms": "Brazos",
       "breastfeeding": "Durante la lactancia",
       "bottle": "Con biberón",
-      "bouncer": "En hamaca",
+      "bouncer": "Hamaca",
       "other": "Otro"
     },
     "breastfeeding": {
@@ -1648,8 +1700,10 @@
       "familyMembers": "Miembros de la familia",
       "shareBaby": "Compartir bebé",
       "copyCode": "Copiar código",
+      "shareCode": "Compartir código",
       "manageFamily": "Gestionar familia",
       "shareMessage": "Aquí hay un código para compartir con tus amigos para unirse a tu bebé.",
+      "shareInvite": "👶 ¡Únete a mí en TribuBaby! 🎉\nIntroduce este código en la app para seguir a {{name}}:\n\n{{code}}",
       "leaveBaby": "Dejar bebé",
       "days": "días",
       "weeks": "semanas",

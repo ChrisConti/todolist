@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAllaitementStats, useAllaitementCountStats } from '../hooks/useTaskStatistics';
@@ -13,6 +13,21 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
   const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewMode>('count');
   const [selectedItem, setSelectedItem] = useState(0);
+
+  const enterTimeRef = useRef(Date.now());
+  const tabEnterTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    Analytics.logScreenView('StatsAllaitement');
+    enterTimeRef.current = Date.now();
+    tabEnterTimeRef.current = Date.now();
+    return () => {
+      Analytics.logEvent('stats_time_spent', {
+        screen: 'Allaitement',
+        duration_sec: Math.round((Date.now() - enterTimeRef.current) / 1000),
+      });
+    };
+  }, []);
 
   const durationStats = useAllaitementStats(tasks);
   const countStats = useAllaitementCountStats(tasks);
@@ -113,7 +128,13 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
         {/* View Mode Selector */}
         <View style={styles.viewModeContainer}>
           <TouchableOpacity
-            onPress={() => { setViewMode('count'); Analytics.logEvent('tab_selected', { screen: 'Allaitement', tab: 'count' }); }}
+            onPress={() => {
+              const dur = Math.round((Date.now() - tabEnterTimeRef.current) / 1000);
+              Analytics.logEvent('stats_tab_time_spent', { screen: 'Allaitement', tab: viewMode, duration_sec: dur });
+              tabEnterTimeRef.current = Date.now();
+              setViewMode('count');
+              Analytics.logEvent('tab_selected', { screen: 'Allaitement', tab: 'count' });
+            }}
             style={[styles.viewModeButton, viewMode === 'count' && styles.viewModeButtonActive]}
           >
             <Text style={[styles.viewModeText, viewMode === 'count' && styles.viewModeTextActive]}>
@@ -121,7 +142,13 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => { setViewMode('duration'); Analytics.logEvent('tab_selected', { screen: 'Allaitement', tab: 'duration' }); }}
+            onPress={() => {
+              const dur = Math.round((Date.now() - tabEnterTimeRef.current) / 1000);
+              Analytics.logEvent('stats_tab_time_spent', { screen: 'Allaitement', tab: viewMode, duration_sec: dur });
+              tabEnterTimeRef.current = Date.now();
+              setViewMode('duration');
+              Analytics.logEvent('tab_selected', { screen: 'Allaitement', tab: 'duration' });
+            }}
             style={[styles.viewModeButton, viewMode === 'duration' && styles.viewModeButtonActive]}
           >
             <Text style={[styles.viewModeText, viewMode === 'duration' && styles.viewModeTextActive]}>

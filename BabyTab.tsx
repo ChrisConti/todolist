@@ -35,11 +35,10 @@ const BabyTab = ({ navigation }) => {
   );
 
   const loadBabyAndUsers = async () => {
-    setLoading(true); // toujours afficher le spinner pendant le chargement
+    setLoading(true);
 
     const queryResult = query(babiesRef, where('id', '==', babyID));
     try {
-      // Force fetch from server (no cache)
       const querySnapshot = await getDocsFromServer(queryResult);
 
       if (!querySnapshot.empty) {
@@ -47,7 +46,6 @@ const BabyTab = ({ navigation }) => {
         setBabyData(data);
         setBabyDocId(querySnapshot.docs[0].id);
 
-        // Load users — query each member individually to avoid 'in' edge cases
         if (data.user && data.user.length > 0) {
           const memberUids: string[] = data.user;
           const results: any[] = [];
@@ -60,7 +58,6 @@ const BabyTab = ({ navigation }) => {
                 if (!snap.empty) {
                   results.push(snap.docs[0].data());
                 } else if (uid === user.uid) {
-                  // Current user has no Users doc — build from auth object
                   results.push({
                     userId: user.uid,
                     username: user.displayName || user.email?.split('@')[0] || user.email || '',
@@ -79,7 +76,6 @@ const BabyTab = ({ navigation }) => {
             })
           );
 
-          // Preserve original order (same as memberUids)
           const ordered = memberUids
             .map((uid) => results.find((r) => r.userId === uid))
             .filter(Boolean);
@@ -101,7 +97,7 @@ const BabyTab = ({ navigation }) => {
       console.error('Cannot remove user: user not authenticated');
       return;
     }
-    
+
     try {
       const queryResult = query(babiesRef, where('user', 'array-contains', user.uid));
       const querySnapshot = await getDocsFromServer(queryResult);
@@ -127,10 +123,9 @@ const BabyTab = ({ navigation }) => {
           timestamp: Date.now()
         });
       } catch {
-        // Non-critical — don't block leave if analytics throws
+        // Non-critical
       }
-      
-      // Clean activity review prompt counters for this user
+
       try {
         const hasReviewed = await AsyncStorage.getItem(`has_reviewed_app_${user.uid}`);
         await AsyncStorage.removeItem(`task_created_count_${user.uid}`);
@@ -155,12 +150,10 @@ const BabyTab = ({ navigation }) => {
           text: t('settings.confirm'),
           onPress: async () => {
             try {
-              // Delete photo from storage if exists
               if (babyData.photo) {
                 try {
                   const storageRef = ref(storage, `babies/${babyID}/profile.jpg`);
                   await deleteObject(storageRef);
-                  console.log('Baby photo deleted from storage');
                 } catch (deleteError) {
                   console.log('Error deleting baby photo:', deleteError);
                 }
@@ -179,7 +172,6 @@ const BabyTab = ({ navigation }) => {
     navigation.navigate('EditBaby', { babyData });
   };
 
-  // Spinner : premier chargement uniquement (pas de données en cache)
   if (loading && !babyData) {
     return (
       <View style={styles.loadingContainer}>
@@ -188,20 +180,19 @@ const BabyTab = ({ navigation }) => {
     );
   }
 
-  // Pas de bébé → proposer créer / rejoindre
   if (!babyID) {
     return (
       <View style={styles.container}>
         <View style={[styles.header, { paddingTop: insets.top }]}>
           <Text style={styles.headerTitle}>{t('baby.title') || 'Mon Bébé'}</Text>
         </View>
-        
+
         <ScrollView contentContainerStyle={styles.emptyStateContainer}>
           <View style={styles.emptyState}>
             <Stork height={180} width={180} />
             <View style={{ height: 30 }} />
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.primaryButton}
               onPress={() => {
                 const parentNav = navigation.getParent();
@@ -213,7 +204,7 @@ const BabyTab = ({ navigation }) => {
               <Text style={styles.primaryButtonText}>{t('title.addBaby')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.secondaryButton}
               onPress={() => {
                 const parentNav = navigation.getParent();
@@ -230,7 +221,6 @@ const BabyTab = ({ navigation }) => {
     );
   }
 
-  // babyID setté mais données pas encore disponibles (query vide ou erreur Firestore)
   if (!babyData) {
     return (
       <View style={styles.loadingContainer}>
@@ -239,13 +229,12 @@ const BabyTab = ({ navigation }) => {
     );
   }
 
-  // Baby exists - show profile with tabs
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <Text style={styles.headerTitle}>{babyData.name || t('baby.title')}</Text>
       </View>
-      
+
       {/* Tabs Navigation */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
@@ -272,6 +261,7 @@ const BabyTab = ({ navigation }) => {
       ) : (
         <BabyFamilyTab
           babyID={babyID}
+          babyName={babyData.name || ''}
           babyDocId={babyDocId}
           usersList={userListDisplay}
           memberRoles={babyData.memberRoles || {}}

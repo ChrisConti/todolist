@@ -191,6 +191,7 @@ const BabyState = ({ navigation }) => {
       ) : (
         <BabyFamilyTab
           babyID={babyID}
+          babyName={babyData.name || ''}
           babyDocId={babyDocId}
           usersList={userListDisplay}
           memberRoles={babyData.memberRoles || {}}

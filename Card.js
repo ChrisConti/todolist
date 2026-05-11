@@ -42,7 +42,14 @@ const Card = ({ task, navigation, editable }) => {
       if (!isNaN(totalMins) && totalMins >= 60) return null;
       return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>{t('min')}</Text>;
     }
-    if (id == 4) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>{t('celsius')}</Text>;
+    if (id == 4) {
+      const hasTemp = task.label && task.label !== '0';
+      const hasDuration = task.temperatureDuration;
+      if (hasTemp && hasDuration) return null;
+      if (hasTemp) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>°</Text>;
+      if (hasDuration) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>s</Text>;
+      return null;
+    }
   };
 
   const handleImageType = () => {
@@ -145,6 +152,14 @@ const Card = ({ task, navigation, editable }) => {
         const mins = totalMins % 60;
         return <Text>{`${hours}h${mins.toString().padStart(2, '0')}`}</Text>;
       }
+    }
+    if (task.id == 4) {
+      const hasTemp = task.label && task.label !== '0';
+      const hasDuration = task.temperatureDuration;
+      if (hasTemp && hasDuration) return <Text>{task.label}° · {task.temperatureDuration}s</Text>;
+      if (hasTemp) return <Text>{task.label}</Text>;
+      if (hasDuration) return <Text>{task.temperatureDuration}</Text>;
+      return <Text>-</Text>;
     }
     return <Text>{task.label}</Text>;
   };

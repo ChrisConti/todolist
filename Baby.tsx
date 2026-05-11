@@ -78,7 +78,8 @@ const Baby = ({ navigation }) => {
     setError('');
 
     try {
-      const uniqueId = uuid.v4() as string;
+      const CHARS = 'BCDFGHJKMNPQRSTVWXYZ23456789';
+      const uniqueId = Array.from({ length: 6 }, () => CHARS[Math.floor(Math.random() * CHARS.length)]).join('');
       await addDoc(collection(db, COLLECTIONS.BABY), {
         id: uniqueId,
         type: types[selectedType].type,
