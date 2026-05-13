@@ -118,13 +118,17 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
     analytics.logEvent('review_sentiment_yes');
 
     try {
-      const available = await StoreReview.isAvailableAsync();
-      if (available) {
+      if (Platform.OS === 'ios') {
         await StoreReview.requestReview();
       } else {
-        // Fallback : ouvrir le store directement
-        const url = Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL;
-        await Linking.openURL(url);
+        const available = await StoreReview.isAvailableAsync();
+        if (available) {
+          await StoreReview.requestReview();
+        } else {
+          const marketUrl = `market://details?id=com.tribubaby.tribubaby`;
+          const canOpenMarket = await Linking.canOpenURL(marketUrl);
+          await Linking.openURL(canOpenMarket ? marketUrl : PLAY_STORE_URL);
+        }
       }
     } catch (error) {
       log.error('Failed to request store review', 'ReviewPromptContext', error);
