@@ -752,3 +752,99 @@ export const useAllaitementCountStats = (tasks: Task[]) => {
     };
   }, [tasksSignature, tasks]);
 };
+
+// ─── Sleep Advanced Stats ────────────────────────────────────────────────────
+
+export type SleepPeriod = 7 | 30 | 60 | 90;
+
+export interface SleepGroupData {
+  label: string;
+  nightMinutes: number;
+  napMinutes: number;
+}
+
+export interface SleepAdvancedResult {
+  groups: SleepGroupData[];
+  avgNightPerDay: number;
+  avgNapPerDay: number;
+  avgTotalPerDay: number;
+  todayNight: number;
+  todayNap: number;
+  yesterdayNight: number;
+  yesterdayNap: number;
+  hasData: boolean;
+  daysWithData: number;
+}
+
+const PERIOD_CONFIG: Record<number, { count: number; daysEach: number }> = {
+  7:  { count: 7, daysEach: 1  },
+  30: { count: 5, daysEach: 6  },
+  60: { count: 8, daysEach: 8  },
+  90: { count: 6, daysEach: 15 },
+};
+
+export const useSommeilAdvancedStats = (tasks: Task[], period: SleepPeriod): SleepAdvancedResult => {
+  const tasksSignature = useMemo(() => createTasksSignature(tasks), [tasks]);
+
+  return useMemo(() => {
+    const empty: SleepAdvancedResult = {
+      groups: [], avgNightPerDay: 0, avgNapPerDay: 0, avgTotalPerDay: 0,
+      todayNight: 0, todayNap: 0, yesterdayNight: 0, yesterdayNap: 0,
+      hasData: false, daysWithData: 0,
+    };
+    if (!tasks || tasks.length === 0) return empty;
+
+    const { count, daysEach } = PERIOD_CONFIG[period];
+
+    // Groups ordered oldest → newest (index 0 = oldest, index count-1 = today)
+    const groups: SleepGroupData[] = Array.from({ length: count }, (_, i) => {
+      const daysAgoForGroupEnd = (count - 1 - i) * daysEach;
+      let label: string;
+      if (period === 7) {
+        label = moment().subtract(daysAgoForGroupEnd, 'days').format('dd').charAt(0).toUpperCase();
+      } else {
+        label = moment().subtract(daysAgoForGroupEnd + daysEach - 1, 'days').format('D/M');
+      }
+      return { label, nightMinutes: 0, napMinutes: 0 };
+    });
+
+    let totalNight = 0;
+    let totalNap = 0;
+    let todayNight = 0, todayNap = 0, yesterdayNight = 0, yesterdayNap = 0;
+    const daysSet = new Set<string>();
+
+    tasks.forEach(task => {
+      const duration = parseInt(task.label, 10);
+      if (isNaN(duration) || duration <= 0) return;
+
+      const startMoment = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
+      const daysAgo = moment().diff(startMoment, 'days');
+      if (daysAgo >= period) return;
+
+      const isNight = (task.sleepType ?? 'nap') === 'night';
+      const groupIdx = count - 1 - Math.floor(daysAgo / daysEach);
+
+      if (groupIdx >= 0 && groupIdx < count) {
+        if (isNight) groups[groupIdx].nightMinutes += duration;
+        else groups[groupIdx].napMinutes += duration;
+      }
+
+      if (isNight) totalNight += duration; else totalNap += duration;
+      daysSet.add(startMoment.format('YYYY-MM-DD'));
+
+      if (isToday(task.date))     { if (isNight) todayNight += duration;     else todayNap += duration;     }
+      if (isYesterday(task.date)) { if (isNight) yesterdayNight += duration; else yesterdayNap += duration; }
+    });
+
+    const d = Math.max(daysSet.size, 1);
+    return {
+      groups,
+      avgNightPerDay: Math.round(totalNight / d),
+      avgNapPerDay:   Math.round(totalNap   / d),
+      avgTotalPerDay: Math.round((totalNight + totalNap) / d),
+      todayNight, todayNap, yesterdayNight, yesterdayNap,
+      hasData: daysSet.size > 0,
+      daysWithData: daysSet.size,
+    };
+  }, [tasksSignature, tasks, period]);
+};

@@ -4,18 +4,23 @@ import { useTranslation } from 'react-i18next';
 import { useSommeilStats, useSommeilCountStats } from '../hooks/useTaskStatistics';
 import { Task } from '../types/stats';
 import StatsContainer from '../components/stats/StatsContainer';
+import SleepAdvancedTab from '../components/stats/SleepAdvancedTab';
 import { STATS_CONFIG } from '../constants/statsConfig';
 import Analytics from '../services/analytics';
 
 interface SommeilProps {
   navigation: any;
   tasks: Task[];
+  babyName?: string;
+  babyBirthDate?: string;
+  userId?: string;
 }
 
 type ViewMode = 'duration' | 'count';
 
-const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
+const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks, babyName, babyBirthDate, userId }) => {
   const { t } = useTranslation();
+  const [mainTab, setMainTab] = useState<'global' | 'advanced'>('global');
   const [viewMode, setViewMode] = useState<ViewMode>('count');
   const enterTimeRef = useRef(Date.now());
   const tabEnterTimeRef = useRef(Date.now());
@@ -88,6 +93,35 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
   };
 
   return (
+    <View style={{ flex: 1 }}>
+      {/* Main tab selector */}
+      <View style={styles.mainTabRow}>
+        <TouchableOpacity
+          style={[styles.mainTabBtn, mainTab === 'global' && styles.mainTabBtnActive]}
+          onPress={() => setMainTab('global')}
+        >
+          <Text style={[styles.mainTabTxt, mainTab === 'global' && styles.mainTabTxtActive]}>
+            {t('sleepAdvanced.tabGlobal')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.mainTabBtn, mainTab === 'advanced' && styles.mainTabBtnActive]}
+          onPress={() => setMainTab('advanced')}
+        >
+          <Text style={[styles.mainTabTxt, mainTab === 'advanced' && styles.mainTabTxtActive]}>
+            {t('sleepAdvanced.tabAdvanced')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {mainTab === 'advanced' ? (
+        <SleepAdvancedTab
+          tasks={tasks}
+          babyName={babyName}
+          babyBirthDate={babyBirthDate}
+          userId={userId}
+        />
+      ) : (
     <StatsContainer
       loading={isLoading}
       error={error}
@@ -151,10 +185,17 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks }) => {
         {renderChart()}
       </View>
     </StatsContainer>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  mainTabRow:       { flexDirection: 'row', backgroundColor: '#FFF', borderRadius: 10, padding: 3, margin: 12, marginBottom: 0, gap: 3 },
+  mainTabBtn:       { flex: 1, paddingVertical: 9, borderRadius: 7, alignItems: 'center' },
+  mainTabBtnActive: { backgroundColor: '#4F469F' },
+  mainTabTxt:       { fontSize: 14, fontWeight: '600', color: '#7A8889' },
+  mainTabTxtActive: { color: '#FFF' },
   section: {
     marginBottom: STATS_CONFIG.SPACING.LARGE,
   },

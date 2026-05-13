@@ -39,6 +39,8 @@ export default function CategoryDetail({ navigation, route }: any) {
   const { user, babyID } = useContext(AuthentificationUserContext) as any;
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [babyName, setBabyName] = useState<string | undefined>();
+  const [babyBirthDate, setBabyBirthDate] = useState<string | undefined>();
   const enterTimeRef = useRef(Date.now());
 
   useEffect(() => {
@@ -63,12 +65,14 @@ export default function CategoryDetail({ navigation, route }: any) {
       if (!snap.empty) {
         const babyData = snap.docs[0]?.data();
         if (babyData) {
-          const sevenDaysAgo = new Date();
-          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+          const ninetyDaysAgo = new Date();
+          ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
           const filtered = (babyData.tasks || []).filter((t: any) =>
-            t.id === categoryId && new Date(t.date) >= sevenDaysAgo
+            t.id === categoryId && new Date(t.date) >= ninetyDaysAgo
           );
           setTasks(filtered);
+          setBabyName(babyData.name ?? undefined);
+          setBabyBirthDate(babyData.birthDate ?? undefined);
         }
       }
       setLoading(false);
@@ -82,7 +86,7 @@ export default function CategoryDetail({ navigation, route }: any) {
     switch (categoryId) {
       case 0: navigation.replace('BiberonInsights'); return null;
       case 1: return <DiaperComponent tasks={tasks} navigation={navigation} />;
-      case 3: return <SommeilComponent tasks={tasks} navigation={navigation} />;
+      case 3: return <SommeilComponent tasks={tasks} navigation={navigation} babyName={babyName} babyBirthDate={babyBirthDate} userId={user?.uid} />;
       case 4: return <ThermoComponent tasks={tasks} navigation={navigation} />;
       case 5: return <AllaitementComponent tasks={tasks} navigation={navigation} />;
       default: return null;
