@@ -97,12 +97,6 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const updateBabyTasks = async () => {
     if (loading) return; // Prévenir double-soumission
 
-    // Temperature requires a value
-    if (selectedImage === 4 && !label.trim()) {
-      Alert.alert(t('error.title'), t('error.temperatureRequired') || 'Please enter a temperature value.');
-      return;
-    }
-
     // Sleep: block save if values exceed limits
     if (selectedImage === 3) {
       if (sleepHours && parseInt(sleepHours) > 24) {

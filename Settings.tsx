@@ -12,7 +12,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const Settings = ({ navigation }) => {
   const { user, setUser, babyID, setBabyID, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
-  const { showReviewModalManually, hasReviewed } = useReviewPrompt();
+  const { showReviewModalManually } = useReviewPrompt();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
 
@@ -97,18 +97,16 @@ const Settings = ({ navigation }) => {
             <Text style={styles.titleParameter}>{t('settings.about')}</Text>
           </View>
           <View>
-            {!hasReviewed && (
-              <TouchableOpacity onPress={showReviewModalManually}>
-                <ItemParameter
-                  title={t('settings.rateApp')}
-                  icon="star"
-                  iconFamily="MaterialCommunityIcons"
-                  backgroundColor="#C75B4A"
-                  iconColor="#FFD700"
-                  textColor="white"
-                />
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'rate_app' }); showReviewModalManually(); }}>
+              <ItemParameter
+                title={t('settings.rateApp')}
+                icon="star"
+                iconFamily="MaterialCommunityIcons"
+                backgroundColor="#C75B4A"
+                iconColor="#FFD700"
+                textColor="white"
+              />
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'feedback' }); handleFeedback(); }}>
               <ItemParameter
                 title={t('settings.feedback')}

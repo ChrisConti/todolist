@@ -624,7 +624,10 @@
       "message": "Your feedback helps us improve and helps other parents discover Tribubaby!",
       "commentCTA": "💬 Share your experience with a comment to help other families",
       "later": "Later",
-      "writeReview": "Write a Review"
+      "writeReview": "Write a Review",
+      "sentimentQuestion": "Do you like Tribu Baby? 🍼",
+      "yes": "Yes, I love it! ❤️",
+      "no": "Not really"
     },
     "rythme": {
       "title": "⏱ Rhythm Analysis",
@@ -1340,7 +1343,10 @@
       "message": "Ton avis nous aide à améliorer l'app et aide d'autres parents à découvrir notre travail.",
       "commentCTA": "💬 Partage ton expérience avec un commentaire - c'est ce qui aide le plus les futurs utilisateurs !",
       "later": "Plus tard",
-      "writeReview": "Écrire un Avis"
+      "writeReview": "Écrire un Avis",
+      "sentimentQuestion": "Tu aimes Tribu Baby ? 🍼",
+      "yes": "Oui, j'adore ! ❤️",
+      "no": "Pas vraiment"
     },
     "rythme": {
       "title": "⏱ Analyse du Rythme",
@@ -2041,7 +2047,10 @@
       "message": "Tus comentarios nos ayudan a mejorar la app y ayudan a otros padres a descubrir nuestro trabajo.",
       "commentCTA": "💬 Comparte tu experiencia con un comentario - ¡es lo que más ayuda a futuros usuarios!",
       "later": "Más tarde",
-      "writeReview": "Escribir una Reseña"
+      "writeReview": "Escribir una Reseña",
+      "sentimentQuestion": "¿Te gusta Tribu Baby? 🍼",
+      "yes": "¡Sí, me encanta! ❤️",
+      "no": "No mucho"
     },
     "rythme": {
       "title": "⏱ Análisis del Ritmo",
