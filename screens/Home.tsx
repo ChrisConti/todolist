@@ -200,7 +200,7 @@ const BabyList = ({ navigation }) => {
         <EmptyState
           icon={<SleepingBaby height={150} width={150} />}
           actions={[
-            { label: t('task.addTask'), onPress: () => navigation.navigate('CreateTask', { babyID }) },
+            { label: t('task.addTask'), onPress: () => navigation.navigate('CreateTask', { babyID, initialCategory: selectedFilter }) },
           ]}
         />
       ) : filteredTasks.length === 0 ? (
@@ -222,7 +222,7 @@ const BabyList = ({ navigation }) => {
 
       {babyExist && (
         <View style={styles.footer}>
-          <TouchableOpacity onPress={() => navigation.navigate('CreateTask', { babyID })} style={styles.floatingButton}>
+          <TouchableOpacity onPress={() => navigation.navigate('CreateTask', { babyID, initialCategory: selectedFilter })} style={styles.floatingButton}>
             <Text style={styles.floatingButtonText}>+</Text>
           </TouchableOpacity>
         </View>

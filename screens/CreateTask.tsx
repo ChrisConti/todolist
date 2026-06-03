@@ -43,7 +43,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   
   const { user, setUser, babyID, setBabyID, userInfo } = useContext(AuthentificationUserContext);
   const [babySelected, setBabySelected] = useState(babyID);
-  const [selectedImage, setSelectedImage] = useState(task ? task.id : 0);
+  const [selectedImage, setSelectedImage] = useState(route.params?.initialCategory ?? (task ? task.id : 0));
   const categoryEnterTimeRef = useRef<number>(Date.now());
   const [time, setTime] = useState(moment().format('YYYY-MM-DD HH:mm:ss'));
   const [label, setLabel] = useState('');
@@ -62,6 +62,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const [labelSource, setLabelSource] = useState<'chip' | 'manual'>('manual');
   const [loading, setLoading] = useState(false);
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
+  const [isDateManuallySet, setIsDateManuallySet] = useState(false);
 
 
   // date picker
@@ -132,11 +133,18 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
       const document = querySnapshot.docs[0];
       
       const bfValues = breastfeedingRef.current?.getValues();
+      const taskDate =
+        selectedImage === 5 &&
+        bfValues?.mode === 'timer' &&
+        bfValues.timerStartTime &&
+        !isDateManuallySet
+          ? moment(bfValues.timerStartTime).format('YYYY-MM-DD HH:mm:ss')
+          : time;
       const newTask = {
         uid: uniqueId,
         id: selectedImage,
         labelTask: returnLabel(selectedImage),
-        date: time,
+        date: taskDate,
         label: selectedImage === 3
           ? ((sleepHours || sleepMinutes) ? String(parseInt(sleepHours || '0') * 60 + parseInt(sleepMinutes || '0')) : 0)
           : (label ? label : 0),
@@ -228,6 +236,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
     if (date) {
       setSelectedDate(date);
       setTime(moment(date).format('YYYY-MM-DD HH:mm:ss'));
+      setIsDateManuallySet(true);
       setIsDateTimePickerVisible(false);
     }
   };
@@ -390,7 +399,19 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
       );
 
     } else if (id == 5) {
-      return <BreastfeedingSection ref={breastfeedingRef} t={t} />;
+      return (
+        <BreastfeedingSection
+          ref={breastfeedingRef}
+          t={t}
+          onTimerStartTimeLoaded={(startTime) => {
+            if (!isDateManuallySet) {
+              const d = new Date(startTime);
+              setSelectedDate(d);
+              setTime(moment(startTime).format('YYYY-MM-DD HH:mm:ss'));
+            }
+          }}
+        />
+      );
     }
   }
 

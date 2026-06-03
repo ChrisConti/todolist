@@ -10,7 +10,7 @@ import {
   fetchSignInMethodsForEmail
 } from 'firebase/auth';
 import { auth, db } from '../config';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDocs, query, collection, where, serverTimestamp } from 'firebase/firestore';
 import { log } from './logger';
 import i18next from 'i18next';
 import Analytics from '../services/analytics';
@@ -23,7 +23,6 @@ export const configureGoogleSignIn = () => {
   GoogleSignin.configure({
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: '347055639005-3pp5df1khsb53gpc2ooor7ga16grbte5.apps.googleusercontent.com',
     offlineAccess: false,
   });
 };
@@ -57,13 +56,11 @@ export const signInWithGoogle = async () => {
 
     log.info(`Google Sign-In successful: ${user.uid}`, 'socialAuth');
 
-    // Check if user document exists in Firestore
-    const userDocRef = doc(db, 'Users', user.uid);
-    const userDoc = await getDoc(userDocRef);
+    // Check if user document exists in Firestore (by userId, not doc ID)
+    const existingDocs = await getDocs(query(collection(db, 'Users'), where('userId', '==', user.uid)));
 
-    const isNewUser = !userDoc.exists();
-    if (isNewUser) {
-      await setDoc(userDocRef, {
+    if (existingDocs.empty) {
+      await setDoc(doc(db, 'Users', user.uid), {
         userId: user.uid,
         email: user.email || '',
         username: user.displayName || 'Utilisateur Google',
@@ -71,6 +68,7 @@ export const signInWithGoogle = async () => {
         provider: 'google',
         photoURL: user.photoURL,
         emailOptIn: false,
+        isPremium: false,
         country: Localization.getLocales()[0]?.regionCode || 'Unknown',
       });
       log.info('User document created in Firestore', 'socialAuth');
@@ -154,24 +152,23 @@ export const signInWithApple = async () => {
 
     log.info(`Apple Sign-In successful: ${user.uid}`, 'socialAuth');
 
-    // Check if user document exists
-    const userDocRef = doc(db, 'Users', user.uid);
-    const userDoc = await getDoc(userDocRef);
+    // Check if user document exists in Firestore (by userId, not doc ID)
+    const existingDocs = await getDocs(query(collection(db, 'Users'), where('userId', '==', user.uid)));
 
-    const isNewUser = !userDoc.exists();
-    if (isNewUser) {
-      // ⚠️ IMPORTANT: Email is only provided on FIRST sign-in
+    if (existingDocs.empty) {
+      // ⚠️ IMPORTANT: Email is only provided on FIRST sign-in with Apple
       const displayName = fullName?.givenName && fullName?.familyName
         ? `${fullName.givenName} ${fullName.familyName}`
         : (user.displayName || 'Utilisateur Apple');
 
-      await setDoc(userDocRef, {
+      await setDoc(doc(db, 'Users', user.uid), {
         userId: user.uid,
-        email: user.email || '', // Email only provided on first Apple sign-in
+        email: user.email || '',
         username: displayName,
         creationDate: serverTimestamp(),
         provider: 'apple',
         emailOptIn: false,
+        isPremium: false,
         country: Localization.getLocales()[0]?.regionCode || 'Unknown',
       });
       log.info('User document created in Firestore', 'socialAuth');

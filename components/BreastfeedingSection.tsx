@@ -11,6 +11,7 @@ export interface BreastfeedingValues {
   mode: 'timer' | 'manual';
   manualLeft: number;
   manualRight: number;
+  timerStartTime?: number; // Unix ms — wall-clock time when the first timer was originally started
 }
 
 export interface BreastfeedingRef {
@@ -26,6 +27,7 @@ interface Props {
   initialManualLeft?: number;
   initialManualRight?: number;
   storageKeySuffix?: string;
+  onTimerStartTimeLoaded?: (startTime: number) => void;
 }
 
 const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
@@ -36,6 +38,7 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
   initialManualLeft = 0,
   initialManualRight = 0,
   storageKeySuffix = 'createtask',
+  onTimerStartTimeLoaded,
 }, ref) => {
   const [timer1, setTimer1] = useState(initialTimer1);
   const [timer2, setTimer2] = useState(initialTimer2);
@@ -44,13 +47,19 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
   const [mode, setMode] = useState<'timer' | 'manual'>(initialMode);
   const [manualLeft, setManualLeft] = useState(initialManualLeft);
   const [manualRight, setManualRight] = useState(initialManualRight);
+  const originalStartTime1 = useRef<number | null>(null);
+  const originalStartTime2 = useRef<number | null>(null);
 
   const interval1 = useRef<any>(null);
   const interval2 = useRef<any>(null);
   const appState = useRef(AppState.currentState);
 
   useImperativeHandle(ref, () => ({
-    getValues: () => ({ timer1, timer2, mode, manualLeft, manualRight }),
+    getValues: () => {
+      const starts = [originalStartTime1.current, originalStartTime2.current].filter((t): t is number => t !== null);
+      const timerStartTime = starts.length > 0 ? Math.min(...starts) : undefined;
+      return { timer1, timer2, mode, manualLeft, manualRight, timerStartTime };
+    },
     clearTimers: async () => {
       await AsyncStorage.removeItem(`timer1_${storageKeySuffix}`);
       await AsyncStorage.removeItem(`timer2_${storageKeySuffix}`);
@@ -74,9 +83,9 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
     appState.current = nextAppState as any;
   };
 
-  const saveTimer = async (key: string, elapsed: number, startTime: number | null, running: boolean) => {
+  const saveTimer = async (key: string, elapsed: number, startTime: number | null, running: boolean, originalStart: number | null) => {
     try {
-      await AsyncStorage.setItem(key, JSON.stringify({ elapsed, startTime, isRunning: running }));
+      await AsyncStorage.setItem(key, JSON.stringify({ elapsed, startTime, isRunning: running, originalStart }));
     } catch {}
   };
 
@@ -88,7 +97,8 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
       ]);
 
       if (t1Data) {
-        const { elapsed, startTime, isRunning } = JSON.parse(t1Data);
+        const { elapsed, startTime, isRunning, originalStart } = JSON.parse(t1Data);
+        if (originalStart) originalStartTime1.current = originalStart;
         if (isRunning && startTime) {
           const additional = Math.floor((Date.now() - startTime) / 1000);
           const total = elapsed + additional;
@@ -101,7 +111,8 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
       }
 
       if (t2Data) {
-        const { elapsed, startTime, isRunning } = JSON.parse(t2Data);
+        const { elapsed, startTime, isRunning, originalStart } = JSON.parse(t2Data);
+        if (originalStart) originalStartTime2.current = originalStart;
         if (isRunning && startTime) {
           const additional = Math.floor((Date.now() - startTime) / 1000);
           const total = elapsed + additional;
@@ -111,6 +122,11 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
         } else {
           setTimer2(elapsed);
         }
+      }
+
+      const starts = [originalStartTime1.current, originalStartTime2.current].filter((t): t is number => t !== null);
+      if (starts.length > 0 && onTimerStartTimeLoaded) {
+        onTimerStartTimeLoaded(Math.min(...starts));
       }
     } catch {}
   };
@@ -126,8 +142,12 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
   const startTimer = (setTimer: any, setRunning: any, intervalRef: any, num: 1 | 2) => {
     const now = Date.now();
     const current = num === 1 ? timer1 : timer2;
-    if (num === 1) saveTimer(`timer1_${storageKeySuffix}`, current, now, true);
-    else saveTimer(`timer2_${storageKeySuffix}`, current, now, true);
+    const origRef = num === 1 ? originalStartTime1 : originalStartTime2;
+    // Only set originalStart on the very first press (elapsed === 0 and no prior originalStart)
+    if (current === 0 && origRef.current === null) origRef.current = now;
+    const originalStart = origRef.current;
+    if (num === 1) saveTimer(`timer1_${storageKeySuffix}`, current, now, true, originalStart);
+    else saveTimer(`timer2_${storageKeySuffix}`, current, now, true, originalStart);
     setRunning(true);
     startInterval(setTimer, intervalRef, now, current);
   };
@@ -137,15 +157,18 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
     clearInterval(intervalRef.current);
     const current = num === 1 ? timer1 : timer2;
     const key = num === 1 ? `timer1_${storageKeySuffix}` : `timer2_${storageKeySuffix}`;
-    saveTimer(key, current, null, false);
+    const originalStart = (num === 1 ? originalStartTime1 : originalStartTime2).current;
+    saveTimer(key, current, null, false, originalStart);
   };
 
   const stopTimer = (setTimer: any, setRunning: any, intervalRef: any, num: 1 | 2) => {
     setRunning(false);
     clearInterval(intervalRef.current);
     setTimer(0);
+    const origRef = num === 1 ? originalStartTime1 : originalStartTime2;
+    origRef.current = null;
     const key = num === 1 ? `timer1_${storageKeySuffix}` : `timer2_${storageKeySuffix}`;
-    saveTimer(key, 0, null, false);
+    saveTimer(key, 0, null, false, null);
   };
 
   const formatTime = (seconds: number) => {
