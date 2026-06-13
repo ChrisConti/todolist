@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import SleepingBaby from '../../assets/sleepingBaby.svg';
 import { STATS_CONFIG } from '../../constants/statsConfig';
 
 interface StatsContainerProps {
@@ -44,9 +45,12 @@ const StatsContainer: React.FC<StatsContainerProps> = ({
   if (!hasData) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.emptyText}>
+        <SleepingBaby height={140} width={140} />
+        <View style={{ height: 16 }} />
+        <Text style={styles.emptyTitle}>
           {emptyMessage || t('stats.noData')}
         </Text>
+        <Text style={styles.emptySubtitle}>{t('stats.emptySubtitle')}</Text>
       </View>
     );
   }
@@ -75,10 +79,20 @@ const styles = StyleSheet.create({
     color: STATS_CONFIG.COLORS.ERROR,
     textAlign: 'center',
   },
-  emptyText: {
-    fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
     color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
     textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 16,
+    marginBottom: 24,
   },
 });
 

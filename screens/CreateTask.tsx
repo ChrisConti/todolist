@@ -45,6 +45,12 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const [babySelected, setBabySelected] = useState(babyID);
   const [selectedImage, setSelectedImage] = useState(route.params?.initialCategory ?? (task ? task.id : 0));
   const categoryEnterTimeRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    if (route.params?.initialCategory != null) {
+      setSelectedImage(route.params.initialCategory);
+    }
+  }, [route.params?.initialCategory]);
   const [time, setTime] = useState(moment().format('YYYY-MM-DD HH:mm:ss'));
   const [label, setLabel] = useState('');
   const [note, setNote] = useState('');

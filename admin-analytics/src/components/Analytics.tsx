@@ -64,7 +64,11 @@ export const Analytics: React.FC = () => {
   };
 
   const handleBabyClick = (baby: Baby) => { setSelectedBaby(baby); setIsBabyModalOpen(true); };
-  const handleUserClick = (user: User) => { setSelectedUser(user); setIsUserModalOpen(true); };
+  const handleUserClick = (user: User) => {
+    const baby = allBabies.find(b => b.user?.includes(user.userId));
+    setSelectedUser({ ...user, linkedBaby: baby ?? undefined });
+    setIsUserModalOpen(true);
+  };
 
   const handleDelayCardClick = (type: DelayType) => {
     const userMap = new Map<string, User>();
@@ -158,12 +162,33 @@ export const Analytics: React.FC = () => {
         linkedUsers: baby.user?.map(uid => users.find(u => u.userId === uid)).filter(Boolean) as User[] || [],
       }));
 
+      const babiesInPeriodAdminIds = new Set(babies.map(b => b.admin).filter(Boolean));
+
       switch (type) {
-        case 'accounts': setModalData(sortUsers([...users])); break;
+        case 'accounts': {
+          const allUserEmailMap = new Map<string, string>();
+          allUsers.forEach(u => allUserEmailMap.set(u.userId, u.email));
+          const enrichedUsers = sortUsers([...users]).map(u => {
+            const baby = allBabies.find(b => b.user?.includes(u.userId));
+            const babyStatus: User['babyStatus'] = !baby
+              ? 'none'
+              : babiesInPeriodAdminIds.has(u.userId)
+                ? 'created'
+                : 'joined';
+            const enrichedBaby = baby ? {
+              ...baby,
+              parentEmails: baby.user?.map(uid => allUserEmailMap.get(uid) || 'N/A').filter(Boolean) || [],
+              linkedUsers: baby.user?.map(uid => allUsers.find(u2 => u2.userId === uid)).filter(Boolean) as User[] || [],
+            } : undefined;
+            return { ...u, linkedBaby: enrichedBaby, babyStatus };
+          });
+          setModalData(enrichedUsers);
+          break;
+        }
         case 'babies': setModalData(enrichBabies(sortBabies([...babies]))); break;
         case 'accountsWithoutBaby': {
           const ids = new Set<string>();
-          babies.forEach(b => b.user?.forEach(uid => ids.add(uid)));
+          allBabies.forEach(b => b.user?.forEach(uid => ids.add(uid)));
           setModalData(sortUsers(users.filter(u => !ids.has(u.userId))));
           break;
         }
@@ -338,6 +363,27 @@ export const Analytics: React.FC = () => {
           </div>
         </div>
 
+        {dateRange.start && dateRange.end && (metrics?.joinedExistingBaby || 0) > 0 && (
+          <div className="metric-card">
+            <div className="metric-icon">🔗</div>
+            <div className="metric-content">
+              <div className="metric-label">
+                A rejoint un bébé
+                <Info>
+                  <strong>Compte créé dans la période, sans avoir créé de bébé</strong>
+                  <ul>
+                    <li>N'est pas admin d'un bébé créé dans la période</li>
+                    <li>Inclut : co-parents d'un nouveau bébé + users qui ont rejoint un bébé plus ancien</li>
+                    <li>Complète l'équation : Comptes = Créateurs + A rejoint + Sans bébé</li>
+                  </ul>
+                </Info>
+              </div>
+              <div className="metric-value">{metrics?.joinedExistingBaby || 0}</div>
+              <div className="metric-breakdown"><span>{metrics?.totalAccounts ? Math.round((metrics.joinedExistingBaby || 0) / metrics.totalAccounts * 100) : 0}% des comptes</span></div>
+            </div>
+          </div>
+        )}
+
         <div className="metric-card clickable" onClick={() => handleCardClick('deletedAccounts')}>
           <div className="metric-icon">🗑️</div>
           <div className="metric-content">
@@ -447,6 +493,48 @@ export const Analytics: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* ── Premium ── */}
+      {metrics?.premiumStats && (
+        <div className="section-card" style={{ marginBottom: 24 }}>
+          <h3>⭐ Premium</h3>
+          <p className="section-subtitle">
+            Total global : <strong>{metrics.premiumStats.total}</strong> utilisateurs avec le premium actif
+            <Info>
+              <strong>Comment est calculé le premium</strong>
+              <ul>
+                <li><strong>isPremium: true</strong> en base Firestore</li>
+                <li><strong>OU</strong> compte créé avant le 15/05/2026 (early adopter)</li>
+                <li>Les colonnes ci-dessous croisent la date de création du compte avec le statut premium</li>
+                <li>premiumDate est enregistré à l'achat — les users offerts (script bulk) affichent "offert"</li>
+              </ul>
+            </Info>
+          </p>
+          <div className="metrics-grid">
+            <div className="metric-card">
+              <div className="metric-icon">⭐</div>
+              <div className="metric-content">
+                <div className="metric-label">Inscrits aujourd'hui avec premium</div>
+                <div className="metric-value">{metrics.premiumStats.today}</div>
+              </div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-icon">⭐</div>
+              <div className="metric-content">
+                <div className="metric-label">Inscrits hier avec premium</div>
+                <div className="metric-value">{metrics.premiumStats.yesterday}</div>
+              </div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-icon">⭐</div>
+              <div className="metric-content">
+                <div className="metric-label">Inscrits sur 7 jours avec premium</div>
+                <div className="metric-value">{metrics.premiumStats.last7Days}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Taux de conversion ── */}
       {metrics && (

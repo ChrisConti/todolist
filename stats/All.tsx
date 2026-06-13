@@ -1,5 +1,8 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+} from 'react-native';
+import { usePremium } from '../Context/PremiumContext';
 import Analytics from '../services/analytics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +13,6 @@ import { STATS_CONFIG, TASK_TYPES } from '../constants/statsConfig';
 import StatsContainer from '../components/stats/StatsContainer';
 import { getSleepMinutesForPeriod } from '../hooks/useTaskStatistics';
 
-// Import SVG icons
 import BiberonIcon from '../assets/biberon-color.svg';
 import AllaitementIcon from '../assets/allaitement-color.svg';
 import DodoIcon from '../assets/dodo-color.svg';
@@ -21,14 +23,6 @@ interface AllStatsProps {
   navigation: any;
   tasks: Task[];
 }
-
-const CATEGORY_COLORS: Record<string, string> = {
-  biberon:     '#34777B',
-  allaitement: '#1AAAAA',
-  sommeil:     '#E29656',
-  couche:      '#C75B4A',
-  temperature: '#4F469F',
-};
 
 interface CategoryStats {
   count: number;
@@ -49,9 +43,73 @@ interface PeriodStats {
   temperature: CategoryStats;
 }
 
+type CategoryKey = 'biberon' | 'allaitement' | 'sommeil' | 'couche' | 'temperature';
+
+const GAP = 12;
+const H_PAD = 8;
+
+const formatDuration = (minutes: number) => {
+  if (minutes < 60) return `${minutes}min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h${m}` : `${h}h`;
+};
+
+const formatDurationShort = (minutes: number) => {
+  if (minutes < 60) return `${minutes}m`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h${m}` : `${h}h`;
+};
+
+const formatQuantity = (value: number) => {
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}L`;
+  return `${Math.round(value)}ml`;
+};
+
+const getRowValues = (
+  category: CategoryKey,
+  stats: CategoryStats,
+): [string, string] => {
+  switch (category) {
+    case 'biberon':
+      if (stats.count === 0) return ['–', ''];
+      return [
+        `${stats.count}`,
+        stats.quantity != null && stats.quantity > 0 ? formatQuantity(stats.quantity) : '',
+      ];
+    case 'allaitement': {
+      if (stats.count === 0) return ['–', '–'];
+      const ld = stats.leftDuration ?? 0;
+      const rd = stats.rightDuration ?? 0;
+      return [
+        ld > 0 ? formatDurationShort(ld) : '–',
+        rd > 0 ? formatDurationShort(rd) : '–',
+      ];
+    }
+    case 'sommeil':
+      if (stats.count === 0) return ['–', ''];
+      return [
+        `${stats.count}`,
+        stats.quantity != null && stats.quantity > 0 ? formatDuration(stats.quantity) : '',
+      ];
+    case 'couche':
+      return [stats.count > 0 ? `${stats.count}` : '–', ''];
+    case 'temperature':
+      if (stats.count === 0) return ['–', ''];
+      return [
+        `↓${stats.minTemp!.toFixed(1)}°`,
+        `↑${stats.maxTemp!.toFixed(1)}°`,
+      ];
+  }
+};
+
+const PREMIUM_CATEGORIES = new Set(['biberon', 'sommeil']);
+
 const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { isPremium } = usePremium();
 
   const calculatePeriodStats = (startDate: moment.Moment, endDate: moment.Moment): PeriodStats => {
     const stats: PeriodStats = {
@@ -65,13 +123,10 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
     tasks.forEach((task) => {
       const taskDate = moment(task.date, 'YYYY-MM-DD HH:mm:ss');
 
-      // Sleep: use overlap-based duration split so sessions crossing midnight
-      // are correctly attributed to each day. Filter by overlap, not just start date.
       if (task.id === TASK_TYPES.SLEEP) {
         const sleepDuration = parseInt(task.label || '0');
         if (isNaN(sleepDuration) || sleepDuration <= 0) return;
         const sessionEnd = taskDate.clone().add(sleepDuration, 'minutes');
-        // Include if session overlaps with the period at all
         if (taskDate.isBefore(endDate) && sessionEnd.isAfter(startDate)) {
           stats.sommeil.count++;
           stats.sommeil.quantity! += getSleepMinutesForPeriod(taskDate, sleepDuration, startDate, endDate);
@@ -82,41 +137,33 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
       if (!taskDate.isBetween(startDate, endDate, undefined, '[]')) return;
 
       switch (task.id) {
-        case TASK_TYPES.BIBERON:
+        case TASK_TYPES.BIBERON: {
           stats.biberon.count++;
-          const bottleQty = parseFloat(task.label);
-          if (!isNaN(bottleQty)) stats.biberon.quantity! += bottleQty;
+          const qty = parseFloat(task.label);
+          if (!isNaN(qty)) stats.biberon.quantity! += qty;
           break;
-
-        case TASK_TYPES.BREASTFEEDING:
+        }
+        case TASK_TYPES.BREASTFEEDING: {
           stats.allaitement.count++;
-          const side = parseInt(task.label2 || '2');
-          const duration = parseInt(task.label || '0');
-          if (side === 0 || side === 2) {
-            stats.allaitement.leftCount!++;
-            stats.allaitement.leftDuration! += duration;
-          }
-          if (side === 1 || side === 2) {
-            stats.allaitement.rightCount!++;
-            stats.allaitement.rightDuration! += duration;
-          }
+          const leftSec = typeof task.boobLeft === 'number' ? task.boobLeft : parseFloat(String(task.boobLeft || '0'));
+          const rightSec = typeof task.boobRight === 'number' ? task.boobRight : parseFloat(String(task.boobRight || '0'));
+          const leftMin = Math.round(leftSec / 60);
+          const rightMin = Math.round(rightSec / 60);
+          if (leftMin > 0) { stats.allaitement.leftCount!++; stats.allaitement.leftDuration! += leftMin; }
+          if (rightMin > 0) { stats.allaitement.rightCount!++; stats.allaitement.rightDuration! += rightMin; }
           break;
-
+        }
         case TASK_TYPES.DIAPER:
           stats.couche.count++;
           break;
-
-        case TASK_TYPES.TEMPERATURE:
+        case TASK_TYPES.TEMPERATURE: {
           const temp = parseFloat(String(task.label).replace(',', '.'));
           if (isNaN(temp) || temp <= 0) break;
           stats.temperature.count++;
-          if (stats.temperature.minTemp === undefined || temp < stats.temperature.minTemp) {
-            stats.temperature.minTemp = temp;
-          }
-          if (stats.temperature.maxTemp === undefined || temp > stats.temperature.maxTemp) {
-            stats.temperature.maxTemp = temp;
-          }
+          if (stats.temperature.minTemp === undefined || temp < stats.temperature.minTemp) stats.temperature.minTemp = temp;
+          if (stats.temperature.maxTemp === undefined || temp > stats.temperature.maxTemp) stats.temperature.maxTemp = temp;
           break;
+        }
       }
     });
 
@@ -130,7 +177,6 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
     const yesterdayStart = now.clone().subtract(1, 'day').startOf('day');
     const yesterdayEnd = now.clone().subtract(1, 'day').endOf('day');
     const last7DaysStart = now.clone().subtract(6, 'days').startOf('day');
-
     return {
       todayStats: calculatePeriodStats(todayStart, todayEnd),
       yesterdayStats: calculatePeriodStats(yesterdayStart, yesterdayEnd),
@@ -138,289 +184,279 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
     };
   }, [tasks]);
 
-  const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes}min`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return mins > 0 ? `${hours}h${mins}` : `${hours}h`;
+  const totalCount = (ps: PeriodStats) =>
+    ps.biberon.count + ps.allaitement.count + ps.sommeil.count + ps.couche.count + ps.temperature.count;
+
+  const navTo = (category: string) => {
+    Analytics.logEvent('stats_category_tapped', { category });
+    if (category === 'biberon') return navigation.navigate('BiberonInsights');
+    const idMap: Record<string, number> = { allaitement: 5, sommeil: 3, couche: 1, temperature: 4 };
+    navigation.navigate('CategoryDetail', { categoryId: idMap[category] });
   };
 
-  const formatQuantity = (value: number, unit: string) => {
-    if (unit === 'ml' && value >= 1000) {
-      return `${(value / 1000).toFixed(1)}L`;
-    }
-    return `${Math.round(value)}${unit}`;
-  };
-
-  const renderCategoryValue = (stats: CategoryStats, category: 'biberon' | 'allaitement' | 'sommeil' | 'couche' | 'temperature') => {
-    switch (category) {
-      case 'biberon':
-        return (
-          <View style={styles.cellContent}>
-            <Text style={styles.cellText}>
-              {stats.count} | {stats.quantity ? formatQuantity(stats.quantity, 'ml') : '-'}
-            </Text>
-          </View>
-        );
-      case 'allaitement':
-        return (
-          <View style={styles.cellContent}>
-            <Text style={styles.cellText}>
-              G: {stats.leftCount} | {stats.leftDuration ? formatDuration(stats.leftDuration) : '-'}
-            </Text>
-            <Text style={styles.cellText}>
-              D: {stats.rightCount} | {stats.rightDuration ? formatDuration(stats.rightDuration) : '-'}
-            </Text>
-          </View>
-        );
-      case 'sommeil':
-        return (
-          <View style={styles.cellContent}>
-            <Text style={styles.cellText}>
-              {stats.count} | {stats.quantity ? formatDuration(stats.quantity) : '-'}
-            </Text>
-          </View>
-        );
-      case 'couche':
-        return (
-          <View style={styles.cellContent}>
-            <Text style={styles.cellText}>{stats.count}</Text>
-          </View>
-        );
-      case 'temperature':
-        return (
-          <View style={styles.cellContent}>
-            <Text style={styles.cellText}>
-              Min: {stats.minTemp ? `${stats.minTemp.toFixed(1)}°` : '-'}
-            </Text>
-            <Text style={styles.cellText}>
-              Max: {stats.maxTemp ? `${stats.maxTemp.toFixed(1)}°` : '-'}
-            </Text>
-          </View>
-        );
-    }
-  };
-
-  const getCategoryNavTarget = (category: string): (() => void) => {
-    if (category === 'biberon') {
-      return () => { Analytics.logEvent('stats_category_tapped', { category }); navigation.navigate('BiberonInsights'); };
-    }
-    const idMap: Record<string, number> = {
-      allaitement: 5,
-      sommeil: 3,
-      couche: 1,
-      temperature: 4,
-    };
-    return () => { Analytics.logEvent('stats_category_tapped', { category }); navigation.navigate('CategoryDetail', { categoryId: idMap[category] }); };
-  };
-
-  const renderCategoryRow = (
-    icon: React.ReactNode,
+  const renderCard = (
+    Icon: React.ComponentType<{ width: number; height: number }>,
     color: string,
-    todayStats: CategoryStats,
-    yesterdayStats: CategoryStats,
-    last7Stats: CategoryStats,
-    category: 'biberon' | 'allaitement' | 'sommeil' | 'couche' | 'temperature'
+    category: CategoryKey,
   ) => {
-    const onPress = getCategoryNavTarget(category);
+    const rows = [
+      { label: `${t('stats.overview.today')}:`, stats: todayStats[category] },
+      { label: `${t('stats.overview.yesterday')}:`, stats: yesterdayStats[category] },
+      { label: `${t('stats.overview.week')}:`, stats: last7DaysStats[category] },
+    ];
+
     return (
       <TouchableOpacity
-        style={[styles.categoryRow, { borderLeftColor: color }]}
-        onPress={onPress}
-        activeOpacity={0.7}
+        key={category}
+        style={[styles.card, { backgroundColor: color }]}
+        onPress={() => navTo(category)}
+        activeOpacity={0.8}
       >
-        <View style={styles.iconCell}>
-          {icon}
-        </View>
-        <View style={styles.dataCell}>
-          {renderCategoryValue(todayStats, category)}
-        </View>
-        <View style={styles.dataCell}>
-          {renderCategoryValue(yesterdayStats, category)}
-        </View>
-        <View style={styles.dataCell}>
-          {renderCategoryValue(last7Stats, category)}
-        </View>
-        <View style={styles.chevronCell}>
-          <View style={[styles.chevronCircle, { backgroundColor: color }]}>
-            <MaterialCommunityIcons name="chevron-right" size={16} color="#FFF" />
+        <View style={styles.cardTop}>
+          <View style={styles.iconBadge}>
+            <Icon width={22} height={22} />
           </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            {!isPremium && PREMIUM_CATEGORIES.has(category) && (
+              <View style={styles.premiumBadge}>
+                <Text style={styles.premiumBadgeTxt}>★</Text>
+              </View>
+            )}
+            <View style={styles.chevronCircle}>
+              <MaterialCommunityIcons name="chevron-right" size={14} color="rgba(255,255,255,0.9)" />
+            </View>
+          </View>
+        </View>
+        <View style={styles.cardBody}>
+          {rows.map((row, i) => {
+            const [v1, v2] = getRowValues(category, row.stats);
+            return (
+              <View key={i} style={styles.dataRow}>
+                <Text style={styles.dataLabel} allowFontScaling={false}>{row.label}</Text>
+                <Text style={styles.dataVal1} allowFontScaling={false}>{v1}</Text>
+                {v2 !== '' ? (
+                  <Text style={styles.dataVal2} allowFontScaling={false}>{v2}</Text>
+                ) : null}
+              </View>
+            );
+          })}
         </View>
       </TouchableOpacity>
     );
   };
 
   return (
-    <StatsContainer
-      loading={false}
-      error={null}
-      hasData={tasks.length > 0}
-      emptyMessage={t('stats.noData')}
-    >
+    <StatsContainer loading={false} error={null} hasData={tasks.length > 0} emptyMessage={t('stats.noData')}>
       <ScrollView
         style={styles.container}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: insets.bottom + 24 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.tableCard}>
-          {/* Header Row */}
-          <View style={styles.headerRow}>
-            <View style={styles.iconCell}>
-              <MaterialCommunityIcons name="calendar-range" size={32} color="#C75B4A" />
-            </View>
-            <View style={styles.dataCell}>
-              <Text style={styles.headerText}>{t('allaitement.today')}</Text>
-            </View>
-            <View style={styles.dataCell}>
-              <Text style={styles.headerText}>{t('allaitement.yesterday')}</Text>
-            </View>
-            <View style={styles.dataCell}>
-              <Text style={styles.headerText}>7j</Text>
-            </View>
+        {/* Summary card */}
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>{t('title.activities')}</Text>
+          <View style={styles.summaryRow}>
+            {[
+              { count: totalCount(todayStats), label: t('stats.overview.today') },
+              { count: totalCount(yesterdayStats), label: t('stats.overview.yesterday') },
+              { count: totalCount(last7DaysStats), label: t('stats.overview.week') },
+            ].map((item, i) => (
+              <View key={i} style={styles.summaryCol}>
+                <Text style={styles.summaryCount}>{item.count}</Text>
+                <Text style={styles.summaryLabel}>{item.label}</Text>
+              </View>
+            ))}
           </View>
-
-          {/* Category Rows */}
-          {renderCategoryRow(
-            <BiberonIcon width={32} height={32} />,
-            STATS_CONFIG.COLORS.BIBERON,
-            todayStats.biberon,
-            yesterdayStats.biberon,
-            last7DaysStats.biberon,
-            'biberon'
-          )}
-
-          {renderCategoryRow(
-            <AllaitementIcon width={32} height={32} />,
-            STATS_CONFIG.COLORS.BREASTFEEDING,
-            todayStats.allaitement,
-            yesterdayStats.allaitement,
-            last7DaysStats.allaitement,
-            'allaitement'
-          )}
-
-          {renderCategoryRow(
-            <DodoIcon width={32} height={32} />,
-            STATS_CONFIG.COLORS.SLEEP,
-            todayStats.sommeil,
-            yesterdayStats.sommeil,
-            last7DaysStats.sommeil,
-            'sommeil'
-          )}
-
-          {renderCategoryRow(
-            <CoucheIcon width={32} height={32} />,
-            STATS_CONFIG.COLORS.DIAPER,
-            todayStats.couche,
-            yesterdayStats.couche,
-            last7DaysStats.couche,
-            'couche'
-          )}
-
-          {renderCategoryRow(
-            <ThermoIcon width={32} height={32} />,
-            STATS_CONFIG.COLORS.TEMPERATURE,
-            todayStats.temperature,
-            yesterdayStats.temperature,
-            last7DaysStats.temperature,
-            'temperature'
-          )}
         </View>
 
-        {/* Export Button */}
-        <TouchableOpacity
-          style={styles.exportButton}
-          onPress={() => { Analytics.logEvent('stats_export_tapped'); navigation.navigate('ExportTasks'); }}
-        >
-          <MaterialCommunityIcons name="file-download" size={24} color="#FFF" />
-          <Text style={styles.exportButtonText}>{t('export.page.exportButton')}</Text>
-        </TouchableOpacity>
+        {/* Category grid */}
+        <View style={styles.row}>
+          {renderCard(BiberonIcon as any, STATS_CONFIG.COLORS.BIBERON, 'biberon')}
+          <View style={styles.rowSpacer} />
+          {renderCard(AllaitementIcon as any, STATS_CONFIG.COLORS.BREASTFEEDING, 'allaitement')}
+        </View>
+        <View style={styles.row}>
+          {renderCard(DodoIcon as any, STATS_CONFIG.COLORS.SLEEP, 'sommeil')}
+          <View style={styles.rowSpacer} />
+          {renderCard(CoucheIcon as any, STATS_CONFIG.COLORS.DIAPER, 'couche')}
+        </View>
+        <View style={styles.row}>
+          {renderCard(ThermoIcon as any, STATS_CONFIG.COLORS.TEMPERATURE, 'temperature')}
+          <View style={styles.rowSpacer} />
+
+          {/* Export card */}
+          <TouchableOpacity
+            style={[styles.card, styles.exportCard]}
+            onPress={() => { Analytics.logEvent('stats_export_tapped'); navigation.navigate('ExportTasks'); }}
+            activeOpacity={0.8}
+          >
+            {!isPremium && (
+              <View style={[styles.premiumBadge, { position: 'absolute', top: 10, right: 10 }]}>
+                <Text style={styles.premiumBadgeTxt}>★</Text>
+              </View>
+            )}
+            <MaterialCommunityIcons name="arrow-down-circle" size={38} color="#FFF" />
+            <Text style={styles.exportTitle} allowFontScaling={false}>{t('stats.overview.export')}</Text>
+            <View style={styles.exportBadge}>
+              <Text style={styles.exportBadgeText} allowFontScaling={false}>CSV</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </StatsContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 5,
-    paddingVertical: 16,
-  },
-  tableCard: {
+  container: { flex: 1 },
+
+  /* Summary card */
+  summaryCard: {
     backgroundColor: '#FFF',
-    borderRadius: 12,
-    padding: 12,
-    overflow: 'hidden',
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    marginHorizontal: H_PAD,
+    marginBottom: GAP,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  headerRow: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    borderBottomWidth: 2,
-    borderBottomColor: '#E0E0E0',
-    marginBottom: 8,
-  },
-  headerText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#666',
+  summaryTitle: {
+    fontSize: 17,
+    color: '#C75B4A',
     textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '700',
   },
-  categoryRow: {
+  summaryRow: {
     flexDirection: 'row',
-    paddingVertical: 12,
-    borderLeftWidth: 4,
-    marginBottom: 8,
-    backgroundColor: '#F9F9F9',
-    borderRadius: 8,
+  },
+  summaryCol: {
+    flex: 1,
     alignItems: 'center',
   },
-  iconCell: {
-    width: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
+  summaryCount: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#2D2D2D',
+    lineHeight: 40,
   },
-  chevronCell: {
-    width: 32,
+  summaryLabel: {
+    fontSize: 12,
+    color: '#ADADAD',
+    fontWeight: '500',
+    marginTop: 2,
+  },
+
+  /* Category grid */
+  row: {
+    flexDirection: 'row',
+    marginHorizontal: H_PAD,
+    marginBottom: GAP,
+  },
+  rowSpacer: {
+    width: GAP,
+  },
+  card: {
+    flex: 1,
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  cardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  iconBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255,255,255,0.9)',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingRight: 4,
   },
   chevronCircle: {
     width: 26,
     height: 26,
     borderRadius: 13,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dataCell: {
-    flex: 1,
-    paddingHorizontal: 4,
-    justifyContent: 'center',
+  cardBody: {
+    paddingHorizontal: 12,
+    paddingBottom: 14,
   },
-  cellContent: {
-    alignItems: 'center',
-  },
-  cellText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 2,
-  },
-  exportButton: {
+  dataRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#C75B4A',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    marginTop: 16,
-    gap: 8,
+    paddingVertical: 3,
   },
-  exportButtonText: {
+  dataLabel: {
+    width: 30,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.65)',
+    fontWeight: '500',
+  },
+  dataVal1: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFF',
+    textAlign: 'right',
+  },
+  premiumBadge: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+  },
+  premiumBadgeTxt: { fontSize: 10, color: '#FFF', fontWeight: '700' },
+
+  /* largeur fixée pour tenir xxhxx (ex: 4h53) sans jamais s'adapter */
+  dataVal2: {
+    width: 52,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFF',
+    textAlign: 'right',
+  },
+
+  /* Export card */
+  exportCard: {
+    backgroundColor: '#4A7FC1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 20,
+  },
+  exportTitle: {
     fontSize: 15,
     fontWeight: '700',
     color: '#FFF',
+  },
+  exportBadge: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  exportBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFF',
+    letterSpacing: 1,
   },
 });
 

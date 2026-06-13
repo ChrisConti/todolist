@@ -11,8 +11,9 @@ struct LastBottle: Codable {
 
 // MARK: - App Group
 
-private let appGroupID = "group.com.tribubaby.shared"
-private let dataKey    = "lastBottle"
+private let appGroupID  = "group.com.tribubaby.shared"
+private let dataKey     = "lastBottle"
+private let premiumKey  = "isPremium"
 
 func readLastBottle() -> LastBottle? {
   guard
@@ -22,24 +23,29 @@ func readLastBottle() -> LastBottle? {
   return try? JSONDecoder().decode(LastBottle.self, from: data)
 }
 
+func readIsPremium() -> Bool {
+  UserDefaults(suiteName: appGroupID)?.bool(forKey: premiumKey) ?? false
+}
+
 // MARK: - Timeline
 
 struct BiberonEntry: TimelineEntry {
   let date: Date
   let bottle: LastBottle?
+  let isPremium: Bool
 }
 
 struct BiberonProvider: TimelineProvider {
   func placeholder(in context: Context) -> BiberonEntry {
-    BiberonEntry(date: .now, bottle: LastBottle(ml: 150, milkType: "artificial", date: .now))
+    BiberonEntry(date: .now, bottle: LastBottle(ml: 150, milkType: "artificial", date: .now), isPremium: true)
   }
 
   func getSnapshot(in context: Context, completion: @escaping (BiberonEntry) -> Void) {
-    completion(BiberonEntry(date: .now, bottle: readLastBottle()))
+    completion(BiberonEntry(date: .now, bottle: readLastBottle(), isPremium: readIsPremium()))
   }
 
   func getTimeline(in context: Context, completion: @escaping (Timeline<BiberonEntry>) -> Void) {
-    let entry    = BiberonEntry(date: .now, bottle: readLastBottle())
+    let entry    = BiberonEntry(date: .now, bottle: readLastBottle(), isPremium: readIsPremium())
     let next     = Calendar.current.date(byAdding: .minute, value: 5, to: .now)!
     let timeline = Timeline(entries: [entry], policy: .after(next))
     completion(timeline)
@@ -97,7 +103,18 @@ struct BiberonWidgetView: View {
       ContainerRelativeShape()
         .fill(bibColor.gradient)
 
-      if let bottle = entry.bottle {
+      if !entry.isPremium {
+        VStack(spacing: 6) {
+          Text("★")
+            .font(.system(size: 22))
+            .foregroundColor(Color(red: 0.91, green: 0.59, blue: 0.27))
+          Text(NSLocalizedString("widget.premiumRequired", comment: ""))
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(.white.opacity(0.9))
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 10)
+        }
+      } else if let bottle = entry.bottle {
         VStack(alignment: .leading, spacing: 4) {
           HStack(spacing: 5) {
             Text("🍼")
@@ -163,6 +180,7 @@ struct BiberonWidget: Widget {
 #Preview(as: .systemSmall) {
   BiberonWidget()
 } timeline: {
-  BiberonEntry(date: .now, bottle: LastBottle(ml: 150, milkType: "artificial", date: .now))
-  BiberonEntry(date: .now, bottle: nil)
+  BiberonEntry(date: .now, bottle: LastBottle(ml: 150, milkType: "artificial", date: .now), isPremium: true)
+  BiberonEntry(date: .now, bottle: nil, isPremium: true)
+  BiberonEntry(date: .now, bottle: nil, isPremium: false)
 }

@@ -4,6 +4,7 @@
 /* Widget */
 "widget.title" = "Biberón";
 "widget.empty" = "Sin biberón\nregistrado";
+"widget.premiumRequired" = "Premium\nrequerido ★";
 "widget.madeAt" = "A las %@";
 "widget.displayName" = "Último biberón";
 "widget.description" = "Muestra el último biberón dado.";

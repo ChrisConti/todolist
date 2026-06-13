@@ -108,7 +108,9 @@ const validateEmail = (value: string): string => {
             country: userCountry,
             provider: 'email',
             emailOptIn,
+            isPremium: false,
             creationDate: serverTimestamp(),
+            platform: Platform.OS,
           });
         }
 

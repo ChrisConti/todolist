@@ -708,24 +708,28 @@ export const useAllaitementCountStats = (tasks: Task[]) => {
       if (isToday(task.date)) {
         if (hasLeft) todayCount.boobLeft += 1;
         if (hasRight) todayCount.boobRight += 1;
-        todayCount.total += 1;
+        if (hasLeft) todayCount.total += 1;
+        if (hasRight) todayCount.total += 1;
       }
       if (isYesterday(task.date)) {
         if (hasLeft) yesterdayCount.boobLeft += 1;
         if (hasRight) yesterdayCount.boobRight += 1;
-        yesterdayCount.total += 1;
+        if (hasLeft) yesterdayCount.total += 1;
+        if (hasRight) yesterdayCount.total += 1;
       }
       if (isInLastNDays(task.date, 7)) {
         if (hasLeft) lastSevenDaysCount.boobLeft += 1;
         if (hasRight) lastSevenDaysCount.boobRight += 1;
-        lastSevenDaysCount.total += 1;
+        if (hasLeft) lastSevenDaysCount.total += 1;
+        if (hasRight) lastSevenDaysCount.total += 1;
       }
 
       for (let i = 0; i < 7; i++) {
         if (taskDate.isSame(moment().subtract(i, 'days'), 'day')) {
           if (hasLeft) lastSevenDaysData.boobLeft[6 - i] += 1;
           if (hasRight) lastSevenDaysData.boobRight[6 - i] += 1;
-          lastSevenDaysData.total[6 - i] += 1;
+          if (hasLeft) lastSevenDaysData.total[6 - i] += 1;
+          if (hasRight) lastSevenDaysData.total[6 - i] += 1;
         }
       }
 
@@ -761,10 +765,17 @@ export interface SleepGroupData {
   label: string;
   nightMinutes: number;
   napMinutes: number;
+  daysCount: number;
+}
+
+export interface DailyTotal {
+  date: string;   // YYYY-MM-DD
+  totalMin: number;
 }
 
 export interface SleepAdvancedResult {
   groups: SleepGroupData[];
+  dailyTotals: DailyTotal[];
   avgNightPerDay: number;
   avgNapPerDay: number;
   avgTotalPerDay: number;
@@ -788,7 +799,7 @@ export const useSommeilAdvancedStats = (tasks: Task[], period: SleepPeriod): Sle
 
   return useMemo(() => {
     const empty: SleepAdvancedResult = {
-      groups: [], avgNightPerDay: 0, avgNapPerDay: 0, avgTotalPerDay: 0,
+      groups: [], dailyTotals: [], avgNightPerDay: 0, avgNapPerDay: 0, avgTotalPerDay: 0,
       todayNight: 0, todayNap: 0, yesterdayNight: 0, yesterdayNap: 0,
       hasData: false, daysWithData: 0,
     };
@@ -805,8 +816,14 @@ export const useSommeilAdvancedStats = (tasks: Task[], period: SleepPeriod): Sle
       } else {
         label = moment().subtract(daysAgoForGroupEnd + daysEach - 1, 'days').format('D/M');
       }
-      return { label, nightMinutes: 0, napMinutes: 0 };
+      return { label, nightMinutes: 0, napMinutes: 0, daysCount: daysEach };
     });
+
+    // Daily totals array — index 0 = oldest day, index period-1 = today
+    const dailyTotals: DailyTotal[] = Array.from({ length: period }, (_, i) => ({
+      date: moment().subtract(period - 1 - i, 'days').format('YYYY-MM-DD'),
+      totalMin: 0,
+    }));
 
     let totalNight = 0;
     let totalNap = 0;
@@ -829,6 +846,11 @@ export const useSommeilAdvancedStats = (tasks: Task[], period: SleepPeriod): Sle
         else groups[groupIdx].napMinutes += duration;
       }
 
+      const dailyIdx = period - 1 - daysAgo;
+      if (dailyIdx >= 0 && dailyIdx < period) {
+        dailyTotals[dailyIdx].totalMin += duration;
+      }
+
       if (isNight) totalNight += duration; else totalNap += duration;
       daysSet.add(startMoment.format('YYYY-MM-DD'));
 
@@ -839,6 +861,7 @@ export const useSommeilAdvancedStats = (tasks: Task[], period: SleepPeriod): Sle
     const d = Math.max(daysSet.size, 1);
     return {
       groups,
+      dailyTotals,
       avgNightPerDay: Math.round(totalNight / d),
       avgNapPerDay:   Math.round(totalNap   / d),
       avgTotalPerDay: Math.round((totalNight + totalNap) / d),

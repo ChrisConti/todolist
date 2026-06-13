@@ -11,6 +11,7 @@ export function updateBiberonWidget(ml: number, milkType: string | null, date: D
   WidgetBridge.saveLastBottle(ml, milkType ?? '', date.getTime() / 1000);
 }
 
-export function updateWidgetPremium(_isPremium: boolean) {
-  // No-op until native widget supports premium flag
+export function updateWidgetPremium(isPremium: boolean) {
+  if (!WidgetBridge) return;
+  WidgetBridge.savePremiumStatus(isPremium);
 }

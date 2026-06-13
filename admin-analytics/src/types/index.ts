@@ -11,7 +11,10 @@ export interface User {
   parentAgeRange?: string;
   lastLoginDate?: string;
   appVersion?: string;
+  isPremium?: boolean;
+  premiumDate?: any; // Firestore Timestamp — set at purchase time (absent for bulk-granted early adopters)
   linkedBaby?: Baby;
+  babyStatus?: 'created' | 'joined' | 'none';
 }
 
 export interface Task {
@@ -67,6 +70,7 @@ export interface AnalyticsMetrics {
   totalAccounts: number;
   totalBabies: number;
   accountsWithoutBaby: number;
+  joinedExistingBaby: number;
   deletedAccounts: number;
   babiesWithMoreThan1Task: number;
   babiesWithMoreThan5Tasks: number;
@@ -114,6 +118,13 @@ export interface AnalyticsMetrics {
     d1: number; d3: number; d7: number; d15: number; d20: number; d25: number;
     d30: number; d45: number; d60: number; d75: number; d90: number;
     totalWithDate: number;
+  };
+  // Premium stats (always global, not date-filtered)
+  premiumStats?: {
+    total: number;          // total isPremium: true across all users
+    today: number;          // inscrits aujourd'hui avec isPremium
+    yesterday: number;      // inscrits hier avec isPremium
+    last7Days: number;      // inscrits sur les 7 derniers jours avec isPremium
   };
   // User funnel: what users do after creating an account
   userFunnel?: {

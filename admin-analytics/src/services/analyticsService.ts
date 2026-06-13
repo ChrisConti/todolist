@@ -103,16 +103,28 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
 
     console.log('📈 [DEBUG] Final metrics:', { totalAccounts, totalBabies });
 
-    // Get user IDs who created babies (in the filtered period)
+    // Get user IDs who have a baby — use ALL babies regardless of date filter
     const userIdsWithBabies = new Set<string>();
-    babies.forEach(baby => {
+    allBabies.forEach(baby => {
       if (baby.user && Array.isArray(baby.user)) {
         baby.user.forEach(uid => userIdsWithBabies.add(uid));
       }
     });
 
-    // Accounts without baby (in the filtered period)
     const accountsWithoutBaby = users.filter(u => !userIdsWithBabies.has(u.userId)).length;
+
+    // Users in period who have a baby but are NOT admin of a baby created in the period
+    // (includes co-parents of new babies + users who joined older babies)
+    let joinedExistingBaby = 0;
+    if (dateRange.start && dateRange.end) {
+      const babiesInPeriodAdminIds = new Set(
+        babies.map(b => b.admin).filter(Boolean)
+      );
+      joinedExistingBaby = users.filter(u => {
+        if (babiesInPeriodAdminIds.has(u.userId)) return false; // created a baby in period
+        return userIdsWithBabies.has(u.userId); // but has a baby
+      }).length;
+    }
 
     // Deleted accounts (in the filtered period)
     const deletedAccounts = users.filter(u => u.deleted === true).length;
@@ -437,6 +449,35 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
       };
     }
 
+    // Premium stats — always computed on allUsers (not date-filtered)
+    // Only counts isPremium: true explicitly set (excludes early-adopter bulk grant before 2026-06-10)
+    const BULK_GRANT_CUTOFF = new Date('2026-06-10');
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayStart = new Date(todayStart.getTime() - 86400000);
+    const sevenDaysStart = new Date(todayStart.getTime() - 6 * 86400000);
+
+    const getUserDate = (u: User): Date | null => {
+      if (!u.creationDate) return null;
+      if (typeof u.creationDate === 'object' && 'toDate' in u.creationDate) return (u.creationDate as any).toDate();
+      if (typeof u.creationDate === 'string') { const d = new Date(u.creationDate); return isNaN(d.getTime()) ? null : d; }
+      return null;
+    };
+
+    // For period stats: only real purchases (isPremium: true AND created after bulk grant cutoff)
+    const isRealPurchase = (u: User) => {
+      if (u.isPremium !== true) return false;
+      const d = getUserDate(u);
+      return d !== null && d >= BULK_GRANT_CUTOFF;
+    };
+
+    const premiumStats = {
+      total: allUsers.filter(isRealPurchase).length,
+      today: allUsers.filter(u => { const d = getUserDate(u); return d && d >= todayStart && isRealPurchase(u); }).length,
+      yesterday: allUsers.filter(u => { const d = getUserDate(u); return d && d >= yesterdayStart && d < todayStart && isRealPurchase(u); }).length,
+      last7Days: allUsers.filter(u => { const d = getUserDate(u); return d && d >= sevenDaysStart && isRealPurchase(u); }).length,
+    };
+
     // Role distribution — aggregate across all baby.memberRoles
     const roleDistribution: Record<string, number> = {};
     babies.forEach(baby => {
@@ -685,6 +726,7 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
       totalAccounts,
       totalBabies,
       accountsWithoutBaby,
+      joinedExistingBaby,
       deletedAccounts,
       babiesWithMoreThan1Task,
       babiesWithMoreThan5Tasks,
@@ -707,6 +749,7 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
       ageRangeDistribution: Object.keys(ageRangeDistribution).length > 0 ? ageRangeDistribution : undefined,
       firstChildCount,
       retentionByAge,
+      premiumStats,
       biberonMilkType,
       allaitementTimerType,
       diaperContentDistribution,

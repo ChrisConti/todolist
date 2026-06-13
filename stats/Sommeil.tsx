@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useSommeilStats, useSommeilCountStats } from '../hooks/useTaskStatistics';
 import { Task } from '../types/stats';
@@ -7,6 +8,7 @@ import StatsContainer from '../components/stats/StatsContainer';
 import SleepAdvancedTab from '../components/stats/SleepAdvancedTab';
 import { STATS_CONFIG } from '../constants/statsConfig';
 import Analytics from '../services/analytics';
+import { usePremium } from '../Context/PremiumContext';
 
 interface SommeilProps {
   navigation: any;
@@ -20,6 +22,7 @@ type ViewMode = 'duration' | 'count';
 
 const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks, babyName, babyBirthDate, userId }) => {
   const { t } = useTranslation();
+  const { isPremium } = usePremium();
   const [mainTab, setMainTab] = useState<'global' | 'advanced'>('global');
   const [viewMode, setViewMode] = useState<ViewMode>('count');
   const enterTimeRef = useRef(Date.now());
@@ -109,12 +112,48 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks, babyName, babyBirt
           onPress={() => setMainTab('advanced')}
         >
           <Text style={[styles.mainTabTxt, mainTab === 'advanced' && styles.mainTabTxtActive]}>
-            {t('sleepAdvanced.tabAdvanced')}
+            {t('sleepAdvanced.tabAdvanced')}{!isPremium ? ' ★' : ''}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {mainTab === 'advanced' ? (
+      {mainTab === 'advanced' && !isPremium ? (
+        <ScrollView contentContainerStyle={styles.lockedWrap}>
+          <View style={styles.lockedIcon}>
+            <View style={styles.lockedIconShine} />
+            <MaterialCommunityIcons name="star" size={32} color="#FFF" />
+          </View>
+          <Text style={styles.lockedTitle}>{t('premium.advancedSommeil.title')}</Text>
+          <Text style={styles.lockedSub}>{t('premium.upsellTitle')}</Text>
+          <View style={styles.featList}>
+            {([
+              { icon: 'heart-pulse',   key: 'premium.advancedSommeil.feat1' },
+              { icon: 'grid',          key: 'premium.advancedSommeil.feat2' },
+              { icon: 'chart-bar',     key: 'premium.advancedSommeil.feat3' },
+              { icon: 'chart-areaspline', key: 'premium.advancedSommeil.feat4' },
+            ] as const).map(({ icon, key }) => (
+              <View key={key} style={styles.featRow}>
+                <View style={styles.featIconWrap}>
+                  <MaterialCommunityIcons name={icon as any} size={16} color={STATS_CONFIG.COLORS.SLEEP} />
+                </View>
+                <Text style={styles.featText}>{t(key)}</Text>
+              </View>
+            ))}
+          </View>
+          <TouchableOpacity
+            style={styles.lockedCta}
+            onPress={() => { Analytics.logEvent('paywall_opened', { source: 'sommeil_advanced' }); navigation.navigate('Paywall'); }}
+            activeOpacity={0.9}
+          >
+            <View style={styles.lockedCtaIcon}>
+              <View style={styles.lockedCtaIconShine} />
+              <MaterialCommunityIcons name="star" size={16} color="#FFF" />
+            </View>
+            <Text style={styles.lockedCtaText}>{t('premium.unlockCta')}</Text>
+            <MaterialCommunityIcons name="chevron-right" size={18} color="#A8956A" />
+          </TouchableOpacity>
+        </ScrollView>
+      ) : mainTab === 'advanced' ? (
         <SleepAdvancedTab
           tasks={tasks}
           babyName={babyName}
@@ -289,6 +328,43 @@ const styles = StyleSheet.create({
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
     fontWeight: 'bold',
   },
+
+  // Locked advanced view
+  lockedWrap: { alignItems: 'center', padding: 24, paddingTop: 36 },
+  lockedIcon: {
+    width: 64, height: 64, borderRadius: 18,
+    backgroundColor: '#E8960A', alignItems: 'center', justifyContent: 'center',
+    marginBottom: 16, overflow: 'hidden',
+  },
+  lockedIconShine: {
+    position: 'absolute', top: 0, left: 0, right: 0, height: 32,
+    backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 18,
+  },
+  lockedTitle: { fontSize: 18, fontWeight: '800', color: '#333', marginBottom: 6, textAlign: 'center' },
+  lockedSub:   { fontSize: 13, color: '#7A8889', marginBottom: 24, textAlign: 'center' },
+  featList: { width: '100%', gap: 10, marginBottom: 28 },
+  featRow:  { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  featIconWrap: {
+    width: 32, height: 32, borderRadius: 8,
+    backgroundColor: `${STATS_CONFIG.COLORS.SLEEP}18`,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  featText: { fontSize: 14, color: '#374151', fontWeight: '500', flex: 1 },
+  lockedCta: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#FFFFFF', borderRadius: 16,
+    borderWidth: 1.5, borderColor: '#D4AA50',
+    paddingVertical: 14, paddingHorizontal: 18, width: '100%',
+  },
+  lockedCtaIcon: {
+    width: 30, height: 30, borderRadius: 8,
+    backgroundColor: '#E8960A', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+  },
+  lockedCtaIconShine: {
+    position: 'absolute', top: 0, left: 0, right: 0, height: 15,
+    backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 8,
+  },
+  lockedCtaText: { flex: 1, fontSize: 15, fontWeight: '700', color: '#3B1F00' },
 });
 
 export default Sommeil;

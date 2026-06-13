@@ -228,6 +228,14 @@ export const ListModal: React.FC<ListModalProps> = ({
           </div>
         )}
 
+        {type === 'users' && (data as User[]).some(u => u.babyStatus) && (
+          <div style={{ display: 'flex', gap: 12, padding: '8px 20px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 12, color: '#6b7280' }}>
+            <span><span style={{ background: '#dcfce7', color: '#166534', padding: '2px 7px', borderRadius: 6, fontWeight: 600 }}>👶 Nom</span> = bébé créé dans la période</span>
+            <span><span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 7px', borderRadius: 6, fontWeight: 600 }}>🔗 Nom</span> = a rejoint un bébé existant</span>
+            <span><span style={{ color: '#9ca3af' }}>—</span> = sans bébé</span>
+          </div>
+        )}
+
         <div className="modal-body">
           {data.length === 0 ? (
             <div className="empty-state">Aucune donnée à afficher</div>
@@ -245,6 +253,7 @@ export const ListModal: React.FC<ListModalProps> = ({
                       <th>Plateforme</th>
                       <th>Date de création</th>
                       {(data as User[]).some(u => u.deleted) && <th>Période de vie</th>}
+                      {(data as User[]).some(u => u.babyStatus) && <th>Bébé</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -283,6 +292,31 @@ export const ListModal: React.FC<ListModalProps> = ({
                           </td>
                           <td>{date}</td>
                           {(data as User[]).some(u => u.deleted) && <td>{lifetime}</td>}
+                          {(data as User[]).some(u => u.babyStatus) && (
+                            <td>
+                              {user.babyStatus === 'created' && user.linkedBaby && (
+                                <span
+                                  onClick={e => { e.stopPropagation(); onBabyClick?.(user.linkedBaby!); }}
+                                  style={{ background: '#dcfce7', color: '#166534', padding: '3px 8px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: onBabyClick ? 'pointer' : 'default', whiteSpace: 'nowrap' }}
+                                  title={user.linkedBaby.name}
+                                >
+                                  👶 {user.linkedBaby.name}
+                                </span>
+                              )}
+                              {user.babyStatus === 'joined' && user.linkedBaby && (
+                                <span
+                                  onClick={e => { e.stopPropagation(); onBabyClick?.(user.linkedBaby!); }}
+                                  style={{ background: '#dbeafe', color: '#1e40af', padding: '3px 8px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: onBabyClick ? 'pointer' : 'default', whiteSpace: 'nowrap' }}
+                                  title={user.linkedBaby.name}
+                                >
+                                  🔗 {user.linkedBaby.name}
+                                </span>
+                              )}
+                              {user.babyStatus === 'none' && (
+                                <span style={{ color: '#9ca3af', fontSize: 12 }}>—</span>
+                              )}
+                            </td>
+                          )}
                         </tr>
                       );
                     })}

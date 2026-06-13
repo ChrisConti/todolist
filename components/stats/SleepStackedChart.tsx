@@ -21,7 +21,11 @@ interface Props {
 
 const SleepStackedChart: React.FC<Props> = ({ groups }) => {
   const { t } = useTranslation();
-  const maxTotal = Math.max(...groups.map(g => g.nightMinutes + g.napMinutes), 1);
+  const getAvg = (g: SleepGroupData) =>
+    g.daysCount > 0 ? Math.round((g.nightMinutes + g.napMinutes) / g.daysCount) : 0;
+  const getNightAvg = (g: SleepGroupData) =>
+    g.daysCount > 0 ? Math.round(g.nightMinutes / g.daysCount) : 0;
+  const maxAvg = Math.max(...groups.map(getAvg), 1);
 
   return (
     <View>
@@ -38,17 +42,18 @@ const SleepStackedChart: React.FC<Props> = ({ groups }) => {
 
       <View style={styles.chart}>
         {groups.map((g, i) => {
-          const total      = g.nightMinutes + g.napMinutes;
-          const totalH     = total > 0 ? (total / maxTotal) * BAR_MAX_HEIGHT : 0;
-          const nightH     = total > 0 ? (g.nightMinutes / total) * totalH : 0;
+          const avg        = getAvg(g);
+          const nightAvg   = getNightAvg(g);
+          const totalH     = avg > 0 ? (avg / maxAvg) * BAR_MAX_HEIGHT : 0;
+          const nightH     = avg > 0 ? (nightAvg / avg) * totalH : 0;
           const napH       = totalH - nightH;
-          const isMax      = total === maxTotal && total > 0;
+          const isMax      = avg === maxAvg && avg > 0;
           const napRadius  = napH > 0 ? 4 : 0;
           const nightTopR  = napH === 0 ? 4 : 0;
 
           return (
             <View key={i} style={styles.col}>
-              {total > 0 && <Text style={styles.valAbove}>{fmtShort(total)}</Text>}
+              {avg > 0 && <Text style={styles.valAbove}>{fmtShort(avg)}</Text>}
               <View style={styles.barWrap}>
                 <View style={{ height: totalH, width: 28, opacity: isMax ? 1 : 0.72 }}>
                   {napH > 0 && (

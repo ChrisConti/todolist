@@ -424,6 +424,10 @@
       "avgInterval": "Avg interval",
       "quantityUnit": "ml/oz",
       "noData": "No data available",
+      "emptySubtitle": "Start recording activities to see your statistics here.",
+      "emptyCta": "Record an activity",
+      "noBabyTitle": "No baby yet",
+      "noBabySubtitle": "Add your baby to start tracking and see statistics.",
       "category": {
         "bottle": "Bottle",
         "diaper": "Diapers",
@@ -431,6 +435,12 @@
         "temperature": "Temperature",
         "breastfeeding": "Breastfeeding",
         "detail": "Detail"
+      },
+      "overview": {
+        "today": "Today",
+        "yesterday": "Yest.",
+        "week": "7d",
+        "export": "Export"
       }
     },
     "enterValidName": "Please enter a valid name",
@@ -481,7 +491,7 @@
     "allaitement": {
       "left": "Left",
       "right": "Right",
-      "both": "Both",
+      "both": "Total",
       "someFigures": "Some figures",
       "today": "Today",
       "yesterday": "Yesterday",
@@ -636,8 +646,10 @@
       "period30": "30d",
       "period60": "60d",
       "period90": "90d",
-      "omsTitle": "WHO Recommendations",
+      "omsTitle": "OMS",
       "omsTotal": "Total: {{min}}-{{max}}h/day",
+      "perDay": "day",
+      "avgLabel": "Average",
       "avgPeriod": "Avg. over {{period}} days:",
       "nightLabel": "Night",
       "napLabel": "Naps",
@@ -648,12 +660,25 @@
       "omsInfoText": "These values are based on World Health Organization guidelines for infant sleep. Every baby is different — these figures are guidelines, not strict goals.",
       "omsInfoLink": "Learn more",
       "omsInfoClose": "Close",
+      "tableAge": "Age",
+      "tableTotal": "Total",
+      "tableNight": "Night",
+      "tableNaps": "Naps",
+      "ageGroup1": "0-3 months",
+      "ageGroup2": "4-11 months",
+      "ageGroup3": "1-2 years",
+      "ageGroup4": "3-5 years",
       "feedbackTitle": "Are these stats useful?",
       "feedbackYes": "Yes, great!",
       "feedbackIdea": "I have an idea",
       "feedbackThanks": "Thanks! 🙏",
       "noData": "Not enough data for this period",
-      "evolutionTitle": "Evolution over {{period}} days"
+      "evolutionTitle": "Evolution over {{period}} days",
+      "heatOk": "Goal met",
+      "heatNok": "Insufficient",
+      "heatNoData": "No data",
+      "seeGraph": "View calendar",
+      "rotateHint": "Turn your phone to landscape to display the graph"
     },
     "rythme": {
       "title": "⏱ Rhythm Analysis",
@@ -714,9 +739,22 @@
       "daysHours": "{{days}}d {{hours}}h ago",
       "days": "{{count}}d ago"
     },
+    "earlyAdopter": {
+      "title": "Premium gifted!",
+      "intro": "We have launched premium features today:",
+      "feat1": "Advanced bottle statistics",
+      "feat2": "Advanced sleep statistics",
+      "feat3": "Baby widget",
+      "feat4": "Data export",
+      "message": "We are delighted to announce that you are premium for life.",
+      "signature": "Delphine & Christopher",
+      "thanks": "Thank you for the trust you have placed in Tribu Baby!",
+      "cta": "Continue for free",
+      "ctaNote": "Don't forget to leave us a review"
+    },
     "premium": {
       "title": "Tribu Premium",
-      "subtitle": "Unlock everything for your family, for life.",
+      "subtitle": "Unlock all features, for life.",
       "badgeTitle": "Tribu Premium · for life",
       "cta": "Get Tribu Premium · {{price}}",
       "restore": "Restore purchase",
@@ -755,6 +793,26 @@
         "widgetName": "Bottle",
         "widgetAgo": "1h 12 ago",
         "team": "A team of 2 parents"
+      },
+      "unlockCta": "Discover Premium",
+      "settingsBannerTitle": "Upgrade to Tribu Premium",
+      "settingsBannerActive": "Tribu Premium · Active ✓",
+      "manageTitle": "Manage subscription",
+      "manageMessage": "You will be redirected to your platform's subscription management page.",
+      "manageCta": "Continue",
+      "advancedBiberon": {
+        "title": "Advanced Bottle Stats",
+        "feat1": "Daily detail + timeline",
+        "feat2": "90-day trends",
+        "feat3": "Feeding rhythm chart",
+        "feat4": "Milk type breakdown"
+      },
+      "advancedSommeil": {
+        "title": "Advanced Sleep Stats",
+        "feat1": "WHO recommendations",
+        "feat2": "Sleep calendar",
+        "feat3": "7, 30, 60 and 90-day stats",
+        "feat4": "Night vs nap chart"
       }
     }
   },
@@ -1206,6 +1264,10 @@
       "avgInterval": "Intervalle moy.",
       "quantityUnit": "ml/oz",
       "noData": "Aucune donnée disponible",
+      "emptySubtitle": "Commencez à enregistrer des activités pour voir vos statistiques ici.",
+      "emptyCta": "Enregistrer une activité",
+      "noBabyTitle": "Pas encore de bébé",
+      "noBabySubtitle": "Ajoutez votre bébé pour commencer le suivi et voir les statistiques.",
       "category": {
         "bottle": "Biberon",
         "diaper": "Couches",
@@ -1213,6 +1275,12 @@
         "temperature": "Température",
         "breastfeeding": "Allaitement",
         "detail": "Détail"
+      },
+      "overview": {
+        "today": "Auj.",
+        "yesterday": "Hier",
+        "week": "7j",
+        "export": "Export"
       }
     },
     "conditions": {
@@ -1226,7 +1294,7 @@
     "allaitement": {
       "left": "Gauche",
       "right": "Droite",
-      "both": "Les deux",
+      "both": "Total",
       "someFigures": "Quelques chiffres",
       "today": "Aujourd'hui",
       "yesterday": "Hier",
@@ -1381,8 +1449,10 @@
       "period30": "30j",
       "period60": "60j",
       "period90": "90j",
-      "omsTitle": "Recommandations OMS",
+      "omsTitle": "OMS",
       "omsTotal": "Total : {{min}}-{{max}}h/jour",
+      "perDay": "jour",
+      "avgLabel": "Moyenne",
       "avgPeriod": "Moy. sur {{period}} jours :",
       "nightLabel": "Nuit",
       "napLabel": "Siestes",
@@ -1393,12 +1463,25 @@
       "omsInfoText": "Ces valeurs sont basées sur les recommandations de l'Organisation Mondiale de la Santé pour le sommeil des nourrissons. Chaque bébé est différent — ces chiffres sont des repères, pas des objectifs stricts.",
       "omsInfoLink": "En savoir plus",
       "omsInfoClose": "Fermer",
+      "tableAge": "Âge",
+      "tableTotal": "Total",
+      "tableNight": "Nuit",
+      "tableNaps": "Siestes",
+      "ageGroup1": "0-3 mois",
+      "ageGroup2": "4-11 mois",
+      "ageGroup3": "1-2 ans",
+      "ageGroup4": "3-5 ans",
       "feedbackTitle": "Ces stats vous sont utiles ?",
       "feedbackYes": "Oui, c'est top !",
       "feedbackIdea": "J'ai une idée",
       "feedbackThanks": "Merci ! 🙏",
       "noData": "Pas assez de données pour cette période",
-      "evolutionTitle": "Évolution sur {{period}} jours"
+      "evolutionTitle": "Évolution sur {{period}} jours",
+      "heatOk": "Objectif atteint",
+      "heatNok": "Insuffisant",
+      "heatNoData": "Pas de données",
+      "seeGraph": "Voir le calendrier",
+      "rotateHint": "Tournez votre téléphone pour afficher le graphique"
     },
     "rythme": {
       "title": "⏱ Analyse du Rythme",
@@ -1459,9 +1542,22 @@
       "daysHours": "Il y a {{days}}j {{hours}}h",
       "days": "Il y a {{count}}j"
     },
+    "earlyAdopter": {
+      "title": "Premium offert !",
+      "intro": "Nous avons mis en place aujourd'hui des fonctionnalités premium sur :",
+      "feat1": "Stats avancées biberon",
+      "feat2": "Stats avancées sommeil",
+      "feat3": "Widget bébé",
+      "feat4": "Export des données",
+      "message": "Nous sommes ravis de vous annoncer que vous êtes premium à vie.",
+      "signature": "Delphine & Christopher",
+      "thanks": "Merci pour la confiance que vous nous avez accordée à Tribu Baby !",
+      "cta": "Continuer gratuitement",
+      "ctaNote": "Pensez à nous mettre un commentaire"
+    },
     "premium": {
       "title": "Tribu Premium",
-      "subtitle": "Tout débloquer pour ta tribu, à vie.",
+      "subtitle": "Toutes les fonctionnalités débloquées, à vie.",
       "badgeTitle": "Tribu Premium · à vie",
       "cta": "Obtenir Tribu Premium · {{price}}",
       "restore": "Restaurer un achat",
@@ -1500,6 +1596,26 @@
         "widgetName": "Biberon",
         "widgetAgo": "il y a 1h12",
         "team": "Une équipe de 2 parents"
+      },
+      "unlockCta": "Découvrir Premium",
+      "settingsBannerTitle": "Passer à Tribu Premium",
+      "settingsBannerActive": "Tribu Premium · Activé ✓",
+      "manageTitle": "Gérer mon abonnement",
+      "manageMessage": "Vous allez être redirigé vers la gestion des abonnements de votre plateforme.",
+      "manageCta": "Continuer",
+      "advancedBiberon": {
+        "title": "Stats Avancées · Biberon",
+        "feat1": "Détail journalier + timeline",
+        "feat2": "Tendances sur 90 jours",
+        "feat3": "Graphique rythme des biberons",
+        "feat4": "Répartition par type de lait"
+      },
+      "advancedSommeil": {
+        "title": "Stats Avancées · Sommeil",
+        "feat1": "Recommandations OMS",
+        "feat2": "Calendrier du sommeil",
+        "feat3": "Stats sur 7, 30, 60 et 90 jours",
+        "feat4": "Graphique nuit vs sieste"
       }
     }
   },
@@ -1935,6 +2051,10 @@
       "avgInterval": "Intervalo prom.",
       "quantityUnit": "ml/oz",
       "noData": "No hay datos disponibles",
+      "emptySubtitle": "Empiece a registrar actividades para ver sus estadísticas aquí.",
+      "emptyCta": "Registrar una actividad",
+      "noBabyTitle": "Aún sin bebé",
+      "noBabySubtitle": "Añade a tu bebé para empezar el seguimiento y ver las estadísticas.",
       "category": {
         "bottle": "Biberón",
         "diaper": "Pañales",
@@ -1942,6 +2062,12 @@
         "temperature": "Temperatura",
         "breastfeeding": "Lactancia",
         "detail": "Detalle"
+      },
+      "overview": {
+        "today": "Hoy",
+        "yesterday": "Ayer",
+        "week": "7d",
+        "export": "Exportar"
       }
     },
     "conditions": {
@@ -1956,7 +2082,7 @@
     "allaitement": {
       "left": "Izquierda",
       "right": "Derecha",
-      "both": "Ambos",
+      "both": "Total",
       "someFigures": "Algunas cifras",
       "today": "Hoy",
       "yesterday": "Ayer",
@@ -2111,8 +2237,10 @@
       "period30": "30d",
       "period60": "60d",
       "period90": "90d",
-      "omsTitle": "Recomendaciones OMS",
+      "omsTitle": "OMS",
       "omsTotal": "Total: {{min}}-{{max}}h/día",
+      "perDay": "día",
+      "avgLabel": "Promedio",
       "avgPeriod": "Prom. en {{period}} días:",
       "nightLabel": "Noche",
       "napLabel": "Siestas",
@@ -2123,12 +2251,25 @@
       "omsInfoText": "Estos valores se basan en las recomendaciones de la Organización Mundial de la Salud para el sueño infantil. Cada bebé es diferente — estas cifras son referencias, no objetivos estrictos.",
       "omsInfoLink": "Saber más",
       "omsInfoClose": "Cerrar",
+      "tableAge": "Edad",
+      "tableTotal": "Total",
+      "tableNight": "Noche",
+      "tableNaps": "Siestas",
+      "ageGroup1": "0-3 meses",
+      "ageGroup2": "4-11 meses",
+      "ageGroup3": "1-2 años",
+      "ageGroup4": "3-5 años",
       "feedbackTitle": "¿Estas estadísticas son útiles?",
       "feedbackYes": "¡Sí, está genial!",
       "feedbackIdea": "Tengo una idea",
       "feedbackThanks": "¡Gracias! 🙏",
       "noData": "No hay suficientes datos para este período",
-      "evolutionTitle": "Evolución en {{period}} días"
+      "evolutionTitle": "Evolución en {{period}} días",
+      "heatOk": "Objetivo alcanzado",
+      "heatNok": "Insuficiente",
+      "heatNoData": "Sin datos",
+      "seeGraph": "Ver el calendario",
+      "rotateHint": "Gire su teléfono para ver el gráfico"
     },
     "rythme": {
       "title": "⏱ Análisis del Ritmo",
@@ -2189,9 +2330,22 @@
       "daysHours": "Hace {{days}}d {{hours}}h",
       "days": "Hace {{count}}d"
     },
+    "earlyAdopter": {
+      "title": "¡Premium regalado!",
+      "intro": "Hemos lanzado hoy las funciones premium:",
+      "feat1": "Estadísticas avanzadas del biberón",
+      "feat2": "Estadísticas avanzadas del sueño",
+      "feat3": "Widget del bebé",
+      "feat4": "Exportación de datos",
+      "message": "Nos complace anunciarle que es premium de por vida.",
+      "signature": "Delphine & Christopher",
+      "thanks": "¡Gracias por la confianza que nos ha otorgado en Tribu Baby!",
+      "cta": "Continuar gratis",
+      "ctaNote": "Recuerda dejarnos una reseña"
+    },
     "premium": {
       "title": "Tribu Premium",
-      "subtitle": "Desbloquea todo para tu tribu, de por vida.",
+      "subtitle": "Todas las funciones desbloqueadas, de por vida.",
       "badgeTitle": "Tribu Premium · de por vida",
       "cta": "Obtener Tribu Premium · {{price}}",
       "restore": "Restaurar compra",
@@ -2230,6 +2384,26 @@
         "widgetName": "Biberón",
         "widgetAgo": "hace 1h12",
         "team": "Un equipo de 2 padres"
+      },
+      "unlockCta": "Descubrir Premium",
+      "settingsBannerTitle": "Pasar a Tribu Premium",
+      "settingsBannerActive": "Tribu Premium · Activo ✓",
+      "manageTitle": "Gestionar suscripción",
+      "manageMessage": "Será redirigido a la página de gestión de suscripciones de su plataforma.",
+      "manageCta": "Continuar",
+      "advancedBiberon": {
+        "title": "Stats Avanzadas · Biberón",
+        "feat1": "Detalle diario + línea de tiempo",
+        "feat2": "Tendencias de 90 días",
+        "feat3": "Gráfico de ritmo de biberones",
+        "feat4": "Distribución por tipo de leche"
+      },
+      "advancedSommeil": {
+        "title": "Stats Avanzadas · Sueño",
+        "feat1": "Recomendaciones OMS",
+        "feat2": "Calendario del sueño",
+        "feat3": "Stats de 7, 30, 60 y 90 días",
+        "feat4": "Gráfico noche vs siesta"
       }
     }
   }

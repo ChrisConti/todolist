@@ -6,4 +6,6 @@ RCT_EXTERN_METHOD(saveLastBottle:(nonnull NSInteger)ml
                   milkType:(NSString *)milkType
                   timestamp:(double)timestamp)
 
+RCT_EXTERN_METHOD(savePremiumStatus:(BOOL)isPremium)
+
 @end

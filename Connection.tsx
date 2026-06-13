@@ -93,7 +93,9 @@ const ConnectionScreen = ({ navigation }) => {
                 username: user.displayName || user.email?.split('@')[0] || 'Utilisateur',
                 babyID: '',
                 provider: 'email',
+                isPremium: false,
                 creationDate: serverTimestamp(),
+                platform: Platform.OS,
               });
             }
           } catch (firestoreError: any) {

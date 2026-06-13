@@ -5,7 +5,7 @@ import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import { useTranslation } from 'react-i18next';
 import { AuthentificationUserContext } from './AuthentificationContext';
 import { userRef } from '../config';
-import { query, where, onSnapshot, getDocs, updateDoc } from 'firebase/firestore';
+import { query, where, onSnapshot, getDocs, updateDoc, Timestamp } from 'firebase/firestore';
 import { updateWidgetPremium } from '../utils/widgetBridge';
 import Analytics from '../services/analytics';
 import EarlyAdopterModal from '../components/EarlyAdopterModal';
@@ -108,7 +108,7 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const grantPremium = async (uid: string) => {
     const snap = await getDocs(query(userRef, where('userId', '==', uid)));
-    if (!snap.empty) await updateDoc(snap.docs[0].ref, { isPremium: true });
+    if (!snap.empty) await updateDoc(snap.docs[0].ref, { isPremium: true, premiumDate: Timestamp.now() });
   };
 
   const purchase = async (): Promise<boolean> => {

@@ -7,10 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { exportTasksToCSV, getDateRangePresets } from '../utils/exportTasks';
 import analytics from '../services/analytics';
 import moment from 'moment';
+import { usePremium } from '../Context/PremiumContext';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const ExportTasks = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { user, babyID } = useContext(AuthentificationUserContext);
+  const { isPremium } = usePremium();
   const [loading, setLoading] = useState(false);
   const [babyData, setBabyData] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState('last7Days');
@@ -141,19 +144,37 @@ const ExportTasks = ({ navigation }) => {
           <Text style={styles.formatText}>{t('export.page.formatCSV')}</Text>
         </View>
 
-        <TouchableOpacity
-          style={[styles.exportButton, loading && styles.exportButtonDisabled]}
-          onPress={handleExport}
-          disabled={loading || !babyData}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.exportButtonText}>
-              📥 {t('export.page.exportButton')}
-            </Text>
-          )}
-        </TouchableOpacity>
+        {!isPremium ? (
+          <TouchableOpacity
+            style={styles.premiumButton}
+            onPress={() => { analytics.logEvent('paywall_opened', { source: 'export_button' }); navigation.navigate('Paywall'); }}
+            activeOpacity={0.85}
+          >
+            <View style={styles.premiumButtonIcon}>
+              <View style={styles.premiumButtonIconShine} />
+              <MaterialCommunityIcons name="star" size={18} color="#FFF" />
+            </View>
+            <View>
+              <Text style={styles.exportButtonText}>{t('premium.exportCta')}</Text>
+              <Text style={styles.premiumButtonSub}>{t('premium.exportCtaSub')}</Text>
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.exportButton, loading && styles.exportButtonDisabled]}
+            onPress={handleExport}
+            disabled={loading || !babyData}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <>
+                <MaterialCommunityIcons name="file-export" size={20} color="#FFF" />
+                <Text style={styles.exportButtonText}>{t('export.page.exportButton')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
 
         <Text style={styles.helpText}>
           {t('export.page.helpText')}
@@ -243,7 +264,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     marginBottom: 15,
   },
   exportButtonDisabled: {
@@ -254,6 +278,34 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  premiumButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#D4AA50',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 15,
+  },
+  premiumButtonIcon: {
+    width: 38, height: 38, borderRadius: 10,
+    backgroundColor: '#E8960A',
+    alignItems: 'center', justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  premiumButtonIconShine: {
+    position: 'absolute', top: 0, left: 0, right: 0, height: 19,
+    backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 10,
+  },
+  premiumButtonSub: {
+    color: '#7C5C2E',
+    fontSize: 12,
+    fontWeight: '400',
+    marginTop: 2,
   },
   helpText: {
     fontSize: 13,
