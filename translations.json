@@ -814,6 +814,25 @@
         "feat3": "7, 30, 60 and 90-day stats",
         "feat4": "Night vs nap chart"
       }
+    },
+    "home": {
+      "emptyState": {
+        "firstTaskTitle": "Log the first activity for",
+        "noRecentTitle": "Add a new activity for",
+        "subtitle": "Pick an activity to get started"
+      }
+    },
+    "firstTask": {
+      "title": "When was their last bottle?",
+      "subtitle": "Log it in 2 seconds — the timeline starts here",
+      "now": "Just now",
+      "ago30m": "30 min ago",
+      "ago1h": "1 hour ago",
+      "ago2h": "2 hours ago",
+      "ago3h": "3 hours ago",
+      "quantityOptional": "Amount (ml) — optional",
+      "save": "Save",
+      "skip": "Skip"
     }
   },
   "fr": {
@@ -1617,6 +1636,25 @@
         "feat3": "Stats sur 7, 30, 60 et 90 jours",
         "feat4": "Graphique nuit vs sieste"
       }
+    },
+    "home": {
+      "emptyState": {
+        "firstTaskTitle": "Note la première activité de",
+        "noRecentTitle": "Ajoute une nouvelle activité pour",
+        "subtitle": "Choisis une activité pour commencer"
+      }
+    },
+    "firstTask": {
+      "title": "Quand a eu lieu son dernier biberon ?",
+      "subtitle": "Enregistre-le en 2 secondes, sa timeline démarre ici",
+      "now": "À l'instant",
+      "ago30m": "Il y a 30 min",
+      "ago1h": "Il y a 1 h",
+      "ago2h": "Il y a 2 h",
+      "ago3h": "Il y a 3 h",
+      "quantityOptional": "Quantité (ml) — optionnel",
+      "save": "Enregistrer",
+      "skip": "Passer"
     }
   },
   "es": {
@@ -2405,6 +2443,25 @@
         "feat3": "Stats de 7, 30, 60 y 90 días",
         "feat4": "Gráfico noche vs siesta"
       }
+    },
+    "home": {
+      "emptyState": {
+        "firstTaskTitle": "Registra la primera actividad de",
+        "noRecentTitle": "Añade una nueva actividad para",
+        "subtitle": "Elige una actividad para empezar"
+      }
+    },
+    "firstTask": {
+      "title": "¿Cuándo fue su último biberón?",
+      "subtitle": "Regístralo en 2 segundos, su historial empieza aquí",
+      "now": "Ahora mismo",
+      "ago30m": "Hace 30 min",
+      "ago1h": "Hace 1 hora",
+      "ago2h": "Hace 2 horas",
+      "ago3h": "Hace 3 horas",
+      "quantityOptional": "Cantidad (ml) — opcional",
+      "save": "Guardar",
+      "skip": "Omitir"
     }
   }
 }

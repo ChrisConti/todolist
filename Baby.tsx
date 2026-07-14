@@ -15,6 +15,7 @@ import Girl from './assets/fille.svg';
 import { validateBabyName, validateBirthdate, formatBirthdateInput } from './utils/validation';
 import { COLLECTIONS, KEYBOARD_CONFIG } from './utils/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { parseReviewPromptState } from './utils/reviewPromptLogic';
 
 const ROLES = ['maman', 'papa', 'mamie', 'papy', 'nounou', 'tata', 'tonton', 'autre'] as const;
 const AGE_RANGES = ['under25', 'r25to30', 'r30to35', 'r35to40', 'over40'] as const;
@@ -111,6 +112,14 @@ const Baby = ({ navigation }) => {
         await AsyncStorage.removeItem(`review_prompt_count_${user.uid}`);
         const hasReviewed = await AsyncStorage.getItem(`has_reviewed_app_${user.uid}`);
         if (hasReviewed !== 'true') await AsyncStorage.removeItem(`has_reviewed_app_${user.uid}`);
+        // Nouveau système : réancre le compteur de tâches sans effacer la mémoire oui/non
+        const promptState = parseReviewPromptState(await AsyncStorage.getItem(`review_prompt_state_${user.uid}`));
+        if (promptState) {
+          await AsyncStorage.setItem(
+            `review_prompt_state_${user.uid}`,
+            JSON.stringify({ ...promptState, lastPromptAtCount: 0 })
+          );
+        }
       } catch { /* Non-critical */ }
 
       try {
@@ -124,7 +133,7 @@ const Baby = ({ navigation }) => {
       } catch { /* Non-critical */ }
 
       setLoading(false);
-      navigation.navigate('MainTabs');
+      navigation.navigate('FirstBiberon', { babyID: uniqueId, babyName: trimmedName });
     } catch (error: any) {
       setLoading(false);
       if (error.code === 'permission-denied') setError(t('error.permissionDenied') || 'Permission denied');

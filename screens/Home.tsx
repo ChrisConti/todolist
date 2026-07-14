@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SectionList, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SectionList, ActivityIndicator, ScrollView, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
@@ -8,7 +8,6 @@ import { babiesRef, userRef } from '../config';
 import { useTranslation } from 'react-i18next';
 import Card from "../Card.js";
 import Stork from '../assets/parachute2.svg';
-import SleepingBaby from '../assets/sleepingBaby.svg';
 import analytics from '../services/analytics';
 import Biberon from '../assets/biberon-color.svg';
 import Couche from '../assets/couche-color.svg';
@@ -22,6 +21,7 @@ const BabyList = ({ navigation }) => {
   const { user, babyID, setBabyID, userInfo, setUserInfo, setUsersList } = useContext(AuthentificationUserContext);
   const snapshotListener = useRef<(() => void) | null>(null);
   const [tasks, setTasks] = useState([]);
+  const [totalTaskCount, setTotalTaskCount] = useState(0);
   const [babyName, setBabyName] = useState('');
   const [babyExist, setBabyExist] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -82,6 +82,7 @@ const BabyList = ({ navigation }) => {
     setBabyExist(false);
     setBabyName(t('title.following'));
     setTasks([]);
+    setTotalTaskCount(0);
     navigation.setOptions({ headerTitle: t('title.following') });
   };
 
@@ -103,6 +104,7 @@ const BabyList = ({ navigation }) => {
       }) || [];
 
       setTasks(recentTasks);
+      setTotalTaskCount(babyData.tasks?.length || 0);
     }
   };
 
@@ -197,11 +199,19 @@ const BabyList = ({ navigation }) => {
           ]}
         />
       ) : tasks.length === 0 ? (
-        <EmptyState
-          icon={<SleepingBaby height={150} width={150} />}
-          actions={[
-            { label: t('task.addTask'), onPress: () => navigation.navigate('CreateTask', { babyID, initialCategory: selectedFilter }) },
-          ]}
+        <EmptyTasksGrid
+          title={totalTaskCount === 0
+            ? t('home.emptyState.firstTaskTitle')
+            : t('home.emptyState.noRecentTitle')}
+          babyName={babyName}
+          subtitle={t('home.emptyState.subtitle')}
+          onSelectCategory={(categoryId: number) => {
+            analytics.logEvent('empty_state_category_tapped', {
+              category: categoryId,
+              first_task: totalTaskCount === 0,
+            });
+            navigation.navigate('CreateTask', { babyID, initialCategory: categoryId });
+          }}
         />
       ) : filteredTasks.length === 0 ? (
         <View style={styles.emptyFilterContainer}>
@@ -275,6 +285,46 @@ const FilterBar = React.memo(({ selectedFilter, onFilterChange, t }: { selectedF
     </View>
   );
 });
+
+// Tuile carrée : (largeur écran − padding 24×2 − 2 gaps de 14) / 3 colonnes
+const TILE_SIZE = Math.floor((Dimensions.get('window').width - 48 - 28) / 3);
+
+// Mêmes couleurs / ordre que la FilterBar et la grille de la page Stats
+const EMPTY_GRID_CATEGORIES = [
+  { id: 0, Icon: Biberon, color: '#34777B' },
+  { id: 5, Icon: Allaitement, color: '#1AAAAA' },
+  { id: 3, Icon: Dodo, color: '#E29656' },
+  { id: 1, Icon: Couche, color: '#C75B4A' },
+  { id: 4, Icon: Thermo, color: '#4F469F' },
+  { id: 2, Icon: Sante, color: '#6B8DEA' },
+];
+
+const EmptyTasksGrid = ({ title, babyName, subtitle, onSelectCategory }: {
+  title: string;
+  babyName: string;
+  subtitle: string;
+  onSelectCategory: (categoryId: number) => void;
+}) => (
+  <ScrollView contentContainerStyle={styles.emptyTasksContainer} showsVerticalScrollIndicator={false}>
+    <Text style={styles.emptyTasksTitle}>{title}</Text>
+    <Text style={styles.emptyTasksName}>{babyName}</Text>
+    <Text style={styles.emptyTasksSubtitle}>{subtitle}</Text>
+    <View style={styles.tilesWrap}>
+      {EMPTY_GRID_CATEGORIES.map(({ id, Icon, color }) => (
+        <TouchableOpacity
+          key={id}
+          style={[styles.tile, { backgroundColor: color }]}
+          activeOpacity={0.8}
+          onPress={() => onSelectCategory(id)}
+        >
+          <View style={styles.tileIconBadge}>
+            <Icon height={34} width={34} />
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  </ScrollView>
+);
 
 const EmptyState = ({ icon, message, actions }) => (
   <View style={{ alignSelf: 'center', paddingTop: 50 }}>
@@ -355,6 +405,58 @@ const styles = StyleSheet.create({
     color: '#7A8889',
     textAlign: 'center',
     marginBottom: 30,
+  },
+  emptyTasksContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  emptyTasksTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#5A5A5A',
+    textAlign: 'center',
+  },
+  emptyTasksName: {
+    fontFamily: 'Pacifico',
+    fontSize: 34,
+    color: '#C75B4A',
+    textAlign: 'center',
+    marginTop: 2,
+    marginBottom: 10,
+  },
+  emptyTasksSubtitle: {
+    fontSize: 14,
+    color: '#7A8889',
+    textAlign: 'center',
+    marginBottom: 28,
+  },
+  tilesWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 14,
+  },
+  tile: {
+    width: TILE_SIZE,
+    height: TILE_SIZE,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  tileIconBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyFilterContainer: {
     flex: 1,

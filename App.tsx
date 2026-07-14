@@ -13,6 +13,7 @@ import BabyList from './screens/Home';
 import Connection from './Connection';
 import SignIn from './SignIn';
 import CreateTask from './screens/CreateTask';
+import FirstTaskBiberon from './screens/FirstTaskBiberon';
 import UpdateTask from './screens/UpdateTask';
 import Settings from './Settings';
 import Baby from './Baby';
@@ -393,6 +394,14 @@ function MainStack() {
           headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
           headerTitle: t('title.addBaby'),
           headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen
+        name="FirstBiberon"
+        component={FirstTaskBiberon}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
         }}
       />
       <Stack.Screen

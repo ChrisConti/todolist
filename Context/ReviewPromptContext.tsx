@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking, Platform } from 'react-native';
 import * as StoreReview from 'expo-store-review';
@@ -7,6 +7,17 @@ import ModalSentimentGate from '../components/ModalSentimentGate';
 import analytics from '../services/analytics';
 import { log } from '../utils/logger';
 import { AuthentificationUserContext } from './AuthentificationContext';
+import {
+  ReviewPromptState,
+  initialReviewPromptState,
+  migrateLegacyState,
+  parseReviewPromptState,
+  shouldShowPrompt,
+  recordPromptShown,
+  recordOutcome,
+  consumedInWindow,
+  MAX_CONSUMED_PER_YEAR,
+} from '../utils/reviewPromptLogic';
 
 interface ReviewPromptContextType {
   handleTaskCreated: () => Promise<void>;
@@ -27,8 +38,7 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [taskCount, setTaskCount] = useState(0);
   const [hasReviewed, setHasReviewed] = useState(false);
-  const [lastPromptAtCount, setLastPromptAtCount] = useState(0);
-  const [promptCount, setPromptCount] = useState(0);
+  const promptState = useRef<ReviewPromptState>(initialReviewPromptState());
 
   useEffect(() => {
     if (user?.uid) {
@@ -36,9 +46,13 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } else {
       setTaskCount(0);
       setHasReviewed(false);
-      setLastPromptAtCount(0);
+      promptState.current = initialReviewPromptState();
     }
   }, [user?.uid]);
+
+  const persistPromptState = async (uid: string) => {
+    await AsyncStorage.setItem(`review_prompt_state_${uid}`, JSON.stringify(promptState.current));
+  };
 
   const loadReviewState = async () => {
     if (!user?.uid) return;
@@ -46,29 +60,37 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       const countStr = await AsyncStorage.getItem(`task_created_count_${user.uid}`);
       const reviewedStr = await AsyncStorage.getItem(`has_reviewed_app_${user.uid}`);
-      const lastPromptStr = await AsyncStorage.getItem(`last_review_prompt_at_count_${user.uid}`);
-      const promptCountStr = await AsyncStorage.getItem(`review_prompt_count_${user.uid}`);
+      const stateStr = await AsyncStorage.getItem(`review_prompt_state_${user.uid}`);
 
-      // Migration depuis les anciennes clés globales
-      const oldGlobalPromptedStr = await AsyncStorage.getItem('has_prompted_for_review');
-      const oldGlobalCountStr = await AsyncStorage.getItem('task_created_count');
+      let count = countStr ? parseInt(countStr, 10) : 0;
+      const parsed = parseReviewPromptState(stateStr);
 
-      setTaskCount(countStr ? parseInt(countStr, 10) : 0);
-      setPromptCount(promptCountStr ? parseInt(promptCountStr, 10) : 0);
-
-      if (oldGlobalPromptedStr === 'true' && !lastPromptStr && oldGlobalCountStr) {
-        const currentCount = parseInt(oldGlobalCountStr, 10);
-        setLastPromptAtCount(currentCount);
-        await AsyncStorage.setItem(`last_review_prompt_at_count_${user.uid}`, currentCount.toString());
-        if (!countStr) {
-          setTaskCount(currentCount);
-          await AsyncStorage.setItem(`task_created_count_${user.uid}`, currentCount.toString());
-        }
-        log.info(`Migrated old review prompt state for user ${user.uid}`, 'ReviewPromptContext');
+      if (parsed) {
+        promptState.current = parsed;
       } else {
-        setLastPromptAtCount(lastPromptStr ? parseInt(lastPromptStr, 10) : 0);
+        // Migration depuis l'ancien système (compteur à vie) et les clés globales historiques
+        const legacyLastPromptStr = await AsyncStorage.getItem(`last_review_prompt_at_count_${user.uid}`);
+        const oldGlobalPromptedStr = await AsyncStorage.getItem('has_prompted_for_review');
+        const oldGlobalCountStr = await AsyncStorage.getItem('task_created_count');
+
+        let legacyLastPromptAtCount = legacyLastPromptStr ? parseInt(legacyLastPromptStr, 10) : 0;
+
+        if (oldGlobalPromptedStr === 'true' && !legacyLastPromptStr && oldGlobalCountStr) {
+          legacyLastPromptAtCount = parseInt(oldGlobalCountStr, 10);
+          if (!countStr) {
+            count = legacyLastPromptAtCount;
+            await AsyncStorage.setItem(`task_created_count_${user.uid}`, count.toString());
+          }
+        }
+
+        promptState.current = migrateLegacyState(legacyLastPromptAtCount);
+        await persistPromptState(user.uid);
+        if (legacyLastPromptAtCount > 0) {
+          log.info(`Migrated legacy review prompt state for user ${user.uid}`, 'ReviewPromptContext');
+        }
       }
 
+      setTaskCount(count);
       setHasReviewed(reviewedStr === 'true');
     } catch (error) {
       log.error('Failed to load review state', 'ReviewPromptContext', error);
@@ -85,37 +107,30 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       if (hasReviewed) return;
 
-      // Max 3 prompts pour rester dans les quotas Apple/Google
-      if (promptCount >= 3) return;
-
-      const shouldPrompt =
-        (newCount >= 3 && lastPromptAtCount === 0) ||
-        (newCount - lastPromptAtCount >= 25);
-
-      if (shouldPrompt) {
-        const newPromptCount = promptCount + 1;
+      const now = Date.now();
+      if (shouldShowPrompt(promptState.current, newCount, now)) {
+        promptState.current = recordPromptShown(promptState.current, newCount, now);
         setShowSentimentModal(true);
-        setLastPromptAtCount(newCount);
-        setPromptCount(newPromptCount);
-        await AsyncStorage.setItem(`last_review_prompt_at_count_${user.uid}`, newCount.toString());
-        await AsyncStorage.setItem(`review_prompt_count_${user.uid}`, newPromptCount.toString());
+        await persistPromptState(user.uid);
 
         analytics.logEvent('review_prompt_shown', {
           task_count: newCount,
-          prompt_number: newPromptCount,
-          prompts_remaining: 3 - newPromptCount,
+          consumed_in_window: consumedInWindow(promptState.current, now),
+          prompts_remaining: MAX_CONSUMED_PER_YEAR - consumedInWindow(promptState.current, now),
         });
       }
     } catch (error) {
       log.error('Failed to handle task creation', 'ReviewPromptContext', error);
     }
-  }, [taskCount, hasReviewed, lastPromptAtCount, promptCount, user?.uid]);
+  }, [taskCount, hasReviewed, user?.uid]);
 
   const handleSentimentYes = useCallback(async () => {
     if (!user?.uid) return;
     setShowSentimentModal(false);
 
     analytics.logEvent('review_sentiment_yes');
+    promptState.current = recordOutcome(promptState.current, 'yes', Date.now());
+    persistPromptState(user.uid).catch(() => {});
 
     try {
       if (Platform.OS === 'ios') {
@@ -140,17 +155,27 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setShowSentimentModal(false);
     analytics.logEvent('review_sentiment_no');
 
+    if (user?.uid) {
+      promptState.current = recordOutcome(promptState.current, 'no', Date.now());
+      persistPromptState(user.uid).catch(() => {});
+    }
+
     const email = 'support@tribubaby.com';
     const subject = 'Feedback Tribu Baby';
     const body = 'Bonjour, voici ce que je changerais...';
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     Linking.openURL(url).catch(() => {});
-  }, []);
+  }, [user?.uid]);
 
   const handleSentimentClose = useCallback(() => {
     setShowSentimentModal(false);
     analytics.logEvent('review_sentiment_dismissed');
-  }, []);
+
+    if (user?.uid) {
+      promptState.current = recordOutcome(promptState.current, 'dismissed', Date.now());
+      persistPromptState(user.uid).catch(() => {});
+    }
+  }, [user?.uid]);
 
   // Settings : ouvre la modal complète qui redirige vers le store
   const handleRate = useCallback(async () => {
