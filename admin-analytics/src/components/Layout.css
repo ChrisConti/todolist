@@ -30,6 +30,36 @@
   color: #1a202c;
 }
 
+.app-switcher {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-switcher-sep {
+  color: #cbd5e0;
+  font-size: 24px;
+}
+
+.app-title {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #a0aec0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.app-title:hover {
+  color: #4a5568;
+}
+
+.app-title.active {
+  color: #1a202c;
+}
+
 .header-right {
   display: flex;
   align-items: center;

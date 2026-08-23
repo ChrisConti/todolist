@@ -15,6 +15,22 @@ interface AppInstall {
   version?: any;
 }
 
+// Premium "achat réel" : isPremium: true ET compte créé après le bulk grant early adopter
+export const PREMIUM_BULK_GRANT_CUTOFF = new Date('2026-06-10');
+
+export const getUserCreationDate = (u: User): Date | null => {
+  if (!u.creationDate) return null;
+  if (typeof u.creationDate === 'object' && 'toDate' in u.creationDate) return (u.creationDate as any).toDate();
+  if (typeof u.creationDate === 'string') { const d = new Date(u.creationDate); return isNaN(d.getTime()) ? null : d; }
+  return null;
+};
+
+export const isRealPremiumPurchase = (u: User): boolean => {
+  if (u.isPremium !== true) return false;
+  const d = getUserCreationDate(u);
+  return d !== null && d >= PREMIUM_BULK_GRANT_CUTOFF;
+};
+
 /**
  * Get analytics metrics for a given date range
  */
@@ -33,8 +49,8 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
     } as User));
 
     const allBabiesRaw: Baby[] = babiesSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
+      ...doc.data(),
+      id: doc.id
     } as Baby));
 
     // Exclude test accounts and their babies from all stats
@@ -450,26 +466,14 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
     }
 
     // Premium stats — always computed on allUsers (not date-filtered)
-    // Only counts isPremium: true explicitly set (excludes early-adopter bulk grant before 2026-06-10)
-    const BULK_GRANT_CUTOFF = new Date('2026-06-10');
+    // Only counts isPremium: true explicitly set (excludes early-adopter bulk grant, see isRealPremiumPurchase)
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterdayStart = new Date(todayStart.getTime() - 86400000);
     const sevenDaysStart = new Date(todayStart.getTime() - 6 * 86400000);
 
-    const getUserDate = (u: User): Date | null => {
-      if (!u.creationDate) return null;
-      if (typeof u.creationDate === 'object' && 'toDate' in u.creationDate) return (u.creationDate as any).toDate();
-      if (typeof u.creationDate === 'string') { const d = new Date(u.creationDate); return isNaN(d.getTime()) ? null : d; }
-      return null;
-    };
-
-    // For period stats: only real purchases (isPremium: true AND created after bulk grant cutoff)
-    const isRealPurchase = (u: User) => {
-      if (u.isPremium !== true) return false;
-      const d = getUserDate(u);
-      return d !== null && d >= BULK_GRANT_CUTOFF;
-    };
+    const getUserDate = getUserCreationDate;
+    const isRealPurchase = isRealPremiumPurchase;
 
     const premiumStats = {
       total: allUsers.filter(isRealPurchase).length,
@@ -785,7 +789,7 @@ export const getAllBabies = async (searchTerm?: string): Promise<Baby[]> => {
 
   const snapshot = await getDocsFromServer(babiesRef);
   let babies = snapshot.docs
-    .map(doc => ({ id: doc.id, ...doc.data() } as Baby))
+    .map(doc => ({ ...doc.data(), id: doc.id } as Baby))
     .filter(b => !b.admin || !testIds.has(b.admin));
 
   // Filter by baby name if search term is provided

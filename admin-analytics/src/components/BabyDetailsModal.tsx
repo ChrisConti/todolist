@@ -11,13 +11,26 @@ interface BabyDetailsModalProps {
   onClose: () => void;
   baby: Baby | null;
   onBabyDeleted?: () => void;
+  onParentClick?: (userId: string) => void;
 }
 
-export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onClose, baby, onBabyDeleted }) => {
+export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onClose, baby, onBabyDeleted, onParentClick }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   if (!isOpen || !baby) return null;
+
+  // Format a Firestore Timestamp (or date-like value) for display
+  const formatTimestamp = (ts: any): string => {
+    if (!ts) return 'N/A';
+    try {
+      const date = typeof ts === 'object' && 'toDate' in ts ? ts.toDate() : new Date(ts);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return 'N/A';
+    }
+  };
 
   // Calculate age from birthdate
   const calculateAge = (birthDate: string | undefined): string => {
@@ -364,11 +377,54 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
               </div>
               <div className="info-item full-width">
                 <span className="info-label">Parents:</span>
-                <span className="info-value">
-                  {baby.parentEmails && baby.parentEmails.length > 0
-                    ? baby.parentEmails.join(', ')
-                    : baby.userEmail || 'N/A'}
-                </span>
+                <div className="info-value">
+                  {(() => {
+                    const uids = baby.user && baby.user.length > 0 ? baby.user : [];
+                    const parents = uids.length > 0
+                      ? uids.map((uid, idx) => {
+                          const linked = baby.linkedUsers?.find(u => u.userId === uid);
+                          const email = linked?.email || baby.parentEmails?.[idx] || 'N/A';
+                          const role = baby.memberRoles?.[uid];
+                          const ageRange = linked?.parentAgeRange;
+                          const isCreator = uid === baby.admin;
+                          // Le créateur n'a pas d'entrée memberJoinDates dédiée : il "rejoint" à la création du bébé
+                          const joinTs = baby.memberJoinDates?.[uid] ?? (isCreator ? baby.createdDate : undefined);
+                          return { uid, email, role, ageRange, isCreator, joinDate: formatTimestamp(joinTs), isRealUid: true };
+                        })
+                      : (baby.parentEmails && baby.parentEmails.length > 0
+                          ? baby.parentEmails.map((email, idx) => ({ uid: `e${idx}`, email, role: undefined, ageRange: undefined, isCreator: false, joinDate: 'N/A', isRealUid: false }))
+                          : [{ uid: 'fallback', email: baby.userEmail || 'N/A', role: undefined as string | undefined, ageRange: undefined as string | undefined, isCreator: false, joinDate: 'N/A', isRealUid: false }]);
+
+                    return parents.map((p) => (
+                      <div key={p.uid} style={{ marginBottom: '6px', paddingBottom: '6px', borderBottom: '1px solid #f0f0f0' }}>
+                        {p.isRealUid && onParentClick ? (
+                          <div
+                            onClick={() => onParentClick(p.uid)}
+                            style={{ fontSize: '13px', color: '#C75B4A', cursor: 'pointer', textDecoration: 'underline', width: 'fit-content' }}
+                          >
+                            {p.email}
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: '13px' }}>{p.email}</div>
+                        )}
+                        <div style={{ display: 'flex', gap: '4px', marginTop: '3px', flexWrap: 'wrap', alignItems: 'center' }}>
+                          {p.isCreator && (
+                            <span style={{ background: '#fff3e0', color: '#e65100', padding: '1px 6px', borderRadius: '8px', fontSize: '10px' }}>Créateur</span>
+                          )}
+                          {p.role && (
+                            <span style={{ background: '#e3f2fd', color: '#1565c0', padding: '1px 6px', borderRadius: '8px', fontSize: '10px' }}>{p.role}</span>
+                          )}
+                          {p.ageRange && (
+                            <span style={{ background: '#f3e5f5', color: '#6a1b9a', padding: '1px 6px', borderRadius: '8px', fontSize: '10px' }}>{p.ageRange}</span>
+                          )}
+                          <span style={{ background: '#e8f5e9', color: '#2e7d32', padding: '1px 6px', borderRadius: '8px', fontSize: '10px' }}>
+                            Rejoint le : {p.joinDate}
+                          </span>
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
               </div>
             </div>
           </div>

@@ -63,6 +63,7 @@ export interface Baby {
   parentEmails?: string[];
   linkedUsers?: User[];
   memberRoles?: Record<string, string>;
+  memberJoinDates?: Record<string, any>; // Firestore Timestamp per userId (absent for pre-existing members)
   firstChildFor?: Record<string, boolean>;
 }
 

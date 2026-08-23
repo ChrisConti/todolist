@@ -9,12 +9,16 @@ import { Export } from './components/Export';
 import { Trends } from './components/Trends';
 import { Acquisition } from './components/Acquisition';
 import { Migration } from './components/Migration';
+import { Contractions } from './components/Contractions';
+import { Docs } from './components/Docs';
 import './App.css';
 
-type TabType = 'analytics' | 'trends' | 'acquisition' | 'funnel' | 'search' | 'export' | 'migration';
+export type AppType = 'tribubaby' | 'contractions';
+export type TabType = 'analytics' | 'trends' | 'acquisition' | 'funnel' | 'search' | 'export' | 'migration' | 'docs';
 
 const AppContent: React.FC = () => {
   const { currentUser, isAdmin, loading } = useAuth();
+  const [activeApp, setActiveApp] = useState<AppType>('tribubaby');
   const [activeTab, setActiveTab] = useState<TabType>('analytics');
 
   if (loading) {
@@ -31,6 +35,9 @@ const AppContent: React.FC = () => {
   }
 
   const renderTabContent = () => {
+    if (activeApp === 'contractions') {
+      return <Contractions />;
+    }
     switch (activeTab) {
       case 'analytics':
         return <Analytics />;
@@ -46,13 +53,20 @@ const AppContent: React.FC = () => {
         return <Export />;
       case 'migration':
         return <Migration />;
+      case 'docs':
+        return <Docs />;
       default:
         return <Analytics />;
     }
   };
 
   return (
-    <Layout activeTab={activeTab} onTabChange={setActiveTab}>
+    <Layout
+      activeApp={activeApp}
+      onAppChange={setActiveApp}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+    >
       {renderTabContent()}
     </Layout>
   );

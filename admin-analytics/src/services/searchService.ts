@@ -15,8 +15,8 @@ export const searchBabyById = async (babyId: string, dateRange: DateRange): Prom
     }
 
     const baby = {
-      id: babyDoc.id,
       ...babyDoc.data(),
+      id: babyDoc.id,
     } as Baby;
 
     // Filter tasks by date range if specified

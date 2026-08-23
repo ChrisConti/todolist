@@ -3,11 +3,13 @@ import {
   type User as FirebaseUser,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithCredential,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { contractionsAuth } from '../config/contractionsFirebase';
 import { isAdminEmail } from '../config/adminEmails';
 
 interface AuthContextType {
@@ -73,6 +75,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await firebaseSignOut(auth);
         throw new Error('Accès non autorisé. Seuls les administrateurs peuvent se connecter.');
       }
+      // The same Google credential also opens the Suivi Contractions project (Contractions tab)
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential) {
+        signInWithCredential(contractionsAuth, credential).catch((err) =>
+          console.error('Contractions project sign in error:', err)
+        );
+      }
     } catch (err: any) {
       console.error('Google sign in error:', err);
       setError(err.message || 'Erreur de connexion Google');
@@ -83,6 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
+      await firebaseSignOut(contractionsAuth).catch(() => {});
       setError(null);
     } catch (err: any) {
       console.error('Sign out error:', err);

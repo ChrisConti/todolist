@@ -170,6 +170,14 @@ export const Search: React.FC = () => {
     setUserResults([]);
   };
 
+  const handleParentClick = (userId: string) => {
+    const user = allUsers.find(u => u.userId === userId);
+    if (user) {
+      setSelectedUser({ ...user, linkedBaby: selectedBaby ?? user.linkedBaby });
+      setIsUserModalOpen(true);
+    }
+  };
+
   const getAgeLabel = (range: AgeRange): string => {
     switch (range) {
       case '0-1': return '0-1 mois';
@@ -318,6 +326,7 @@ export const Search: React.FC = () => {
         onClose={() => setIsBabyModalOpen(false)}
         baby={selectedBaby}
         onBabyDeleted={handleBabyDeleted}
+        onParentClick={handleParentClick}
       />
 
       <UserDetailsModal
