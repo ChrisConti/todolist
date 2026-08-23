@@ -70,6 +70,7 @@ export const signInWithGoogle = async () => {
         emailOptIn: false,
         isPremium: false,
         country: Localization.getLocales()[0]?.regionCode || 'Unknown',
+        language: i18next.language,
         platform: Platform.OS,
       });
       log.info('User document created in Firestore', 'socialAuth');
@@ -171,6 +172,7 @@ export const signInWithApple = async () => {
         emailOptIn: false,
         isPremium: false,
         country: Localization.getLocales()[0]?.regionCode || 'Unknown',
+        language: i18next.language,
         platform: Platform.OS,
       });
       log.info('User document created in Firestore', 'socialAuth');

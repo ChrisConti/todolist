@@ -1,0 +1,54 @@
+{
+  "identifier" : "3DF5B9A1-3B0E-4E2D-8F6C-1A2B3C4D5E6F",
+  "nonConsumableProducts" : [
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+      "localizations" : [
+        {
+          "description" : "Statistiques avancées, export CSV, widget biberons. Achat unique à vie, partagé avec toute la tribu.",
+          "displayName" : "Tribu Premium",
+          "locale" : "fr_FR"
+        },
+        {
+          "description" : "Advanced stats, CSV export, bottle widget. One-time purchase, lifetime access.",
+          "displayName" : "Tribu Premium",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "Estadísticas avanzadas, exportación CSV, widget de biberón. Compra única de por vida.",
+          "displayName" : "Tribu Premium",
+          "locale" : "es_ES"
+        }
+      ],
+      "productID" : "com.tribubaby.tribubaby.Lifetime",
+      "referenceName" : "Tribu Premium",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_askToBuyEnabled" : false,
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      }
+    ]
+  },
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

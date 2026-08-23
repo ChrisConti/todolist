@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import { doc, getDocsFromServer, query, updateDoc, where, arrayUnion, getDocs } from 'firebase/firestore';
+import { doc, getDocsFromServer, query, updateDoc, where, arrayUnion, getDocs, serverTimestamp } from 'firebase/firestore';
 import { babiesRef, db, userRef } from './config';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
@@ -92,6 +92,7 @@ const JoinBaby = ({ navigation }) => {
       await updateDoc(doc(db, 'Baby', resolvedBabyDocId), {
         user: arrayUnion(user.uid),
         [`memberRoles.${user.uid}`]: selectedRole,
+        [`memberJoinDates.${user.uid}`]: serverTimestamp(),
       });
 
       setBabyID(trimmedBabyID);

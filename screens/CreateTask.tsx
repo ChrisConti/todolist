@@ -69,6 +69,11 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
   const [isDateManuallySet, setIsDateManuallySet] = useState(false);
+  const [bfMode, setBfMode] = useState<'timer' | 'manual'>('timer');
+  const [bfStartTime, setBfStartTime] = useState<number | null>(null);
+  const bfLockedRef = useRef(false);
+  // La date est verrouillée dès qu'une mesure existe : le chrono fait foi, le picker devient inaccessible
+  const isDateLocked = selectedImage === 5 && bfMode === 'timer' && bfStartTime !== null;
 
 
   // date picker
@@ -409,12 +414,24 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         <BreastfeedingSection
           ref={breastfeedingRef}
           t={t}
-          onTimerStartTimeLoaded={(startTime) => {
-            if (!isDateManuallySet) {
-              const d = new Date(startTime);
-              setSelectedDate(d);
+          liveActivity
+          onSessionChange={({ startTime, mode }) => {
+            setBfMode(mode);
+            setBfStartTime(startTime);
+            const locked = mode === 'timer' && startTime !== null;
+            if (locked) {
+              // La mesure du chrono devient la seule source de vérité pour la date
+              setSelectedDate(new Date(startTime));
               setTime(moment(startTime).format('YYYY-MM-DD HH:mm:ss'));
+              setIsDateManuallySet(false);
+            } else if (bfLockedRef.current && startTime === null) {
+              // Remise à zéro complète du chrono : on déverrouille et on revient à maintenant
+              const now = new Date();
+              setSelectedDate(now);
+              setTime(moment(now).format('YYYY-MM-DD HH:mm:ss'));
+              setIsDateManuallySet(false);
             }
+            bfLockedRef.current = locked;
           }}
         />
       );
@@ -582,12 +599,22 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                 <Text style={{ color: 'gray', paddingBottom: 12 }}>
                   {t('task.whenTask')}
                 </Text>
-                <TouchableOpacity onPress={() => {isDateTimePickerVisible ? setIsDateTimePickerVisible(false) : setIsDateTimePickerVisible(true)}} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#C75B4A', borderRadius: 8, padding: 10, width: 120 }}>
-                  <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
-                </TouchableOpacity>
+                {isDateLocked ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#D8ABA0', borderRadius: 8, padding: 10 }}>
+                    <Ionicons name="lock-closed" size={14} color="white" />
+                    <Text style={{ color: 'white' }}>
+                      {t('task.startedAt')} {moment(bfStartTime).format('DD MMM · HH:mm')}
+                    </Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity onPress={() => {isDateTimePickerVisible ? setIsDateTimePickerVisible(false) : setIsDateTimePickerVisible(true)}} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#C75B4A', borderRadius: 8, padding: 10, width: 120 }}>
+                    <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
+                  </TouchableOpacity>
+                )}
 
                 <DateTimePicker
-                  isVisible={isDateTimePickerVisible}
+                  isVisible={isDateTimePickerVisible && !isDateLocked}
+                  date={selectedDate}
                   onConfirm={(date) => handleDateChange(date)}
                   onCancel={() => setIsDateTimePickerVisible(false)}
                   minimumDate={new Date(new Date().setDate(new Date().getDate() - 7))}

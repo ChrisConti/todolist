@@ -19,3 +19,10 @@
 "milk.artificial" = "Formula";
 "milk.maternal" = "Breast milk";
 "milk.other" = "Milk";
+
+/* Nursing Live Activity */
+"nursing.title" = "Nursing";
+"nursing.left" = "Left";
+"nursing.right" = "Right";
+"nursing.startedAt" = "Started at %@";
+"nursing.startedAtLabel" = "Started at";

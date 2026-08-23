@@ -30,9 +30,15 @@ const Card = ({ task, navigation, editable }) => {
     return hrs.toString().padStart(2, '0') + ':' + mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
   };
 
-  const formatMinutes = (seconds) => {
+  const formatBoobDuration = (seconds) => {
+    if (seconds < 60) return seconds + ' s';
     const totalMinutes = Math.floor(seconds / 60);
-    return totalMinutes;
+    if (totalMinutes >= 60) {
+      const hours = Math.floor(totalMinutes / 60);
+      const mins = totalMinutes % 60;
+      return `${hours}h${mins.toString().padStart(2, '0')}`;
+    }
+    return totalMinutes + ' ' + t('min');
   };
 
   const handleCategory = (id) => {
@@ -127,14 +133,14 @@ const Card = ({ task, navigation, editable }) => {
       if (task.boobLeft && task.boobRight) {
         return (
           <View style={{ flexDirection: 'column' }}>
-            <Text style={{ color: '#F6F0EB', fontSize: 15, marginRight: 8, alignSelf: 'flex-end' }}>{t('L') + ' ' + formatMinutes(task.boobLeft) + ' ' + t('min')}</Text>
-            <Text style={{ color: '#F6F0EB', fontSize: 15, marginRight: 8, alignSelf: 'flex-end' }}>{t('R') + ' ' + formatMinutes(task.boobRight) + ' ' + t('min')}</Text>
+            <Text style={{ color: '#F6F0EB', fontSize: 15, marginRight: 8, alignSelf: 'flex-end' }}>{t('L') + ' ' + formatBoobDuration(task.boobLeft)}</Text>
+            <Text style={{ color: '#F6F0EB', fontSize: 15, marginRight: 8, alignSelf: 'flex-end' }}>{t('R') + ' ' + formatBoobDuration(task.boobRight)}</Text>
           </View>
         );
       } else if (task.boobLeft) {
-        return <Text style={{ color: '#F6F0EB', fontSize: 25, marginRight: 8, alignSelf: 'flex-end' }}>{t('L') + ' ' + formatMinutes(task.boobLeft) + ' ' + t('min')}</Text>;
+        return <Text style={{ color: '#F6F0EB', fontSize: 25, marginRight: 8, alignSelf: 'flex-end' }}>{t('L') + ' ' + formatBoobDuration(task.boobLeft)}</Text>;
       } else if (task.boobRight) {
-        return <Text style={{ color: '#F6F0EB', fontSize: 25, marginRight: 8, alignSelf: 'flex-end' }}>{t('R') + ' ' + formatMinutes(task.boobRight) + ' ' + t('min')}</Text>;
+        return <Text style={{ color: '#F6F0EB', fontSize: 25, marginRight: 8, alignSelf: 'flex-end' }}>{t('R') + ' ' + formatBoobDuration(task.boobRight)}</Text>;
       }
     }
     // Support both new diaperType and legacy idCaca for backward compatibility

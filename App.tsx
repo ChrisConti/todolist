@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { I18nextProvider } from 'react-i18next';
-import { StyleSheet, View, ActivityIndicator, Platform, StatusBar } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Platform, StatusBar, Linking } from 'react-native';
 import i18n from './i18n';
 import ErrorBoundary from './components/ErrorBoundary';
 import { NavigationContainer } from '@react-navigation/native';
@@ -23,6 +23,7 @@ import EditBaby from './EditBaby';
 import EditBabyPhoto from './screens/EditBabyPhoto';
 import ChangeName from './screens/ChangeName';
 import EmailOptIn from './screens/EmailOptIn';
+import NursingLockScreenSetting from './screens/NursingLockScreenSetting';
 import ChangeEmail from './screens/ChangeEmail';
 import DeleteAccount from './screens/DeleteAccount';
 import ChangePassword from './screens/ChangePassword';
@@ -70,6 +71,23 @@ function RootNavigator() {
   const navigationRef = useRef<any>(null);
   const currentScreenRef = useRef<string>('');
   const screenEnterTimeRef = useRef<number>(0);
+  const pendingDeepLinkRef = useRef<string | null>(null);
+
+  // Deep link depuis la Live Activity allaitement (tap sur l'écran verrouillé / Dynamic Island)
+  const handleDeepLink = (url: string | null) => {
+    if (!url || !url.includes('nursing')) return;
+    if (navigationRef.current?.isReady()) {
+      navigationRef.current.navigate('CreateTask', { initialCategory: 5 });
+    } else {
+      pendingDeepLinkRef.current = url;
+    }
+  };
+
+  useEffect(() => {
+    Linking.getInitialURL().then(handleDeepLink).catch(() => {});
+    const sub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     async function loadResourcesAndDataAsync() {
@@ -189,6 +207,11 @@ log.debug('Setting up authentication listener...', 'App.tsx');
     currentScreenRef.current = name;
     screenEnterTimeRef.current = Date.now();
     Analytics.logScreenView(name);
+    if (pendingDeepLinkRef.current) {
+      const url = pendingDeepLinkRef.current;
+      pendingDeepLinkRef.current = null;
+      handleDeepLink(url);
+    }
   };
 
   const onNavigationStateChange = () => {
@@ -445,6 +468,17 @@ function MainStack() {
           headerTintColor: '#fff',
           headerTitleStyle: { fontFamily: 'Pacifico', fontSize: 22, color: '#FDF1E7' },
           headerTitle: t('settings.emailOptIn'),
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen
+        name="NursingLockScreenSetting"
+        component={NursingLockScreenSetting}
+        options={{
+          headerStyle: { backgroundColor: '#C75B4A' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize: 22, color: '#FDF1E7' },
+          headerTitle: t('settings.nursingLockScreenTitle'),
           headerBackTitle: ''
         }}
       />

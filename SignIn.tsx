@@ -7,6 +7,7 @@ import { addDoc, collection, query, where, getDocs, serverTimestamp } from 'fire
 import analytics from './services/analytics';
 import * as Localization from 'expo-localization';
 import { KEYBOARD_CONFIG } from './utils/constants';
+import i18n from './i18n';
 
 const SignIn = ({ navigation }) => {
   const { t } = useTranslation();
@@ -106,6 +107,7 @@ const validateEmail = (value: string): string => {
             username: trimmedName,
             babyID: '',
             country: userCountry,
+            language: i18n.language,
             provider: 'email',
             emailOptIn,
             isPremium: false,

@@ -67,6 +67,7 @@ const getDiaperContentLabel = (id: number, t: any): string => {
 // Format duration (seconds to minutes or hours)
 const formatDuration = (seconds: number, language: string = 'fr'): string => {
   if (!seconds) return '';
+  if (seconds < 60) return `${seconds} s`;
   const minutes = Math.floor(seconds / 60);
   if (minutes >= 60) {
     const hours = Math.floor(minutes / 60);

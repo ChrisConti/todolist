@@ -12,6 +12,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { Ionicons } from '@expo/vector-icons';
 import GoogleLogo from './assets/GoogleLogo';
 import Analytics from './services/analytics';
+import i18n from './i18n';
 
 const ConnectionScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -92,6 +93,7 @@ const ConnectionScreen = ({ navigation }) => {
                 email: user.email,
                 username: user.displayName || user.email?.split('@')[0] || 'Utilisateur',
                 babyID: '',
+                language: i18n.language,
                 provider: 'email',
                 isPremium: false,
                 creationDate: serverTimestamp(),

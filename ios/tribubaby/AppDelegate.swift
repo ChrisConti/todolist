@@ -36,6 +36,15 @@ FirebaseApp.configure()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
+  // Kill volontaire de l'app : on ferme la Live Activity allaitement et on pose le
+  // drapeau qui fera remettre le chrono à zéro au prochain lancement.
+  public override func applicationWillTerminate(_ application: UIApplication) {
+    if #available(iOS 16.2, *) {
+      NursingActivityManager.handleAppTermination()
+    }
+    super.applicationWillTerminate(application)
+  }
+
   // Linking API
   public override func application(
     _ app: UIApplication,

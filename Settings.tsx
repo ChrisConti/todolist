@@ -10,6 +10,7 @@ import analytics from './services/analytics';
 import { useReviewPrompt } from './Context/ReviewPromptContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { usePremium } from './Context/PremiumContext';
+import { isNursingActivitySupported } from './utils/nursingActivityBridge';
 
 const Settings = ({ navigation }) => {
   const { user, setUser, babyID, setBabyID, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
@@ -161,6 +162,11 @@ const Settings = ({ navigation }) => {
             <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'email_opt_in' }); navigation.navigate('EmailOptIn'); }}>
               <ItemParameter title={t('settings.emailOptIn')} icon="email-newsletter" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>
+            {isNursingActivitySupported() && (
+              <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'nursing_live_activity' }); navigation.navigate('NursingLockScreenSetting'); }}>
+                <ItemParameter title={t('settings.nursingLockScreen')} icon="cellphone-lock" iconFamily="MaterialCommunityIcons" />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity onPress={handleSignOut}>
               <ItemParameter title={t('settings.signOut')} icon="logout" iconFamily="MaterialCommunityIcons" />
             </TouchableOpacity>

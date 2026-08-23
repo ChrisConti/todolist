@@ -48,6 +48,7 @@ export interface Baby {
   userEmail: string;
   tasks: Task[];
   memberRoles?: Record<string, string>;
+  memberJoinDates?: Record<string, any>;
   firstChildFor?: Record<string, boolean>;
 }
 

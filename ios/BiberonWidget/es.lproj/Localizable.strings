@@ -19,3 +19,10 @@
 "milk.artificial" = "Artificial";
 "milk.maternal" = "Materna";
 "milk.other" = "Leche";
+
+/* Nursing Live Activity */
+"nursing.title" = "Lactancia";
+"nursing.left" = "Izquierdo";
+"nursing.right" = "Derecho";
+"nursing.startedAt" = "Iniciado a las %@";
+"nursing.startedAtLabel" = "Iniciado a las";

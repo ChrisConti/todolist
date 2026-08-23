@@ -12,5 +12,6 @@ import SwiftUI
 struct BiberonWidgetBundle: WidgetBundle {
     var body: some Widget {
         BiberonWidget()
+        NursingLiveActivity()
     }
 }

@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Règles pour la collection Users
+    match /Users/{userId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Règles pour la collection Baby
+    match /Baby/{babyId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Règles pour la collection AppInstalls
+    // Écriture par tout utilisateur authentifié, lecture réservée aux admins
+    match /AppInstalls/{docId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null;
+    }
+  }
+}

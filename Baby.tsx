@@ -93,6 +93,7 @@ const Baby = ({ navigation }) => {
         userEmail: userInfo?.email || '',
         tasks: [],
         memberRoles: { [user.uid]: selectedRole },
+        memberJoinDates: { [user.uid]: serverTimestamp() },
       });
       setBabyID(uniqueId);
 
