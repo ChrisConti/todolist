@@ -43,4 +43,17 @@ yarn-error.*
 # Secrets
 KEYSTORE_CREDENTIALS.txt
 *.keystore
+*.keystore.*
 *.jks
+# Clé privée Firebase Admin SDK — accès Firestore complet, hors règles de sécurité
+serviceAccount.json
+**/serviceAccount.json
+
+# Firebase hosting cache
+.firebase/
+
+# Mémoire/sessions Claude Code (local, personnel)
+.claude/projects/
+
+# Backups locaux
+*.backup
