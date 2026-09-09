@@ -36,7 +36,7 @@ Pas de changement de metadata ni de campagne. Non publiée sur le Play Store (vo
 
 ## Review du 23/08/2026
 
-Rapport complet : [`reviews/2026-08-23.md`](reviews/2026-08-23.md).
+Rapport complet : [`reviews/2026-08-23.md`](reviews/2026-08-23.md) · Plan d'exécution détaillé : [`plan-2026-08-23.md`](plan-2026-08-23.md).
 
 **Constat bloquant** : la 1.3.x n'a jamais été publiée en production sur le Play Store. 100% des utilisateurs Android actifs tournent en **1.2.2**. Les chantiers de la 1.3.3 (FirstBiberon, grille empty state, fix review prompt) et la description courte Play Store n'ont donc jamais atteint Android, et l'ASO Android est passé entièrement hors top 100.
 
