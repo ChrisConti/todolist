@@ -122,10 +122,12 @@ export interface AnalyticsMetrics {
   };
   // Premium stats (always global, not date-filtered)
   premiumStats?: {
-    total: number;          // total isPremium: true across all users
-    today: number;          // inscrits aujourd'hui avec isPremium
-    yesterday: number;      // inscrits hier avec isPremium
-    last7Days: number;      // inscrits sur les 7 derniers jours avec isPremium
+    total: number;              // achats réels (isPremium + compte créé après le bulk grant)
+    today: number;              // achats du jour, datés par premiumDate
+    yesterday: number;          // achats d'hier
+    last7Days: number;          // achats sur les 7 derniers jours
+    last30Days: number;         // achats sur les 30 derniers jours
+    undatedPurchases: number;   // achats sans premiumDate (antérieurs à la v1.3.2), hors périodes
   };
   // User funnel: what users do after creating an account
   userFunnel?: {

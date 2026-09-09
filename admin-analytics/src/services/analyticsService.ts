@@ -32,6 +32,18 @@ export const isRealPremiumPurchase = (u: User): boolean => {
 };
 
 /**
+ * Date de l'achat premium (premiumDate), écrite par grantPremium() au moment du paiement.
+ * Absente pour les achats antérieurs à la v1.3.2, qui a introduit le champ : ces users
+ * comptent dans le total mais ne peuvent être rattachés à aucune période.
+ */
+export const getPremiumPurchaseDate = (u: User): Date | null => {
+  if (!u.premiumDate) return null;
+  if (typeof u.premiumDate === 'object' && 'toDate' in u.premiumDate) return (u.premiumDate as any).toDate();
+  if (typeof u.premiumDate === 'string') { const d = new Date(u.premiumDate); return isNaN(d.getTime()) ? null : d; }
+  return null;
+};
+
+/**
  * Get analytics metrics for a given date range
  */
 export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: string): Promise<AnalyticsMetrics> => {
@@ -472,14 +484,26 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
     const yesterdayStart = new Date(todayStart.getTime() - 86400000);
     const sevenDaysStart = new Date(todayStart.getTime() - 6 * 86400000);
 
-    const getUserDate = getUserCreationDate;
+    const thirtyDaysStart = new Date(todayStart.getTime() - 29 * 86400000);
     const isRealPurchase = isRealPremiumPurchase;
 
+    // Les périodes sont datées par premiumDate (date d'ACHAT), pas par creationDate :
+    // le délai médian entre inscription et achat est de plusieurs semaines, donc découper
+    // sur la date de création donnait 0 en permanence pendant que le total montait.
+    const purchasers = allUsers.filter(isRealPurchase);
+    const inWindow = (u: User, from: Date, to?: Date) => {
+      const d = getPremiumPurchaseDate(u);
+      return d !== null && d >= from && (to === undefined || d < to);
+    };
+
     const premiumStats = {
-      total: allUsers.filter(isRealPurchase).length,
-      today: allUsers.filter(u => { const d = getUserDate(u); return d && d >= todayStart && isRealPurchase(u); }).length,
-      yesterday: allUsers.filter(u => { const d = getUserDate(u); return d && d >= yesterdayStart && d < todayStart && isRealPurchase(u); }).length,
-      last7Days: allUsers.filter(u => { const d = getUserDate(u); return d && d >= sevenDaysStart && isRealPurchase(u); }).length,
+      total: purchasers.length,
+      today: purchasers.filter(u => inWindow(u, todayStart)).length,
+      yesterday: purchasers.filter(u => inWindow(u, yesterdayStart, todayStart)).length,
+      last7Days: purchasers.filter(u => inWindow(u, sevenDaysStart)).length,
+      last30Days: purchasers.filter(u => inWindow(u, thirtyDaysStart)).length,
+      // Achats antérieurs à la v1.3.2 : comptés dans le total, hors périodes faute de date.
+      undatedPurchases: purchasers.filter(u => getPremiumPurchaseDate(u) === null).length,
     };
 
     // Role distribution — aggregate across all baby.memberRoles

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { DateRange, PresetRange, AnalyticsMetrics, User, Baby } from '../types';
 import { parseBabyDate } from '../types';
 import { DateRangeSelector } from './DateRangeSelector';
-import { getAnalyticsMetrics, getAllUsers, getAllBabies, isRealPremiumPurchase, getUserCreationDate } from '../services/analyticsService';
+import { getAnalyticsMetrics, getAllUsers, getAllBabies, isRealPremiumPurchase, getPremiumPurchaseDate } from '../services/analyticsService';
 import { ListModal } from './ListModal';
 import { Charts } from './Charts';
 import { BabyDetailsModal } from './BabyDetailsModal';
@@ -11,7 +11,7 @@ import { TaskDistribution } from './TaskDistribution';
 import { TaskDistributionByAge } from './TaskDistributionByAge';
 import './Analytics.css';
 
-type ModalType = 'accounts' | 'babies' | 'accountsWithoutBaby' | 'deletedAccounts' | 'babies1Task' | 'babies5Tasks' | 'babies30Tasks' | 'babies100Tasks' | 'babiesMultipleParents' | 'babiesActiveRecently' | 'emailOptIn' | 'providerGoogle' | 'providerApple' | 'providerEmail' | 'premiumTotal' | 'premiumToday' | 'premiumYesterday' | 'premium7Days' | null;
+type ModalType = 'accounts' | 'babies' | 'accountsWithoutBaby' | 'deletedAccounts' | 'babies1Task' | 'babies5Tasks' | 'babies30Tasks' | 'babies100Tasks' | 'babiesMultipleParents' | 'babiesActiveRecently' | 'emailOptIn' | 'providerGoogle' | 'providerApple' | 'providerEmail' | 'premiumTotal' | 'premiumToday' | 'premiumYesterday' | 'premium7Days' | 'premium30Days' | null;
 
 type DelayType = 'accountToBaby' | 'babyToFirst' | 'accountToFirst';
 interface DelayEntry { delay: number; baby: Baby; user?: User; }
@@ -214,21 +214,29 @@ export const Analytics: React.FC = () => {
         case 'premiumTotal':
         case 'premiumToday':
         case 'premiumYesterday':
-        case 'premium7Days': {
-          // Premium lists are always global (not date-range filtered), same rule as the cards
+        case 'premium7Days':
+        case 'premium30Days': {
+          // Premium lists are always global (not date-range filtered), same rule as the cards.
+          // Les périodes sont datées par premiumDate (date d'achat), comme les cartes.
           const nowP = new Date();
           const todayStart = new Date(nowP.getFullYear(), nowP.getMonth(), nowP.getDate());
           const yesterdayStart = new Date(todayStart.getTime() - 86400000);
           const sevenDaysStart = new Date(todayStart.getTime() - 6 * 86400000);
+          const thirtyDaysStart = new Date(todayStart.getTime() - 29 * 86400000);
           const inPeriod = (u: User): boolean => {
             if (type === 'premiumTotal') return true;
-            const d = getUserCreationDate(u);
+            const d = getPremiumPurchaseDate(u);
             if (!d) return false;
             if (type === 'premiumToday') return d >= todayStart;
             if (type === 'premiumYesterday') return d >= yesterdayStart && d < todayStart;
+            if (type === 'premium30Days') return d >= thirtyDaysStart;
             return d >= sevenDaysStart;
           };
-          setModalData(sortUsers(allUsers.filter(u => isRealPremiumPurchase(u) && inPeriod(u))).map(u => ({ ...u, linkedBaby: allBabies.find(b => b.user?.includes(u.userId)) })));
+          // Tri par date d'achat décroissante (les achats sans date passent en fin de liste)
+          const byPurchaseDate = (list: User[]) => list.sort((a, b) =>
+            ((getPremiumPurchaseDate(b)?.getTime()) ?? 0) - ((getPremiumPurchaseDate(a)?.getTime()) ?? 0)
+          );
+          setModalData(byPurchaseDate(allUsers.filter(u => isRealPremiumPurchase(u) && inPeriod(u))).map(u => ({ ...u, linkedBaby: allBabies.find(b => b.user?.includes(u.userId)) })));
           break;
         }
       }
@@ -243,8 +251,9 @@ export const Analytics: React.FC = () => {
       babies30Tasks: 'Bébés avec > 30 tâches', babies100Tasks: 'Bébés avec > 100 tâches',
       babiesMultipleParents: 'Bébés partagés (> 1 parent)', babiesActiveRecently: 'Bébés actifs (7 derniers jours)',
       emailOptIn: 'Comptes opt-in email', providerGoogle: 'Comptes Google', providerApple: 'Comptes Apple', providerEmail: 'Comptes Email/Mot de passe',
-      premiumTotal: 'Premium payants (toute la base)', premiumToday: 'Inscrits aujourd\'hui avec premium',
-      premiumYesterday: 'Inscrits hier avec premium', premium7Days: 'Inscrits sur 7 jours avec premium',
+      premiumTotal: 'Premium payants (toute la base)', premiumToday: 'Achats premium aujourd\'hui',
+      premiumYesterday: 'Achats premium hier', premium7Days: 'Achats premium sur 7 jours',
+      premium30Days: 'Achats premium sur 30 jours',
     };
     return titles[modalType as string] || '';
   };
@@ -525,15 +534,17 @@ export const Analytics: React.FC = () => {
         <div className="section-card" style={{ marginBottom: 24 }}>
           <h3>⭐ Premium</h3>
           <p className="section-subtitle">
-            Total global : <strong>{metrics.premiumStats.total}</strong> utilisateurs avec le premium actif
+            Total global : <strong>{metrics.premiumStats.total}</strong> achats premium
             <Info>
               <strong>Comment est calculé le premium</strong>
               <ul>
                 <li><strong>isPremium: true</strong> en base Firestore</li>
-                <li><strong>OU</strong> compte créé avant le 15/05/2026 (early adopter)</li>
-                <li>Les colonnes ci-dessous croisent la date de création du compte avec le statut premium</li>
-                <li>premiumDate est enregistré à l'achat — les users offerts (script bulk) affichent "offert"</li>
-                <li>Cliquez sur une carte pour voir la liste des utilisateurs</li>
+                <li><strong>ET</strong> compte créé après le 10/06/2026 — avant, le premium a été offert
+                    en masse par script, ces comptes ne sont donc pas des achats</li>
+                <li>Les périodes ci-dessous sont datées par <strong>premiumDate</strong> (date d'achat),
+                    pas par la date de création du compte : le délai entre inscription et achat est
+                    souvent de plusieurs semaines</li>
+                <li>Cliquez sur une carte pour voir la liste des acheteurs</li>
               </ul>
             </Info>
           </p>
@@ -541,32 +552,47 @@ export const Analytics: React.FC = () => {
             <div className="metric-card clickable" onClick={() => handleCardClick('premiumToday')}>
               <div className="metric-icon">⭐</div>
               <div className="metric-content">
-                <div className="metric-label">Inscrits aujourd'hui avec premium</div>
+                <div className="metric-label">Achats aujourd'hui</div>
                 <div className="metric-value">{metrics.premiumStats.today}</div>
               </div>
             </div>
             <div className="metric-card clickable" onClick={() => handleCardClick('premiumYesterday')}>
               <div className="metric-icon">⭐</div>
               <div className="metric-content">
-                <div className="metric-label">Inscrits hier avec premium</div>
+                <div className="metric-label">Achats hier</div>
                 <div className="metric-value">{metrics.premiumStats.yesterday}</div>
               </div>
             </div>
             <div className="metric-card clickable" onClick={() => handleCardClick('premium7Days')}>
               <div className="metric-icon">⭐</div>
               <div className="metric-content">
-                <div className="metric-label">Inscrits sur 7 jours avec premium</div>
+                <div className="metric-label">Achats sur 7 jours</div>
                 <div className="metric-value">{metrics.premiumStats.last7Days}</div>
+              </div>
+            </div>
+            <div className="metric-card clickable" onClick={() => handleCardClick('premium30Days')}>
+              <div className="metric-icon">📈</div>
+              <div className="metric-content">
+                <div className="metric-label">Achats sur 30 jours</div>
+                <div className="metric-value">{metrics.premiumStats.last30Days}</div>
               </div>
             </div>
             <div className="metric-card clickable" onClick={() => handleCardClick('premiumTotal')}>
               <div className="metric-icon">🏆</div>
               <div className="metric-content">
-                <div className="metric-label">Total premium payants (toute la base)</div>
+                <div className="metric-label">Total achats (toute la base)</div>
                 <div className="metric-value">{metrics.premiumStats.total}</div>
               </div>
             </div>
           </div>
+          {metrics.premiumStats.undatedPurchases > 0 && (
+            <p style={{ fontSize: 12, color: '#888', marginTop: 12 }}>
+              ⚠️ {metrics.premiumStats.undatedPurchases} achat{metrics.premiumStats.undatedPurchases > 1 ? 's' : ''} sans
+              date (antérieur{metrics.premiumStats.undatedPurchases > 1 ? 's' : ''} à la v1.3.2, qui a introduit
+              le champ <code>premiumDate</code>) — compté{metrics.premiumStats.undatedPurchases > 1 ? 's' : ''} dans
+              le total, absent{metrics.premiumStats.undatedPurchases > 1 ? 's' : ''} des périodes.
+            </p>
+          )}
         </div>
       )}
 
@@ -962,7 +988,7 @@ export const Analytics: React.FC = () => {
         isOpen={modalType !== null}
         onClose={() => setModalType(null)}
         title={getModalTitle()}
-        type={['accounts', 'accountsWithoutBaby', 'deletedAccounts', 'emailOptIn', 'providerGoogle', 'providerApple', 'providerEmail', 'premiumTotal', 'premiumToday', 'premiumYesterday', 'premium7Days'].includes(modalType as string) ? 'users' : 'babies'}
+        type={['accounts', 'accountsWithoutBaby', 'deletedAccounts', 'emailOptIn', 'providerGoogle', 'providerApple', 'providerEmail', 'premiumTotal', 'premiumToday', 'premiumYesterday', 'premium7Days', 'premium30Days'].includes(modalType as string) ? 'users' : 'babies'}
         data={modalData}
         showAgeBreakdown={modalType === 'accountsWithoutBaby'}
         onBabyClick={handleBabyClick}

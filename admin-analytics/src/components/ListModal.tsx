@@ -26,6 +26,16 @@ export const ListModal: React.FC<ListModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  // Date d'achat premium — affichée en colonne dès qu'au moins un user de la liste en a une.
+  // Absente pour les achats antérieurs à la v1.3.2, qui a introduit le champ premiumDate.
+  const formatPurchaseDate = (u: User): string | null => {
+    if (!u.premiumDate) return null;
+    const d = typeof u.premiumDate === 'string' ? new Date(u.premiumDate) : (u.premiumDate as any).toDate();
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  };
+  const showPurchaseDate = type === 'users' && (data as User[]).some(u => u.premiumDate);
+
   // Calculate age breakdown for users without baby
   const ageBreakdown = showAgeBreakdown && type === 'users' ? (() => {
     const now = new Date();
@@ -122,9 +132,10 @@ export const ListModal: React.FC<ListModalProps> = ({
 
     if (type === 'users') {
       const hasDeletedUsers = (data as User[]).some(u => u.deleted);
-      csv = hasDeletedUsers
-        ? 'Email,Nom,Provider,Opt-in email,Pays,Plateforme,Date de création,Période de vie\n'
-        : 'Email,Nom,Provider,Opt-in email,Pays,Plateforme,Date de création\n';
+      csv = 'Email,Nom,Provider,Opt-in email,Pays,Plateforme,Date de création'
+        + (showPurchaseDate ? ",Date d'achat" : '')
+        + (hasDeletedUsers ? ',Période de vie' : '')
+        + '\n';
 
       (data as User[]).forEach(user => {
         const date = user.creationDate
@@ -146,9 +157,10 @@ export const ListModal: React.FC<ListModalProps> = ({
         const country = user.country || 'N/A';
         const platform = (user as any).platform || 'N/A';
 
-        csv += hasDeletedUsers
-          ? `${user.email},${user.username},${provider},${optIn},${country},${platform},${date},${lifetime}\n`
-          : `${user.email},${user.username},${provider},${optIn},${country},${platform},${date}\n`;
+        csv += `${user.email},${user.username},${provider},${optIn},${country},${platform},${date}`
+          + (showPurchaseDate ? `,${formatPurchaseDate(user) ?? 'non daté'}` : '')
+          + (hasDeletedUsers ? `,${lifetime}` : '')
+          + '\n';
       });
     } else {
       csv = 'Nom du bébé,Sexe,Date de naissance,Âge,Poids (kg),Taille (cm),Nb parents,Nombre de tâches,Emails parents (email|rôle|tranche âge),Date de création\n';
@@ -252,6 +264,7 @@ export const ListModal: React.FC<ListModalProps> = ({
                       <th>Pays</th>
                       <th>Plateforme</th>
                       <th>Date de création</th>
+                      {showPurchaseDate && <th>Date d'achat</th>}
                       {(data as User[]).some(u => u.deleted) && <th>Période de vie</th>}
                       {(data as User[]).some(u => u.babyStatus) && <th>Bébé</th>}
                     </tr>
@@ -291,6 +304,15 @@ export const ListModal: React.FC<ListModalProps> = ({
                             {user.appVersion && <div style={{ fontSize: '11px', color: '#888' }}>v{user.appVersion}</div>}
                           </td>
                           <td>{date}</td>
+                          {showPurchaseDate && (
+                            <td style={{ whiteSpace: 'nowrap' }}>
+                              {formatPurchaseDate(user) ?? (
+                                <span style={{ color: '#9ca3af' }} title="Achat antérieur à la v1.3.2, qui a introduit le champ premiumDate">
+                                  — non daté
+                                </span>
+                              )}
+                            </td>
+                          )}
                           {(data as User[]).some(u => u.deleted) && <td>{lifetime}</td>}
                           {(data as User[]).some(u => u.babyStatus) && (
                             <td>
