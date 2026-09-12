@@ -4,14 +4,15 @@
  * Adresse de contact utilisée par tous les `mailto:` de l'app (contact, feedback,
  * réponse « non » au prompt d'avis, idées stats sommeil).
  *
- * Boîte relevée directement, sans intermédiaire : support@tribubaby.com restait
- * non consultée. Ne pas remettre d'adresse en dur dans les écrans — ces quatre
- * copies dispersées sont ce qui a permis au problème de passer inaperçu.
+ * Adresse de domaine volontairement conservée plutôt que la boîte Gmail finale :
+ * elle est redirigée côté Hostinger vers tribubabytracker@gmail.com, reste
+ * cohérente avec les CGU et le site, et survit à un changement d'hébergeur mail.
  *
- * Les mentions légales (RGPD, CGU) gardent support@tribubaby.com : elles sont
- * servies par le site, pas par l'app.
+ * Ne pas réintroduire d'adresse en dur dans les écrans — les quatre copies
+ * dispersées sont ce qui a permis à une boîte non relevée de passer inaperçue
+ * pendant des mois.
  */
-export const SUPPORT_EMAIL = 'tribubabytracker@gmail.com';
+export const SUPPORT_EMAIL = 'support@tribubaby.com';
 
 // Time ranges
 export const DAYS_TO_SHOW_TASKS = 7;
