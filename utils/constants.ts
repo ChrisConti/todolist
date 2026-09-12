@@ -1,5 +1,18 @@
 // App Configuration Constants
 
+/**
+ * Adresse de contact utilisée par tous les `mailto:` de l'app (contact, feedback,
+ * réponse « non » au prompt d'avis, idées stats sommeil).
+ *
+ * Boîte relevée directement, sans intermédiaire : support@tribubaby.com restait
+ * non consultée. Ne pas remettre d'adresse en dur dans les écrans — ces quatre
+ * copies dispersées sont ce qui a permis au problème de passer inaperçu.
+ *
+ * Les mentions légales (RGPD, CGU) gardent support@tribubaby.com : elles sont
+ * servies par le site, pas par l'app.
+ */
+export const SUPPORT_EMAIL = 'tribubabytracker@gmail.com';
+
 // Time ranges
 export const DAYS_TO_SHOW_TASKS = 7;
 export const APP_INIT_TIMEOUT = 10000; // 10 seconds

@@ -7,6 +7,7 @@ import ModalSentimentGate from '../components/ModalSentimentGate';
 import analytics from '../services/analytics';
 import { log } from '../utils/logger';
 import { AuthentificationUserContext } from './AuthentificationContext';
+import { SUPPORT_EMAIL } from '../utils/constants';
 import {
   ReviewPromptState,
   initialReviewPromptState,
@@ -160,7 +161,7 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
       persistPromptState(user.uid).catch(() => {});
     }
 
-    const email = 'support@tribubaby.com';
+    const email = SUPPORT_EMAIL;
     const subject = 'Feedback Tribu Baby';
     const body = 'Bonjour, voici ce que je changerais...';
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

@@ -10,6 +10,7 @@ import analytics from './services/analytics';
 import { useReviewPrompt } from './Context/ReviewPromptContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { usePremium } from './Context/PremiumContext';
+import { SUPPORT_EMAIL } from './utils/constants';
 import { isNursingActivitySupported } from './utils/nursingActivityBridge';
 
 const Settings = ({ navigation }) => {
@@ -39,7 +40,7 @@ const Settings = ({ navigation }) => {
   };
 
   const handleContactUs = () => {
-    const email = "support@tribubaby.com";
+    const email = SUPPORT_EMAIL;
     const subject = 'Contact Tribu baby';
     const body = 'Hi there, I would like to...';
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -47,7 +48,7 @@ const Settings = ({ navigation }) => {
   };
 
   const handleFeedback = () => {
-    const email = "support@tribubaby.com";
+    const email = SUPPORT_EMAIL;
     const subject = 'Feedback';
     const body = 'Hi, I would like to suggest...';
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

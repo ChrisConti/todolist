@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import analytics from '../../services/analytics';
+import { SUPPORT_EMAIL } from '../../utils/constants';
 
 const MIN_VISITS = 3;
 
@@ -43,7 +44,7 @@ const SleepFeedbackWidget: React.FC<Props> = ({ userId }) => {
     if (userId) await AsyncStorage.setItem(`sleep_feedback_given_${userId}`, 'true');
     const subject = 'Idée stats sommeil';
     const body    = 'Bonjour, voici mon idée pour améliorer les stats sommeil...';
-    Linking.openURL(`mailto:support@tribubaby.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+    Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
     setVisible(false);
   };
 
