@@ -22,7 +22,7 @@ Ce qu'on change à chaque version (produit growth, metadata stores, campagnes), 
 - [ ] OneLink AppsFlyer `insta_bio` + `insta_story`, lien en bio Instagram (date : ___) — non lancée au 23/08
 
 **Hypothèses à vérifier à la review du ~28/07** → vérifiées le 23/08
-1. ~~Bébés 0-tâche : 18% → <10% (FirstBiberon + grille).~~ **Infirmée** — 15%, iOS seulement.
+1. ~~Bébés 0-tâche : 18% → <10% (FirstBiberon + grille).~~ **Validée** *(corrigé le 12/09)* — 10-11% sur juillet et août, bébés à naître écartés. Le « infirmée » du 23/08 venait de ce biais de mesure.
 2. ~~Volume de prompts review ×2-3, notes FR 54 → 70+.~~ **Partielle** — notes 81 ✅, volume ×1,8.
 3. ~~« suivi allaitement » entre dans le top 100 iOS FR.~~ **Validée** — #28.
 4. ~~Conversion fiche (ASC) remonte au-dessus de 5%.~~ **Validée** — 4,9-6,8%/sem.

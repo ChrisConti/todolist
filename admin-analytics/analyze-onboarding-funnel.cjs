@@ -13,6 +13,30 @@ function toDate(v) {
   if (typeof v === 'string') { const d = new Date(v); return isNaN(d) ? null : d; }
   return null;
 }
+// birthDate est saisie en JJ/MM/AAAA — new Date() la lirait en MM/JJ/AAAA.
+function toBirthDate(v) {
+  if (!v) return null;
+  if (typeof v === 'string' && v.includes('/')) {
+    const [d, m, y] = v.split('/');
+    const parsed = new Date(`${y}-${m}-${d}`);
+    return isNaN(parsed) ? null : parsed;
+  }
+  return toDate(v);
+}
+
+/**
+ * Bébé enregistré avant sa naissance : il a zéro tâche pour une raison légitime,
+ * il n'y a rien à noter tant qu'il n'est pas là.
+ *
+ * Les compter dans les « 0 tâche » fausse la mesure de l'activation, et l'a
+ * effectivement faussée : leur nombre a doublé après la 1.3.3, ce qui masquait
+ * l'effet de FirstBiberon et faisait conclure à tort à un échec (review du 23/08).
+ */
+const isUnbornAtCreation = (baby, createdAt) => {
+  const birth = toBirthDate(baby.birthDate);
+  return birth !== null && createdAt !== null && birth > createdAt;
+};
+
 const monthKey = d => d.toISOString().slice(0, 7);
 // 5 derniers mois glissants (mois courant inclus) — évite de figer la fenêtre à chaque review
 const MONTHS = Array.from({ length: 5 }, (_, i) => {
@@ -89,11 +113,20 @@ async function main() {
     });
     const n = cohort.length;
     if (!n) return;
-    const zero = cohort.filter(b => !(b.tasks || []).length).length;
-    const t12 = cohort.filter(b => { const c = (b.tasks || []).length; return c >= 1 && c <= 2; }).length;
-    const t3plus = cohort.filter(b => (b.tasks || []).length >= 3).length;
-    const t10plus = cohort.filter(b => (b.tasks || []).length >= 10).length;
-    console.log(`${mk}  bébés:${n}  0 tâche:${zero} (${(100*zero/n).toFixed(0)}%)  1-2:${t12} (${(100*t12/n).toFixed(0)}%)  3+:${t3plus} (${(100*t3plus/n).toFixed(0)}%)  10+:${t10plus} (${(100*t10plus/n).toFixed(0)}%)`);
+    // Les bébés pas encore nés à la création sont exclus du dénominateur : leur
+    // absence de tâche ne dit rien de l'activation.
+    const born = cohort.filter(b => {
+      const d = toDate(b.createdDate) || toDate(b.CreatedDate);
+      return !isUnbornAtCreation(b, d);
+    });
+    const unborn = n - born.length;
+    const nb = born.length;
+    if (!nb) return;
+    const zero = born.filter(b => !(b.tasks || []).length).length;
+    const t12 = born.filter(b => { const c = (b.tasks || []).length; return c >= 1 && c <= 2; }).length;
+    const t3plus = born.filter(b => (b.tasks || []).length >= 3).length;
+    const t10plus = born.filter(b => (b.tasks || []).length >= 10).length;
+    console.log(`${mk}  nés:${nb} (+${unborn} à naître)  0 tâche:${zero} (${(100*zero/nb).toFixed(0)}%)  1-2:${t12} (${(100*t12/nb).toFixed(0)}%)  3+:${t3plus} (${(100*t3plus/nb).toFixed(0)}%)  10+:${t10plus} (${(100*t10plus/nb).toFixed(0)}%)`);
   });
 
   // --- Timing 1re tâche vs création bébé (cohortes avril→juillet) ---
