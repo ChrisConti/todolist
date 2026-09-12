@@ -128,7 +128,10 @@ export default function PaywallScreen({ navigation }: any) {
   const { t } = useTranslation();
   const { purchase, restore, isLoading, purchaseError, priceString } = usePremium();
 
-  const displayPrice = priceString ?? '2,99 €';
+  // Repli affiché uniquement si RevenueCat n'a pas pu charger l'offre. Doit rester
+  // aligné sur le prix réel d'App Store Connect, sinon le paywall annonce un prix
+  // que l'achat ne respectera pas.
+  const displayPrice = priceString ?? '4,99 €';
 
   useEffect(() => {
     Analytics.logEvent('paywall_viewed');
