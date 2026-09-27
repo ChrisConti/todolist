@@ -28,6 +28,8 @@ jest.mock('i18next', () => ({
       'export.taskTypes.sleep':        'Sleep',
       'export.taskTypes.temperature':  'Temperature',
       'export.taskTypes.breastfeeding':'Breastfeeding',
+      'export.taskTypes.pumping':      'Pumping',
+      'breastfeeding.bothBreasts':     'Both',
       'export.diaperType.solid':       'Hard',
       'export.diaperType.soft':        'Soft',
       'export.diaperType.liquid':      'Liquid',
@@ -124,6 +126,20 @@ describe('generateCSV — task rows', () => {
     const csv = generateCSV({ ...BASE_OPTS, tasks });
     expect(csv).toContain('5 min');
     expect(csv).toContain('3 min');
+  });
+
+  it('pumping — exported in ml with its side, not as a zero-minute feed', () => {
+    const tasks = [{ id: 5, date: '2025-01-10 10:00:00', nursingType: 'pumping', pumpedMl: 120, pumpedSide: 'both', boobLeft: 0, boobRight: 0 }];
+    const csv = generateCSV({ ...BASE_OPTS, tasks });
+    expect(csv).toContain('120 ml');
+    expect(csv).toContain('Pumping');
+  });
+
+  it('pumping — a direct feed keeps its per-breast durations', () => {
+    const tasks = [{ id: 5, date: '2025-01-10 10:00:00', nursingType: 'direct', boobLeft: 300, boobRight: 0 }];
+    const csv = generateCSV({ ...BASE_OPTS, tasks });
+    expect(csv).toContain('5 min');
+    expect(csv).not.toContain('Pumping');
   });
 
   it('comment — double-quotes are escaped', () => {

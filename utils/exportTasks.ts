@@ -129,7 +129,8 @@ export const generateCSV = (options: ExportOptions & { maxTasks?: number }): str
   const rows = sortedTasks.map((task) => {
     const date = moment(task.date).format('DD/MM/YYYY');
     const time = moment(task.date).format('HH:mm');
-    const type = task.labelTask || getTaskLabel(task.id, t);
+    const isPumping = task.id === 5 && (task as any).nursingType === 'pumping';
+    const type = isPumping ? t('export.taskTypes.pumping') : (task.labelTask || getTaskLabel(task.id, t));
 
     let quantity = '';
     let consistency = '';
@@ -152,6 +153,11 @@ export const generateCSV = (options: ExportOptions & { maxTasks?: number }): str
     } else if (task.id === 4) {
       // TEMPERATURE (Thermomètre)
       quantity = task.label ? `${task.label} ${t('celsius')}` : '';
+    } else if (isPumping) {
+      // PUMPING (Tire-lait) — mesuré en ml, les colonnes de durée par sein restent vides
+      const side = (task as any).pumpedSide;
+      const sideLabel = side === 'left' ? t('breast.left') : side === 'right' ? t('breast.right') : t('breastfeeding.bothBreasts');
+      quantity = `${(task as any).pumpedMl || 0} ${t('ml')} (${sideLabel})`;
     } else if (task.id === 5) {
       // BREASTFEEDING (Allaitement)
       leftBoob = task.boobLeft ? formatDuration(task.boobLeft, language) : '';

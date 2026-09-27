@@ -129,6 +129,15 @@ const Card = ({ task, navigation, editable }) => {
   };
 
   const handleCategoryLabel = () => {
+    // Un tirage est une tâche de catégorie 5 sans durée par sein : sans ce cas,
+    // la carte afficherait une tétée vide au lieu de la quantité tirée.
+    if (task.id == 5 && task.nursingType === 'pumping') {
+      return (
+        <Text style={{ color: '#F6F0EB', fontSize: 22, marginRight: 8, alignSelf: 'flex-end' }}>
+          {`${task.pumpedMl || 0} ${t('ml')}`}
+        </Text>
+      );
+    }
     if (task.id == 5) {
       if (task.boobLeft && task.boobRight) {
         return (

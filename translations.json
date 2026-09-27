@@ -180,7 +180,8 @@
         "health": "Health",
         "sleep": "Sleep",
         "temperature": "Temperature",
-        "breastfeeding": "Breastfeeding"
+        "breastfeeding": "Breastfeeding",
+        "pumping": "Pumping"
       },
       "diaperType": {
         "solid": "Solid",
@@ -1038,7 +1039,8 @@
         "health": "Santé",
         "sleep": "Sommeil",
         "temperature": "Thermomètre",
-        "breastfeeding": "Allaitement"
+        "breastfeeding": "Allaitement",
+        "pumping": "Tire-lait"
       },
       "diaperType": {
         "solid": "Dur",
@@ -1870,7 +1872,8 @@
         "health": "Salud",
         "sleep": "Sueño",
         "temperature": "Termómetro",
-        "breastfeeding": "Lactancia"
+        "breastfeeding": "Lactancia",
+        "pumping": "Extracción"
       },
       "diaperType": {
         "solid": "Duro",
