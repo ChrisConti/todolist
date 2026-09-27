@@ -28,6 +28,13 @@ export interface Task {
   diaperContent?: number;
   boobLeft?: number;
   boobRight?: number;
+  /** Nature de l'acte d'allaitement. Absent sur l'historique ⇒ tétée directe. */
+  nursingType?: 'direct' | 'pumping';
+  /** Quantité tirée en ml (tire-lait uniquement). */
+  pumpedMl?: number;
+  pumpedSide?: 'left' | 'right' | 'both';
+  /** Durée du tirage en minutes, facultative. */
+  pumpedDurationMin?: number;
   user: string;
   createdBy: string;
   comment: string;

@@ -82,7 +82,12 @@
     },
     "breastfeeding": {
       "timer": "Timer",
-      "manual": "Manual"
+      "manual": "Manual",
+      "direct": "🤱 Nursing",
+      "pumping": "🥛 Pumping",
+      "pumpedQuantity": "Amount pumped",
+      "pumpedDuration": "Duration (optional)",
+      "bothBreasts": "Both"
     },
     "error": {
       "invalidEmail": "Please enter a valid email.",
@@ -923,7 +928,12 @@
     },
     "breastfeeding": {
       "timer": "Timer",
-      "manual": "Manuel"
+      "manual": "Manuel",
+      "direct": "🤱 Tétée",
+      "pumping": "🥛 Tire-lait",
+      "pumpedQuantity": "Quantité tirée",
+      "pumpedDuration": "Durée (facultatif)",
+      "bothBreasts": "Les deux"
     },
     "error": {
       "invalidEmail": "Veuillez entrer un email valide.",
@@ -1750,7 +1760,12 @@
     },
     "breastfeeding": {
       "timer": "Timer",
-      "manual": "Manual"
+      "manual": "Manual",
+      "direct": "🤱 Lactancia",
+      "pumping": "🥛 Extracción",
+      "pumpedQuantity": "Cantidad extraída",
+      "pumpedDuration": "Duración (opcional)",
+      "bothBreasts": "Ambos"
     },
     "error": {
       "invalidEmail": "Por favor, introduce un correo electrónico válido.",

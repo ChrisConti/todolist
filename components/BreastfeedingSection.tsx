@@ -1,6 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, AppState } from 'react-native';
-import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import Analytics from '../services/analytics';
@@ -12,6 +11,9 @@ import {
   getNursingActivityEnabled,
 } from '../utils/nursingActivityBridge';
 
+export type NursingType = 'direct' | 'pumping';
+export type PumpedSide = 'left' | 'right' | 'both';
+
 export interface BreastfeedingValues {
   timer1: number;
   timer2: number;
@@ -19,6 +21,13 @@ export interface BreastfeedingValues {
   manualLeft: number;
   manualRight: number;
   timerStartTime?: number; // Unix ms — wall-clock time when the first timer was originally started
+  /** Nature de l'acte. Absent sur tout l'historique ⇒ 'direct', aucune migration nécessaire. */
+  nursingType: NursingType;
+  /** Quantité tirée, en ml. Une tétée se mesure en minutes, un tire-lait en millilitres. */
+  pumpedMl: number;
+  pumpedSide: PumpedSide;
+  /** Durée du tirage, en minutes. 0 = non renseignée (le champ est facultatif). */
+  pumpedDurationMin: number;
 }
 
 export interface BreastfeedingRef {
@@ -38,10 +47,81 @@ interface Props {
   initialMode?: 'timer' | 'manual';
   initialManualLeft?: number;
   initialManualRight?: number;
+  initialNursingType?: NursingType;
+  initialPumpedMl?: number;
+  initialPumpedSide?: PumpedSide;
+  initialPumpedDurationMin?: number;
   storageKeySuffix?: string;
   onSessionChange?: (info: BreastfeedingSessionInfo) => void;
   liveActivity?: boolean; // Live Activity iOS (écran verrouillé + Dynamic Island), CreateTask uniquement
 }
+
+const MIN_CHIPS = [5, 10, 15, 20];      // durées de tétée les plus fréquentes
+const ML_CHIPS = [60, 90, 120, 150, 180]; // alignées sur celles des biberons
+const MAX_MIN = 120;
+const MAX_ML = 500;
+const LONG_PRESS_STEP = 5; // l'appui long avance par 5 : 0 → 20 en quatre appuis au lieu de vingt
+
+interface StepperProps {
+  label: string;
+  value: number;
+  unit: string;
+  chips: number[];
+  onChange: (v: number) => void;
+  max: number;
+  step?: number;
+  compact?: boolean;
+}
+
+/**
+ * Saisie d'une valeur entière par boutons − / + et puces de raccourci.
+ *
+ * Remplace un Slider pivoté à -90°, qui n'était ni visible ni tactile sur Android :
+ * React Native applique la rotation au rendu mais pas à la zone de toucher, et le
+ * composant natif sous-jacent ne se laisse pas transformer.
+ */
+const Stepper: React.FC<StepperProps> = ({ label, value, unit, chips, onChange, max, step = 1, compact }) => {
+  const bump = (delta: number) => onChange(Math.min(max, Math.max(0, value + delta)));
+  return (
+    <View style={styles.stepperColumn}>
+      <Text style={styles.stepperLabel}>{label}</Text>
+      <Text style={[styles.stepperValue, compact && styles.stepperValueCompact]}>
+        {value} <Text style={styles.stepperUnit}>{unit}</Text>
+      </Text>
+      <View style={styles.stepperButtons}>
+        <TouchableOpacity
+          onPress={() => bump(-step)}
+          onLongPress={() => bump(-step * LONG_PRESS_STEP)}
+          disabled={value === 0}
+          style={[styles.stepperBtn, value === 0 && styles.stepperBtnDisabled]}
+          accessibilityLabel={`${label} −${step}`}
+        >
+          <Ionicons name="remove" size={22} color="#F6F0EB" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => bump(step)}
+          onLongPress={() => bump(step * LONG_PRESS_STEP)}
+          disabled={value >= max}
+          style={[styles.stepperBtn, value >= max && styles.stepperBtnDisabled]}
+          accessibilityLabel={`${label} +${step}`}
+        >
+          <Ionicons name="add" size={22} color="#F6F0EB" />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.chipRow}>
+        {chips.map(c => (
+          <TouchableOpacity
+            key={c}
+            onPress={() => onChange(c)}
+            style={[styles.chip, value === c && styles.chipSelected]}
+          >
+            <Text style={[styles.chipText, value === c && styles.chipTextSelected]}>{c}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+};
 
 const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
   t,
@@ -50,6 +130,10 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
   initialMode = 'timer',
   initialManualLeft = 0,
   initialManualRight = 0,
+  initialNursingType = 'direct',
+  initialPumpedMl = 0,
+  initialPumpedSide = 'both',
+  initialPumpedDurationMin = 0,
   storageKeySuffix = 'createtask',
   onSessionChange,
   liveActivity = false,
@@ -62,6 +146,10 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
   const modeRef = useRef<'timer' | 'manual'>(initialMode);
   const [manualLeft, setManualLeft] = useState(initialManualLeft);
   const [manualRight, setManualRight] = useState(initialManualRight);
+  const [nursingType, setNursingType] = useState<NursingType>(initialNursingType);
+  const [pumpedMl, setPumpedMl] = useState(initialPumpedMl);
+  const [pumpedSide, setPumpedSide] = useState<PumpedSide>(initialPumpedSide);
+  const [pumpedDurationMin, setPumpedDurationMin] = useState(initialPumpedDurationMin);
   const originalStartTime1 = useRef<number | null>(null);
   const originalStartTime2 = useRef<number | null>(null);
 
@@ -76,6 +164,14 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
       startTime: starts.length > 0 ? Math.min(...starts) : null,
       mode: currentMode ?? modeRef.current,
     });
+  };
+
+  const changeNursingType = (next: NursingType) => {
+    if (next === nursingType) return;
+    setNursingType(next);
+    // L'écran verrouillé annoncerait une tétée en cours pendant un tirage.
+    if (next === 'pumping' && liveActivity) endNursingActivity();
+    Analytics.logEvent('tab_selected', { screen: 'CreateTask_Breastfeeding', tab: next });
   };
 
   const changeMode = (newMode: 'timer' | 'manual') => {
@@ -113,7 +209,10 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
     getValues: () => {
       const starts = [originalStartTime1.current, originalStartTime2.current].filter((t): t is number => t !== null);
       const timerStartTime = starts.length > 0 ? Math.min(...starts) : undefined;
-      return { timer1, timer2, mode, manualLeft, manualRight, timerStartTime };
+      return {
+        timer1, timer2, mode, manualLeft, manualRight, timerStartTime,
+        nursingType, pumpedMl, pumpedSide, pumpedDurationMin,
+      };
     },
     clearTimers: async () => {
       await AsyncStorage.removeItem(`timer1_${storageKeySuffix}`);
@@ -273,6 +372,65 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
 
   return (
     <View>
+      {/* Nature de l'acte : tétée directe ou lait tiré.
+          Volontairement un mode de la catégorie 5 et non une 7e catégorie — une tâche
+          d'id inconnu s'afficherait sans icône sur les versions non mises à jour
+          (Card.js n'a pas de rendu de repli). */}
+      <View style={styles.modeRow}>
+        <TouchableOpacity
+          onPress={() => changeNursingType('direct')}
+          style={[styles.typeButton, nursingType === 'direct' && styles.typeButtonSelected]}
+        >
+          <Text style={[styles.typeText, nursingType === 'direct' && styles.typeTextSelected]}>
+            {t('breastfeeding.direct')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => changeNursingType('pumping')}
+          style={[styles.typeButton, nursingType === 'pumping' && styles.typeButtonSelected]}
+        >
+          <Text style={[styles.typeText, nursingType === 'pumping' && styles.typeTextSelected]}>
+            {t('breastfeeding.pumping')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {nursingType === 'pumping' ? (
+        <View>
+          <Stepper
+            label={t('breastfeeding.pumpedQuantity')}
+            value={pumpedMl}
+            unit={t('ml')}
+            chips={ML_CHIPS}
+            onChange={setPumpedMl}
+            max={MAX_ML}
+            step={10}
+          />
+          <View style={styles.sideRow}>
+            {(['left', 'right', 'both'] as PumpedSide[]).map(side => (
+              <TouchableOpacity
+                key={side}
+                onPress={() => setPumpedSide(side)}
+                style={[styles.sideButton, pumpedSide === side && styles.sideButtonSelected]}
+              >
+                <Text style={[styles.sideText, pumpedSide === side && styles.sideTextSelected]}>
+                  {t(side === 'left' ? 'breast.left' : side === 'right' ? 'breast.right' : 'breastfeeding.bothBreasts')}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Stepper
+            label={t('breastfeeding.pumpedDuration')}
+            value={pumpedDurationMin}
+            unit={t('min')}
+            chips={MIN_CHIPS}
+            onChange={setPumpedDurationMin}
+            max={MAX_MIN}
+            compact
+          />
+        </View>
+      ) : (
+      <>
       {/* Mode Switch */}
       <View style={styles.modeRow}>
         <TouchableOpacity
@@ -330,41 +488,25 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
         </View>
       ) : (
         <View style={styles.manualRow}>
-          <View style={styles.manualColumn}>
-            <Text style={styles.manualValue}>{manualLeft} {t('min')}</Text>
-            <View style={styles.sliderWrapper}>
-              <Slider
-                style={{ width: 200, height: 40, transform: [{ rotate: '-90deg' }] }}
-                minimumValue={0}
-                maximumValue={60}
-                step={1}
-                value={manualLeft}
-                onValueChange={v => setManualLeft(Math.round(v))}
-                minimumTrackTintColor="#C75B4A"
-                maximumTrackTintColor="#D8ABA0"
-                thumbTintColor="#C75B4A"
-              />
-            </View>
-            <Text style={styles.manualLabel}>{t('breast.left')}</Text>
-          </View>
-          <View style={styles.manualColumn}>
-            <Text style={styles.manualValue}>{manualRight} {t('min')}</Text>
-            <View style={styles.sliderWrapper}>
-              <Slider
-                style={{ width: 200, height: 40, transform: [{ rotate: '-90deg' }] }}
-                minimumValue={0}
-                maximumValue={60}
-                step={1}
-                value={manualRight}
-                onValueChange={v => setManualRight(Math.round(v))}
-                minimumTrackTintColor="#C75B4A"
-                maximumTrackTintColor="#D8ABA0"
-                thumbTintColor="#C75B4A"
-              />
-            </View>
-            <Text style={styles.manualLabel}>{t('breast.right')}</Text>
-          </View>
+          <Stepper
+            label={t('breast.left')}
+            value={manualLeft}
+            unit={t('min')}
+            chips={MIN_CHIPS}
+            onChange={setManualLeft}
+            max={MAX_MIN}
+          />
+          <Stepper
+            label={t('breast.right')}
+            value={manualRight}
+            unit={t('min')}
+            chips={MIN_CHIPS}
+            onChange={setManualRight}
+            max={MAX_MIN}
+          />
         </View>
+      )}
+      </>
       )}
     </View>
   );
@@ -382,11 +524,47 @@ const styles = StyleSheet.create({
   timerButtons: { flexDirection: 'row', gap: 12 },
   timerBtn: { backgroundColor: '#C75B4A', borderRadius: 8, padding: 10 },
   timerBtnDisabled: { backgroundColor: '#E8D5C4' },
-  manualRow: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 20 },
-  manualColumn: { alignItems: 'center' },
-  manualValue: { fontSize: 28, fontWeight: 'bold', color: '#C75B4A', marginBottom: 5 },
-  sliderWrapper: { height: 200, justifyContent: 'center', alignItems: 'center' },
-  manualLabel: { fontSize: 16, fontWeight: '600', color: '#7A8889', marginTop: 5 },
+  manualRow: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, gap: 10 },
+
+  // Sélecteur de nature d'acte — même gabarit que le choix de saisie, teinte plus douce
+  // pour que la hiérarchie entre les deux rangées reste lisible.
+  typeButton: {
+    flex: 1, alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12,
+    borderRadius: 8, borderWidth: 1.5, borderColor: '#E3D5CB', backgroundColor: '#F6F0EB',
+  },
+  typeButtonSelected: { backgroundColor: '#C75B4A', borderColor: '#C75B4A' },
+  typeText: { fontSize: 14, fontWeight: '600', color: '#8A6A5E' },
+  typeTextSelected: { color: '#F6F0EB' },
+
+  stepperColumn: { flex: 1, alignItems: 'center', gap: 8 },
+  stepperLabel: { fontSize: 15, fontWeight: '600', color: '#7A8889' },
+  stepperValue: { fontSize: 28, fontWeight: 'bold', color: '#C75B4A' },
+  stepperValueCompact: { fontSize: 22 },
+  stepperUnit: { fontSize: 14, fontWeight: '600' },
+  stepperButtons: { flexDirection: 'row', gap: 12 },
+  stepperBtn: {
+    backgroundColor: '#C75B4A', borderRadius: 20, width: 40, height: 40,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  stepperBtnDisabled: { backgroundColor: '#E8D5C4' },
+
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6 },
+  chip: {
+    paddingVertical: 5, paddingHorizontal: 11, borderRadius: 14,
+    backgroundColor: '#F6F0EB', borderWidth: 1, borderColor: '#E3D5CB',
+  },
+  chipSelected: { backgroundColor: '#C75B4A', borderColor: '#C75B4A' },
+  chipText: { fontSize: 13, fontWeight: '600', color: '#8A6A5E' },
+  chipTextSelected: { color: '#F6F0EB' },
+
+  sideRow: { flexDirection: 'row', gap: 8, marginTop: 18, marginBottom: 4 },
+  sideButton: {
+    flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 8,
+    backgroundColor: '#F6F0EB', borderWidth: 1, borderColor: '#E3D5CB',
+  },
+  sideButtonSelected: { backgroundColor: '#C75B4A', borderColor: '#C75B4A' },
+  sideText: { fontSize: 13, fontWeight: '600', color: '#8A6A5E' },
+  sideTextSelected: { color: '#F6F0EB' },
 });
 
 export default BreastfeedingSection;

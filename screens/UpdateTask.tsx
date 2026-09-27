@@ -97,9 +97,17 @@ const UpdateTask = ({ route, navigation }) => {
               ...(selectedImage === 1 && diaperType !== null && { diaperType }),
               ...(selectedImage === 1 && diaperType !== null && { idCaca: diaperType }), // Backward compatibility only if selected
               ...(selectedImage === 1 && diaperContent !== null && { diaperContent }),
-              boobLeft: bfValues ? (bfValues.mode === 'manual' ? bfValues.manualLeft * 60 : bfValues.timer1) : (task.boobLeft || 0),
-              boobRight: bfValues ? (bfValues.mode === 'manual' ? bfValues.manualRight * 60 : bfValues.timer2) : (task.boobRight || 0),
+              boobLeft: bfValues && bfValues.nursingType !== 'pumping' ? (bfValues.mode === 'manual' ? bfValues.manualLeft * 60 : bfValues.timer1) : (bfValues?.nursingType === 'pumping' ? 0 : (task.boobLeft || 0)),
+              boobRight: bfValues && bfValues.nursingType !== 'pumping' ? (bfValues.mode === 'manual' ? bfValues.manualRight * 60 : bfValues.timer2) : (bfValues?.nursingType === 'pumping' ? 0 : (task.boobRight || 0)),
               breastfeedingMode: selectedImage === 5 ? (bfValues?.mode ?? task.breastfeedingMode ?? 'timer') : null,
+              // 'direct' explicite à l'édition : une tâche repassée de tirage à tétée
+              // doit effacer nursingType, sinon la valeur précédente persiste.
+              ...(selectedImage === 5 && bfValues ? {
+                nursingType: bfValues.nursingType,
+                pumpedMl: bfValues.nursingType === 'pumping' ? bfValues.pumpedMl : null,
+                pumpedSide: bfValues.nursingType === 'pumping' ? bfValues.pumpedSide : null,
+                pumpedDurationMin: bfValues.nursingType === 'pumping' && bfValues.pumpedDurationMin > 0 ? bfValues.pumpedDurationMin : null,
+              } : {}),
               milkType: selectedImage === 0 ? milkType : null,
               sleepType: selectedImage === 3 ? sleepType : null,
               sleepLocation: selectedImage === 3 ? sleepLocation : null,
@@ -386,6 +394,10 @@ const UpdateTask = ({ route, navigation }) => {
             initialMode={task.breastfeedingMode || 'timer'}
             initialManualLeft={task.breastfeedingMode === 'manual' ? Math.floor((task.boobLeft || 0) / 60) : 0}
             initialManualRight={task.breastfeedingMode === 'manual' ? Math.floor((task.boobRight || 0) / 60) : 0}
+            initialNursingType={task.nursingType || 'direct'}
+            initialPumpedMl={task.pumpedMl || 0}
+            initialPumpedSide={task.pumpedSide || 'both'}
+            initialPumpedDurationMin={task.pumpedDurationMin || 0}
             storageKeySuffix={`updatetask_${task.uid}`}
           />
         );

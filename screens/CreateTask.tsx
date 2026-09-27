@@ -163,9 +163,17 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         ...(selectedImage === 1 && diaperType !== null && { diaperType }),
         ...(selectedImage === 1 && diaperType !== null && { idCaca: diaperType }), // Backward compatibility only if selected
         ...(selectedImage === 1 && diaperContent !== null && { diaperContent }),
-        boobLeft: bfValues ? (bfValues.mode === 'manual' ? bfValues.manualLeft * 60 : bfValues.timer1) : 0,
-        boobRight: bfValues ? (bfValues.mode === 'manual' ? bfValues.manualRight * 60 : bfValues.timer2) : 0,
+        // Un tirage se mesure en ml, pas en minutes par sein : boobLeft/boobRight restent
+        // à 0 pour ne pas gonfler le temps de tétée dans les stats.
+        boobLeft: bfValues && bfValues.nursingType !== 'pumping' ? (bfValues.mode === 'manual' ? bfValues.manualLeft * 60 : bfValues.timer1) : 0,
+        boobRight: bfValues && bfValues.nursingType !== 'pumping' ? (bfValues.mode === 'manual' ? bfValues.manualRight * 60 : bfValues.timer2) : 0,
         breastfeedingMode: selectedImage === 5 ? (bfValues?.mode ?? 'timer') : null,
+        ...(selectedImage === 5 && bfValues?.nursingType === 'pumping' && {
+          nursingType: 'pumping',
+          pumpedMl: bfValues.pumpedMl,
+          pumpedSide: bfValues.pumpedSide,
+          ...(bfValues.pumpedDurationMin > 0 && { pumpedDurationMin: bfValues.pumpedDurationMin }),
+        }),
         milkType: selectedImage === 0 ? milkType : null,
         sleepType: selectedImage === 3 ? sleepType : null,
         sleepLocation: selectedImage === 3 ? sleepLocation : null,
