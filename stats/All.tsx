@@ -38,12 +38,13 @@ interface CategoryStats {
 interface PeriodStats {
   biberon: CategoryStats;
   allaitement: CategoryStats;
+  tireLait: CategoryStats;
   sommeil: CategoryStats;
   couche: CategoryStats;
   temperature: CategoryStats;
 }
 
-type CategoryKey = 'biberon' | 'allaitement' | 'sommeil' | 'couche' | 'temperature';
+type CategoryKey = 'biberon' | 'allaitement' | 'tireLait' | 'sommeil' | 'couche' | 'temperature';
 
 const GAP = 12;
 const H_PAD = 8;
@@ -87,6 +88,12 @@ const getRowValues = (
         rd > 0 ? formatDurationShort(rd) : '–',
       ];
     }
+    case 'tireLait':
+      if (stats.count === 0) return ['–', ''];
+      return [
+        `${stats.count}`,
+        stats.quantity != null && stats.quantity > 0 ? formatQuantity(stats.quantity) : '',
+      ];
     case 'sommeil':
       if (stats.count === 0) return ['–', ''];
       return [
@@ -115,6 +122,7 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
     const stats: PeriodStats = {
       biberon: { count: 0, quantity: 0 },
       allaitement: { count: 0, leftCount: 0, leftDuration: 0, rightCount: 0, rightDuration: 0 },
+      tireLait: { count: 0, quantity: 0 },
       sommeil: { count: 0, quantity: 0 },
       couche: { count: 0 },
       temperature: { count: 0 },
@@ -144,6 +152,12 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
           break;
         }
         case TASK_TYPES.BREASTFEEDING: {
+          // Les tirages sont comptés à part (stats.tireLait), pas comme des tétées.
+          if ((task as any).nursingType === 'pumping') {
+            stats.tireLait.count++;
+            stats.tireLait.quantity! += Number((task as any).pumpedMl) || 0;
+            break;
+          }
           stats.allaitement.count++;
           const leftSec = typeof task.boobLeft === 'number' ? task.boobLeft : parseFloat(String(task.boobLeft || '0'));
           const rightSec = typeof task.boobRight === 'number' ? task.boobRight : parseFloat(String(task.boobRight || '0'));
@@ -185,12 +199,12 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
   }, [tasks]);
 
   const totalCount = (ps: PeriodStats) =>
-    ps.biberon.count + ps.allaitement.count + ps.sommeil.count + ps.couche.count + ps.temperature.count;
+    ps.biberon.count + ps.allaitement.count + ps.tireLait.count + ps.sommeil.count + ps.couche.count + ps.temperature.count;
 
   const navTo = (category: string) => {
     Analytics.logEvent('stats_category_tapped', { category });
     if (category === 'biberon') return navigation.navigate('BiberonInsights');
-    const idMap: Record<string, number> = { allaitement: 5, sommeil: 3, couche: 1, temperature: 4 };
+    const idMap: Record<string, number> = { allaitement: 5, tireLait: 5, sommeil: 3, couche: 1, temperature: 4 };
     navigation.navigate('CategoryDetail', { categoryId: idMap[category] });
   };
 
@@ -276,6 +290,8 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
           {renderCard(AllaitementIcon as any, STATS_CONFIG.COLORS.BREASTFEEDING, 'allaitement')}
         </View>
         <View style={styles.row}>
+          {(todayStats.tireLait.count + yesterdayStats.tireLait.count + last7DaysStats.tireLait.count) > 0 &&
+            renderCard(AllaitementIcon as any, '#1A7F8C', 'tireLait')}
           {renderCard(DodoIcon as any, STATS_CONFIG.COLORS.SLEEP, 'sommeil')}
           <View style={styles.rowSpacer} />
           {renderCard(CoucheIcon as any, STATS_CONFIG.COLORS.DIAPER, 'couche')}

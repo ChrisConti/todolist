@@ -87,7 +87,17 @@
       "pumping": "🥛 Pumping",
       "pumpedQuantity": "Amount pumped",
       "pumpedDuration": "Duration (optional)",
-      "bothBreasts": "Both"
+      "bothBreasts": "Both",
+      "pumpingTab": "Pumping",
+      "pumpTotal": "Total pumped",
+      "pumpAverage": "Average per session",
+      "pumpPerDay": "Average per day",
+      "balanceTitle": "Supply and demand",
+      "balanceDays": "Last {{count}} days",
+      "balancePumped": "Pumped",
+      "balanceDrunk": "Drunk",
+      "balanceNote": "Balance = milk pumped minus breast milk drunk from a bottle. A trend, not an inventory: milk pumped before you installed the app and unlogged bottles are not counted.",
+      "balanceUpsell": "Track your breast milk stock: what you pump, what baby drinks, and the gap between the two."
     },
     "error": {
       "invalidEmail": "Please enter a valid email.",
@@ -444,7 +454,8 @@
         "sleep": "Sleep",
         "temperature": "Temperature",
         "breastfeeding": "Breastfeeding",
-        "detail": "Detail"
+        "detail": "Detail",
+        "pumping": "Pumping"
       },
       "overview": {
         "today": "Today",
@@ -823,7 +834,8 @@
         "feat2": "Sleep calendar",
         "feat3": "7, 30, 60 and 90-day stats",
         "feat4": "Night vs nap chart"
-      }
+      },
+      "cta_short": "Unlock"
     },
     "home": {
       "emptyState": {
@@ -933,7 +945,17 @@
       "pumping": "🥛 Tire-lait",
       "pumpedQuantity": "Quantité tirée",
       "pumpedDuration": "Durée (facultatif)",
-      "bothBreasts": "Les deux"
+      "bothBreasts": "Les deux",
+      "pumpingTab": "Tire-lait",
+      "pumpTotal": "Total tiré",
+      "pumpAverage": "Moyenne par tirage",
+      "pumpPerDay": "Moyenne par jour",
+      "balanceTitle": "Production et consommation",
+      "balanceDays": "{{count}} derniers jours",
+      "balancePumped": "Tiré",
+      "balanceDrunk": "Bu",
+      "balanceNote": "Solde = lait tiré moins lait maternel bu au biberon. C'est une tendance, pas un inventaire : le lait tiré avant l'installation et les biberons non saisis n'y figurent pas.",
+      "balanceUpsell": "Suivez votre stock de lait maternel : ce que vous tirez, ce que bébé boit, et l'écart entre les deux."
     },
     "error": {
       "invalidEmail": "Veuillez entrer un email valide.",
@@ -1313,7 +1335,8 @@
         "sleep": "Sommeil",
         "temperature": "Température",
         "breastfeeding": "Allaitement",
-        "detail": "Détail"
+        "detail": "Détail",
+        "pumping": "Tire-lait"
       },
       "overview": {
         "today": "Auj.",
@@ -1655,7 +1678,8 @@
         "feat2": "Calendrier du sommeil",
         "feat3": "Stats sur 7, 30, 60 et 90 jours",
         "feat4": "Graphique nuit vs sieste"
-      }
+      },
+      "cta_short": "Débloquer"
     },
     "home": {
       "emptyState": {
@@ -1765,7 +1789,17 @@
       "pumping": "🥛 Extracción",
       "pumpedQuantity": "Cantidad extraída",
       "pumpedDuration": "Duración (opcional)",
-      "bothBreasts": "Ambos"
+      "bothBreasts": "Ambos",
+      "pumpingTab": "Extracción",
+      "pumpTotal": "Total extraído",
+      "pumpAverage": "Media por extracción",
+      "pumpPerDay": "Media por día",
+      "balanceTitle": "Producción y consumo",
+      "balanceDays": "Últimos {{count}} días",
+      "balancePumped": "Extraído",
+      "balanceDrunk": "Bebido",
+      "balanceNote": "Saldo = leche extraída menos leche materna bebida en biberón. Es una tendencia, no un inventario: la leche extraída antes de instalar la app y los biberones no registrados no se cuentan.",
+      "balanceUpsell": "Controla tu reserva de leche materna: lo que extraes, lo que bebé toma y la diferencia entre ambos."
     },
     "error": {
       "invalidEmail": "Por favor, introduce un correo electrónico válido.",
@@ -2129,7 +2163,8 @@
         "sleep": "Sueño",
         "temperature": "Temperatura",
         "breastfeeding": "Lactancia",
-        "detail": "Detalle"
+        "detail": "Detalle",
+        "pumping": "Extracción"
       },
       "overview": {
         "today": "Hoy",
@@ -2472,7 +2507,8 @@
         "feat2": "Calendario del sueño",
         "feat3": "Stats de 7, 30, 60 y 90 días",
         "feat4": "Gráfico noche vs siesta"
-      }
+      },
+      "cta_short": "Desbloquear"
     },
     "home": {
       "emptyState": {

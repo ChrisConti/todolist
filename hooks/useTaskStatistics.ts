@@ -586,7 +586,9 @@ export const useAllaitementStats = (tasks: Task[]) => {
       };
     }
 
-    const allaitementTasks = tasks.filter(task => task.id === 5);
+    // Un tirage est une tâche de catégorie 5 sans durée par sein : le compter ici
+    // gonflerait le nombre de tétées et écraserait la durée moyenne.
+    const allaitementTasks = tasks.filter(task => task.id === 5 && task.nursingType !== 'pumping');
 
     let todaySum = { boobLeft: 0, boobRight: 0, total: 0 };
     let yesterdaySum = { boobLeft: 0, boobRight: 0, total: 0 };
@@ -682,7 +684,9 @@ export const useAllaitementCountStats = (tasks: Task[]) => {
       };
     }
 
-    const allaitementTasks = tasks.filter(task => task.id === 5);
+    // Un tirage est une tâche de catégorie 5 sans durée par sein : le compter ici
+    // gonflerait le nombre de tétées et écraserait la durée moyenne.
+    const allaitementTasks = tasks.filter(task => task.id === 5 && task.nursingType !== 'pumping');
 
     let todayCount = { boobLeft: 0, boobRight: 0, total: 0 };
     let yesterdayCount = { boobLeft: 0, boobRight: 0, total: 0 };
@@ -870,4 +874,96 @@ export const useSommeilAdvancedStats = (tasks: Task[], period: SleepPeriod): Sle
       daysWithData: daysSet.size,
     };
   }, [tasksSignature, tasks, period]);
+};
+
+/**
+ * Statistiques de tire-lait, et bilan production / consommation.
+ *
+ * Le bilan croise deux sources que rien ne reliait jusqu'ici : les millilitres tirés
+ * (catégorie 5, nursingType 'pumping') et les biberons de lait maternel bus
+ * (catégorie 0, milkType 'maternal'). C'est ce qui permet de suivre un stock de
+ * congélation — la question que se posent réellement les mères qui tirent.
+ *
+ * Le solde est une tendance, pas un inventaire : il ignore le lait tiré avant
+ * l'installation de l'app et les biberons donnés par un tiers sans saisie.
+ */
+export const usePumpingStats = (tasks: Task[]) => {
+  const tasksSignature = useMemo(() => createTasksSignature(tasks), [tasks]);
+
+  return useMemo(() => {
+    const empty = {
+      hasData: false,
+      count: 0,
+      totalMl: 0,
+      avgMl: 0,
+      avgPerDay: 0,
+      bySide: { left: 0, right: 0, both: 0 },
+      last7: { pumpedMl: 0, maternalMl: 0, balance: 0 },
+      last30: { pumpedMl: 0, maternalMl: 0, balance: 0 },
+      chartData: { labels: [] as string[], datasets: [{ data: [] as number[] }] },
+      lastTask: null as Task | null,
+    };
+    if (!tasks || tasks.length === 0) return empty;
+
+    const pumping = tasks.filter(t => t.id === 5 && (t as any).nursingType === 'pumping');
+    if (pumping.length === 0) return empty;
+
+    const ml = (t: any) => Number(t.pumpedMl) || 0;
+    const totalMl = pumping.reduce((sum, t) => sum + ml(t), 0);
+
+    const bySide = { left: 0, right: 0, both: 0 };
+    pumping.forEach(t => {
+      const side = (t as any).pumpedSide;
+      if (side === 'left' || side === 'right' || side === 'both') bySide[side] += ml(t);
+    });
+
+    const startOfDay = (d: Date) => { const c = new Date(d); c.setHours(0, 0, 0, 0); return c; };
+    const daysAgo = (n: number) => startOfDay(new Date(Date.now() - n * 86400000));
+    const dateOf = (t: Task) => new Date(String(t.date).replace(' ', 'T'));
+
+    // Lait maternel effectivement bu : biberons de catégorie 0 marqués 'maternal'.
+    const maternalIn = (from: Date) => tasks
+      .filter(t => t.id === 0 && (t as any).milkType === 'maternal' && dateOf(t) >= from)
+      .reduce((sum, t) => sum + (Number(t.label) || 0), 0);
+    const pumpedIn = (from: Date) => pumping
+      .filter(t => dateOf(t) >= from)
+      .reduce((sum, t) => sum + ml(t), 0);
+
+    const window = (n: number) => {
+      const from = daysAgo(n - 1);
+      const pumpedMl = pumpedIn(from);
+      const maternalMl = maternalIn(from);
+      return { pumpedMl, maternalMl, balance: pumpedMl - maternalMl };
+    };
+
+    // Sept derniers jours, du plus ancien au plus récent.
+    const labels: string[] = [];
+    const data: number[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const day = daysAgo(i);
+      const next = new Date(day.getTime() + 86400000);
+      labels.push(String(day.getDate()));
+      data.push(pumping
+        .filter(t => { const d = dateOf(t); return d >= day && d < next; })
+        .reduce((sum, t) => sum + ml(t), 0));
+    }
+
+    const sorted = [...pumping].sort((a, b) => dateOf(b).getTime() - dateOf(a).getTime());
+    const spanDays = Math.max(1, Math.ceil(
+      (dateOf(sorted[0]).getTime() - dateOf(sorted[sorted.length - 1]).getTime()) / 86400000
+    ));
+
+    return {
+      hasData: true,
+      count: pumping.length,
+      totalMl,
+      avgMl: Math.round(totalMl / pumping.length),
+      avgPerDay: Math.round(totalMl / spanDays),
+      bySide,
+      last7: window(7),
+      last30: window(30),
+      chartData: { labels, datasets: [{ data }] },
+      lastTask: sorted[0] ?? null,
+    };
+  }, [tasksSignature]);
 };

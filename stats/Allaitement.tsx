@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useAllaitementStats, useAllaitementCountStats } from '../hooks/useTaskStatistics';
+import { useAllaitementStats, useAllaitementCountStats, usePumpingStats } from '../hooks/useTaskStatistics';
+import { usePremium } from '../Context/PremiumContext';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Task } from '../types/stats';
 import StatsContainer from '../components/stats/StatsContainer';
 import { STATS_CONFIG } from '../constants/statsConfig';
 import Analytics from '../services/analytics';
 
-type ViewMode = 'duration' | 'count';
+type ViewMode = 'duration' | 'count' | 'pumping';
 
 const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) => {
   const { t } = useTranslation();
@@ -29,9 +31,14 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
     };
   }, []);
 
+  const { isPremium } = usePremium();
   const durationStats = useAllaitementStats(tasks);
   const countStats = useAllaitementCountStats(tasks);
-  const { dailyStats, chartData, lastTask, isLoading, error } = viewMode === 'duration' ? durationStats : countStats;
+  const pumping = usePumpingStats(tasks);
+  const { dailyStats, chartData, lastTask, isLoading, error } =
+    viewMode === 'duration' ? durationStats : countStats;
+
+  const fmtMl = (v: number) => `${v} ${t('ml')}`;
 
   const boobSide = [
     { id: 0, side: t('allaitement.left'), name: t('allaitement.left'), nameTrad: 0 },
@@ -155,8 +162,88 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
               {t('stats.duration')}
             </Text>
           </TouchableOpacity>
+          {pumping.hasData && (
+            <TouchableOpacity
+              onPress={() => {
+                const dur = Math.round((Date.now() - tabEnterTimeRef.current) / 1000);
+                Analytics.logEvent('stats_tab_time_spent', { screen: 'Allaitement', tab: viewMode, duration_sec: dur });
+                tabEnterTimeRef.current = Date.now();
+                setViewMode('pumping');
+                Analytics.logEvent('tab_selected', { screen: 'Allaitement', tab: 'pumping' });
+              }}
+              style={[styles.viewModeButton, viewMode === 'pumping' && styles.viewModeButtonActive]}
+            >
+              <Text style={[styles.viewModeText, viewMode === 'pumping' && styles.viewModeTextActive]}>
+                {t('breastfeeding.pumpingTab')}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
+        {viewMode === 'pumping' ? (
+          <View>
+            {/* Gratuit : ce que l'utilisatrice a saisi elle-même.
+                On ne fait pas payer quelqu'un pour relire ses propres données. */}
+            <View style={styles.statsRow}>
+              <View style={styles.statsColumn}>
+                <Text style={styles.statLabel}>{t('breastfeeding.pumpTotal')}</Text>
+                <Text style={styles.statLabel}>{t('breastfeeding.pumpAverage')}</Text>
+                <Text style={styles.statLabel}>{t('breastfeeding.pumpPerDay')}</Text>
+              </View>
+              <View style={styles.statsColumn}>
+                <Text style={styles.statValue}>{fmtMl(pumping.totalMl)}</Text>
+                <Text style={styles.statValue}>{fmtMl(pumping.avgMl)}</Text>
+                <Text style={styles.statValue}>{fmtMl(pumping.avgPerDay)}</Text>
+              </View>
+            </View>
+
+            {/* Premium : l'analyse croisée, pas la donnée brute. */}
+            <View style={styles.balanceCard}>
+              <View style={styles.balanceHead}>
+                <Text style={styles.balanceTitle}>{t('breastfeeding.balanceTitle')}</Text>
+                {!isPremium && <Text style={styles.balanceStar}>★</Text>}
+              </View>
+
+              {isPremium ? (
+                <View>
+                  {([['7', pumping.last7], ['30', pumping.last30]] as const).map(([days, w]) => (
+                    <View key={days} style={styles.balanceRow}>
+                      <Text style={styles.balancePeriod}>{t('breastfeeding.balanceDays', { count: Number(days) })}</Text>
+                      <View style={styles.balanceNums}>
+                        <Text style={styles.balanceSmall}>
+                          {t('breastfeeding.balancePumped')} {fmtMl(w.pumpedMl)}
+                        </Text>
+                        <Text style={styles.balanceSmall}>
+                          {t('breastfeeding.balanceDrunk')} {fmtMl(w.maternalMl)}
+                        </Text>
+                        <Text style={[styles.balanceValue, { color: w.balance >= 0 ? '#2C6E49' : '#C75B4A' }]}>
+                          {w.balance >= 0 ? '+' : ''}{fmtMl(w.balance)}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                  <Text style={styles.balanceNote}>{t('breastfeeding.balanceNote')}</Text>
+                </View>
+              ) : (
+                <View>
+                  <Text style={styles.balanceLocked}>{t('breastfeeding.balanceUpsell')}</Text>
+                  <TouchableOpacity
+                    style={styles.balanceCta}
+                    onPress={() => {
+                      Analytics.logEvent('paywall_opened', { source: 'pumping_balance' });
+                      navigation.navigate('Paywall');
+                    }}
+                    activeOpacity={0.9}
+                  >
+                    <MaterialCommunityIcons name="star" size={15} color="#FFF" />
+                    <Text style={styles.balanceCtaTxt}>{t('premium.cta_short')}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        ) : (
+        <>
         {/* Side Selector */}
         <View style={styles.selectorContainer}>
           {boobSide.map((item) => (
@@ -191,9 +278,12 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
             </Text>
           </View>
         </View>
+        </>
+        )}
       </View>
 
-      {/* Chart */}
+      {/* Chart — sans objet en vue tire-lait, qui a ses propres chiffres */}
+      {viewMode !== 'pumping' && (
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('allaitement.evolutionLast7Days')}</Text>
         {renderBarChart()}
@@ -210,11 +300,34 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
           </View>
         </View>
       </View>
+      )}
     </StatsContainer>
   );
 };
 
 const styles = StyleSheet.create({
+  balanceCard: {
+    backgroundColor: '#FFF', borderRadius: 14, padding: 16, marginTop: 18,
+    borderWidth: 1, borderColor: '#EFE3DB',
+  },
+  balanceHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  balanceTitle: { fontSize: 16, fontWeight: '700', color: '#333', flex: 1 },
+  balanceStar: { fontSize: 15, color: '#E8960A', fontWeight: '700' },
+  balanceRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#F2EAE4',
+  },
+  balancePeriod: { fontSize: 14, fontWeight: '600', color: '#7A8889' },
+  balanceNums: { alignItems: 'flex-end', gap: 2 },
+  balanceSmall: { fontSize: 12, color: '#9AA3A4' },
+  balanceValue: { fontSize: 19, fontWeight: '700', marginTop: 2 },
+  balanceNote: { fontSize: 11.5, color: '#9AA3A4', marginTop: 12, lineHeight: 16 },
+  balanceLocked: { fontSize: 14, color: '#7A8889', lineHeight: 20, marginBottom: 14 },
+  balanceCta: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
+    backgroundColor: '#C75B4A', borderRadius: 10, paddingVertical: 11,
+  },
+  balanceCtaTxt: { color: '#FFF', fontSize: 14.5, fontWeight: '700' },
   section: {
     marginBottom: STATS_CONFIG.SPACING.LARGE,
   },
