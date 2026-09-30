@@ -18,8 +18,16 @@
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<!-- Suivi d'écran automatique de Firebase désactivé : il indexe les vues par leur
+	     classe, et RCTFabricModalHostViewController (modales React Native) revient nil
+	     sur iOS 26.6.1 — NSInvalidArgumentException « key cannot be nil » sur
+	     APMExperimentWorkerQueue, 25 utilisateurs touchés le 29/09/2026.
+	     Aucune perte : les 19 écrans sont déjà tracés à la main via logScreenView(),
+	     avec de meilleurs noms, et sans les rafales de 5 événements par navigation. -->
+	<key>FirebaseAutomaticScreenReportingEnabled</key>
+	<false/>
 	<key>CFBundleShortVersionString</key>
-	<string>1.3.5</string>
+	<string>1.3.6</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -44,7 +52,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>33</string>
+	<string>34</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSMinimumSystemVersion</key>
