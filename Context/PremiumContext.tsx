@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Platform, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import { useTranslation } from 'react-i18next';
 import { AuthentificationUserContext } from './AuthentificationContext';
@@ -8,7 +7,6 @@ import { userRef } from '../config';
 import { query, where, onSnapshot, getDocs, updateDoc, Timestamp } from 'firebase/firestore';
 import { updateWidgetPremium } from '../utils/widgetBridge';
 import Analytics from '../services/analytics';
-import EarlyAdopterModal from '../components/EarlyAdopterModal';
 
 const ENTITLEMENT_ID = 'Single Purchase';
 const RC_API_KEY_IOS = 'appl_vQnfZpgKJPmMvOuZHyODGWaKOYT';
@@ -44,8 +42,6 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isLoading, setIsLoading] = useState(true);
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const [priceString, setPriceString] = useState<string | null>(null);
-  const [isEarlyAdopter, setIsEarlyAdopter] = useState(false);
-  const [showEarlyAdopterWelcome, setShowEarlyAdopterWelcome] = useState(false);
 
   useEffect(() => {
     if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
@@ -57,8 +53,6 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     if (!user?.uid) {
       setIsPremium(false);
-      setIsEarlyAdopter(false);
-      setShowEarlyAdopterWelcome(false);
       setIsLoading(false);
       return;
     }
@@ -71,7 +65,6 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const creationDate: Date = data.creationDate?.toDate?.() ?? new Date();
         const earlyAdopter = creationDate < PREMIUM_LAUNCH_DATE;
         const active = purchased || earlyAdopter;
-        setIsEarlyAdopter(earlyAdopter);
         setIsPremium(active);
         updateWidgetPremium(active);
       }
@@ -79,18 +72,6 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
     return unsubscribe;
   }, [user?.uid]);
-
-  // Affiche la modale early adopter une seule fois
-  useEffect(() => {
-    if (!isEarlyAdopter || !user?.uid) return;
-    const key = `@earlyAdopterWelcomeSeen_${user.uid}`;
-    AsyncStorage.getItem(key).then((seen) => {
-      if (!seen) {
-        setShowEarlyAdopterWelcome(true);
-        Analytics.logEvent('early_adopter_modal_shown');
-      }
-    });
-  }, [isEarlyAdopter, user?.uid]);
 
   const fetchPrice = async () => {
     try {
@@ -157,16 +138,9 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const dismissEarlyAdopterWelcome = () => {
-    if (user?.uid) AsyncStorage.setItem(`@earlyAdopterWelcomeSeen_${user.uid}`, 'true');
-    Analytics.logEvent('early_adopter_modal_dismissed');
-    setShowEarlyAdopterWelcome(false);
-  };
-
   return (
     <PremiumContext.Provider value={{ isPremium, isLoading, purchaseError, priceString, purchase, restore }}>
       {children}
-      <EarlyAdopterModal visible={showEarlyAdopterWelcome} onDismiss={dismissEarlyAdopterWelcome} />
     </PremiumContext.Provider>
   );
 };
