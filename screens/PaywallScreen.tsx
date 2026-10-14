@@ -126,19 +126,19 @@ const FEATURES = [
 
 export default function PaywallScreen({ navigation }: any) {
   const { t } = useTranslation();
-  const { purchase, restore, isLoading, purchaseError, priceString } = usePremium();
+  const { purchase, restore, isLoading, purchaseError, priceString, priceStatus, retryPrice } = usePremium();
 
-  // Repli affiché uniquement si RevenueCat n'a pas pu charger l'offre. Doit rester
-  // aligné sur le prix réel d'App Store Connect, sinon le paywall annonce un prix
-  // que l'achat ne respectera pas.
-  const displayPrice = priceString ?? '5,99 €';
+  // Aucun prix de repli : le seul montant affiché est celui que le store renvoie.
+  // Un repli en dur devait être resynchronisé à chaque changement de tarif, et
+  // annonçait sinon un prix que l'achat n'aurait pas respecté.
+  const priceReady = priceStatus === 'ready' && priceString !== null;
 
   useEffect(() => {
     Analytics.logEvent('paywall_viewed');
   }, []);
 
   const handlePurchase = async () => {
-    Analytics.logEvent('purchase_tapped', { price: displayPrice });
+    Analytics.logEvent('purchase_tapped', { price: priceString });
     const success = await purchase();
     if (success) navigation.goBack();
   };
@@ -191,7 +191,15 @@ export default function PaywallScreen({ navigation }: any) {
             <MaterialCommunityIcons name="check-circle" size={18} color="#C75B4A" />
             <Text style={styles.priceBadgeName}>{t('premium.badgeTitle')}</Text>
           </View>
-          <Text style={styles.priceAmount}>{displayPrice}</Text>
+          {priceReady ? (
+            <Text style={styles.priceAmount}>{priceString}</Text>
+          ) : priceStatus === 'loading' ? (
+            <ActivityIndicator size="small" color="#C75B4A" />
+          ) : (
+            <TouchableOpacity onPress={retryPrice} activeOpacity={0.7}>
+              <Text style={styles.priceRetry}>{t('premium.priceUnavailable')}</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {purchaseError ? (
@@ -200,12 +208,12 @@ export default function PaywallScreen({ navigation }: any) {
 
         {/* CTA */}
         <TouchableOpacity
-          style={styles.cta}
+          style={[styles.cta, !priceReady && styles.ctaDisabled]}
           onPress={handlePurchase}
-          disabled={isLoading}
+          disabled={isLoading || !priceReady}
           activeOpacity={0.85}
         >
-          {isLoading ? (
+          {isLoading || priceStatus === 'loading' ? (
             <ActivityIndicator color="#E8960A" />
           ) : (
             <>
@@ -213,7 +221,9 @@ export default function PaywallScreen({ navigation }: any) {
                 <View style={styles.ctaIconShine} />
                 <MaterialCommunityIcons name="star" size={18} color="#FFF" />
               </View>
-              <Text style={styles.ctaText}>{t('premium.cta', { price: displayPrice })}</Text>
+              <Text style={styles.ctaText}>
+                {priceReady ? t('premium.cta', { price: priceString }) : t('premium.ctaNoPrice')}
+              </Text>
               <MaterialCommunityIcons name="chevron-right" size={20} color="#A8956A" />
             </>
           )}
@@ -333,6 +343,13 @@ const styles = StyleSheet.create({
 
   error: { fontSize: 13, color: '#E53935', textAlign: 'center', marginBottom: 10 },
 
+  ctaDisabled: { opacity: 0.5 },
+  priceRetry: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#C75B4A',
+    textDecorationLine: 'underline',
+  },
   cta: {
     flexDirection: 'row',
     alignItems: 'center',

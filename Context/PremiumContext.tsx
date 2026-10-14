@@ -15,11 +15,21 @@ const RC_API_KEY_ANDROID = 'goog_REPLACE_WITH_YOUR_ANDROID_KEY';
 // Tous les comptes créés avant cette date sont early adopters → premium offert
 const PREMIUM_LAUNCH_DATE = new Date('2026-05-15');
 
+export type PriceStatus = 'loading' | 'ready' | 'unavailable';
+
 interface PremiumContextType {
   isPremium: boolean;
   isLoading: boolean;
   purchaseError: string | null;
   priceString: string | null;
+  /**
+   * Distingue « pas encore chargé » de « introuvable ». Sans ça, priceString à null
+   * obligeait à inventer un prix de repli — qu'il fallait resynchroniser à la main à
+   * chaque changement de tarif, sous peine d'annoncer un montant que l'achat ne
+   * respecterait pas.
+   */
+  priceStatus: PriceStatus;
+  retryPrice: () => Promise<void>;
   purchase: () => Promise<boolean>;
   restore: () => Promise<void>;
 }
@@ -29,6 +39,8 @@ const PremiumContext = createContext<PremiumContextType>({
   isLoading: true,
   purchaseError: null,
   priceString: null,
+  priceStatus: 'loading',
+  retryPrice: async () => {},
   purchase: async () => false,
   restore: async () => {},
 });
@@ -42,6 +54,7 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isLoading, setIsLoading] = useState(true);
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const [priceString, setPriceString] = useState<string | null>(null);
+  const [priceStatus, setPriceStatus] = useState<PriceStatus>('loading');
 
   useEffect(() => {
     if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
@@ -74,16 +87,20 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [user?.uid]);
 
   const fetchPrice = async () => {
+    setPriceStatus('loading');
     try {
       const offerings = await Purchases.getOfferings();
       const pkg = offerings.current?.availablePackages[0];
-      if (pkg) {
-        const price = pkg.product.priceString;
-        // Ignore bare currency codes (e.g. "USD") returned by StoreKit when territory is misconfigured
-        if (price && price.length > 5) setPriceString(price);
+      const price = pkg?.product.priceString;
+      // Ignore bare currency codes (e.g. "USD") returned by StoreKit when territory is misconfigured
+      if (price && price.length > 5) {
+        setPriceString(price);
+        setPriceStatus('ready');
+        return;
       }
+      setPriceStatus('unavailable');
     } catch {
-      // non-critical
+      setPriceStatus('unavailable');
     }
   };
 
@@ -139,7 +156,7 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   return (
-    <PremiumContext.Provider value={{ isPremium, isLoading, purchaseError, priceString, purchase, restore }}>
+    <PremiumContext.Provider value={{ isPremium, isLoading, purchaseError, priceString, priceStatus, retryPrice: fetchPrice, purchase, restore }}>
       {children}
     </PremiumContext.Provider>
   );

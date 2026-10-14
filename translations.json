@@ -836,7 +836,9 @@
         "feat3": "7, 30, 60 and 90-day stats",
         "feat4": "Night vs nap chart"
       },
-      "cta_short": "Unlock"
+      "cta_short": "Unlock",
+      "priceUnavailable": "Price unavailable · Retry",
+      "ctaNoPrice": "Get Tribu Premium"
     },
     "home": {
       "emptyState": {
@@ -1681,7 +1683,9 @@
         "feat3": "Stats sur 7, 30, 60 et 90 jours",
         "feat4": "Graphique nuit vs sieste"
       },
-      "cta_short": "Débloquer"
+      "cta_short": "Débloquer",
+      "priceUnavailable": "Prix indisponible · Réessayer",
+      "ctaNoPrice": "Obtenir Tribu Premium"
     },
     "home": {
       "emptyState": {
@@ -2511,7 +2515,9 @@
         "feat3": "Stats de 7, 30, 60 y 90 días",
         "feat4": "Gráfico noche vs siesta"
       },
-      "cta_short": "Desbloquear"
+      "cta_short": "Desbloquear",
+      "priceUnavailable": "Precio no disponible · Reintentar",
+      "ctaNoPrice": "Obtener Tribu Premium"
     },
     "home": {
       "emptyState": {
