@@ -22,7 +22,7 @@
           "locale" : "es_ES"
         }
       ],
-      "productID" : "premium_lifetime",
+      "productID" : "com.tribubaby.tribubaby.Lifetime",
       "referenceName" : "Tribu Premium",
       "type" : "NonConsumable"
     }
