@@ -3,6 +3,7 @@ import React from 'react';
 import { useTimeAgo } from './hooks/useTimeAgo';
 import * as Localization from 'expo-localization';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from './Context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import Allaitement from './assets/allaitement-clair.svg';
 import Thermo from './assets/thermo-clair.svg';
@@ -12,10 +13,13 @@ import Sante from './assets/sante-clair.svg';
 import Biberon from './assets/biberon-clair.svg';
 
 // Static — defined once outside the component, not recreated on every render
-const CATEGORY_COLORS = ['#34777B', '#C75B4A', '#6B8DEA', '#E29656', '#4F469F', '#1AAAAA'];
 
 const Card = ({ task, navigation, editable }) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  // Le contenu est posé sur une carte colorée : sa teinte ne dépend pas du thème,
+  // seule la couleur de fond de la carte change.
+  const onCat = theme.onCategory;
 
   const imagesDiapers = [
     { id: 0, name: t('diapers.dur'), nameTrad:'dur' },
@@ -133,7 +137,7 @@ const Card = ({ task, navigation, editable }) => {
     // la carte afficherait une tétée vide au lieu de la quantité tirée.
     if (task.id == 5 && task.nursingType === 'pumping') {
       return (
-        <Text style={{ color: '#F6F0EB', fontSize: 22, marginRight: 8, alignSelf: 'flex-end' }}>
+        <Text style={{ color: onCat, fontSize: 22, marginRight: 8, alignSelf: 'flex-end' }}>
           {`${task.pumpedMl || 0} ${t('ml')}`}
         </Text>
       );
@@ -142,14 +146,14 @@ const Card = ({ task, navigation, editable }) => {
       if (task.boobLeft && task.boobRight) {
         return (
           <View style={{ flexDirection: 'column' }}>
-            <Text style={{ color: '#F6F0EB', fontSize: 15, marginRight: 8, alignSelf: 'flex-end' }}>{t('L') + ' ' + formatBoobDuration(task.boobLeft)}</Text>
-            <Text style={{ color: '#F6F0EB', fontSize: 15, marginRight: 8, alignSelf: 'flex-end' }}>{t('R') + ' ' + formatBoobDuration(task.boobRight)}</Text>
+            <Text style={{ color: onCat, fontSize: 15, marginRight: 8, alignSelf: 'flex-end' }}>{t('L') + ' ' + formatBoobDuration(task.boobLeft)}</Text>
+            <Text style={{ color: onCat, fontSize: 15, marginRight: 8, alignSelf: 'flex-end' }}>{t('R') + ' ' + formatBoobDuration(task.boobRight)}</Text>
           </View>
         );
       } else if (task.boobLeft) {
-        return <Text style={{ color: '#F6F0EB', fontSize: 25, marginRight: 8, alignSelf: 'flex-end' }}>{t('L') + ' ' + formatBoobDuration(task.boobLeft)}</Text>;
+        return <Text style={{ color: onCat, fontSize: 25, marginRight: 8, alignSelf: 'flex-end' }}>{t('L') + ' ' + formatBoobDuration(task.boobLeft)}</Text>;
       } else if (task.boobRight) {
-        return <Text style={{ color: '#F6F0EB', fontSize: 25, marginRight: 8, alignSelf: 'flex-end' }}>{t('R') + ' ' + formatBoobDuration(task.boobRight)}</Text>;
+        return <Text style={{ color: onCat, fontSize: 25, marginRight: 8, alignSelf: 'flex-end' }}>{t('R') + ' ' + formatBoobDuration(task.boobRight)}</Text>;
       }
     }
     // Support both new diaperType and legacy idCaca for backward compatibility
@@ -187,14 +191,14 @@ const Card = ({ task, navigation, editable }) => {
           : null;
       }}
       key={task.uid}
-      style={[styles.card, { backgroundColor: CATEGORY_COLORS[task.id] }]}>
+      style={[styles.card, { backgroundColor: theme.category[task.id] }]}>
       <View style={styles.leftSection}>
         {handleImageType()}
         <View style={styles.iconsColumn}>
           {/* Line 1: Comment icon or empty space */}
           <View style={styles.iconRow}>
             {task.comment && task.comment.trim() !== '' && (
-              <Ionicons name="chatbubble-ellipses" size={20} color="#F6F0EB" />
+              <Ionicons name="chatbubble-ellipses" size={20} color={onCat} />
             )}
           </View>
           {/* Line 2: Content icon or empty space */}
@@ -215,7 +219,7 @@ const Card = ({ task, navigation, editable }) => {
         </View>
       </View>
       <View style={styles.centerSection}>
-        <Text style={styles.labelText}>
+        <Text style={[styles.labelText, { color: onCat }]}>
           {handleCategoryLabel()}
         </Text>
         <View>
@@ -224,14 +228,14 @@ const Card = ({ task, navigation, editable }) => {
       </View>
       <View style={styles.timeSection}>
         <View style={styles.timeRow}>
-          <Text style={styles.timeText}>{formattedTimes.time}</Text>
+          <Text style={[styles.timeText, { color: onCat }]}>{formattedTimes.time}</Text>
           {formattedTimes.isEnglish && (
-            <Text style={styles.periodText}>{formattedTimes.period}</Text>
+            <Text style={[styles.periodText, { color: onCat }]}>{formattedTimes.period}</Text>
           )}
         </View>
         <View style={styles.timeAgoRow}>
-          <Ionicons name="time-outline" size={12} color="#F6F0EB" style={{ opacity: 0.75 }} />
-          <Text style={styles.timeAgoText}>{timeAgo}</Text>
+          <Ionicons name="time-outline" size={12} color={onCat} style={{ opacity: 0.75 }} />
+          <Text style={[styles.timeAgoText, { color: onCat }]}>{timeAgo}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -260,13 +264,13 @@ const styles = StyleSheet.create({
   iconRow: { height: 20, marginBottom: 2 },
   emojiIcon: { fontSize: 20, lineHeight: 20 },
   centerSection: { flexDirection: 'row' },
-  labelText: { color: '#F6F0EB', fontSize: 25, marginRight: 8, alignSelf: 'flex-end' },
+  labelText: { color: onCat, fontSize: 25, marginRight: 8, alignSelf: 'flex-end' },
   timeSection: { flexDirection: 'column', alignItems: 'flex-end' },
   timeRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  timeText: { color: '#F6F0EB', fontSize: 25 },
-  periodText: { color: '#F6F0EB', fontSize: 15, marginLeft: 2 },
+  timeText: { color: onCat, fontSize: 25 },
+  periodText: { color: onCat, fontSize: 15, marginLeft: 2 },
   timeAgoRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  timeAgoText: { color: '#F6F0EB', fontSize: 11, opacity: 0.75 },
+  timeAgoText: { color: onCat, fontSize: 11, opacity: 0.75 },
 });
 
 export default React.memo(Card);

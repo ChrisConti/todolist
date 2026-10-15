@@ -6,6 +6,8 @@ import { AuthentificationUserContext } from '../Context/AuthentificationContext'
 import { onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import { babiesRef, userRef } from '../config';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import Card from "../Card.js";
 import Stork from '../assets/parachute2.svg';
 import analytics from '../services/analytics';
@@ -18,6 +20,8 @@ import Allaitement from '../assets/allaitement-color.svg';
 
 // Force Metro rebuild - fix ReviewModal bug
 const BabyList = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { user, babyID, setBabyID, userInfo, setUserInfo, setUsersList } = useContext(AuthentificationUserContext);
   const snapshotListener = useRef<(() => void) | null>(null);
   const [tasks, setTasks] = useState([]);
@@ -178,7 +182,7 @@ const BabyList = ({ navigation }) => {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#C75B4A" />
+          <ActivityIndicator size="large" color={theme.accent} />
         </View>
       ) : !babyExist ? (
         <EmptyState
@@ -243,15 +247,17 @@ const BabyList = ({ navigation }) => {
 
 // Static — defined once, not recreated on every FilterBar render
 const FILTER_CATEGORIES = [
-  { id: 0, icon: <Biberon height={30} width={30} />, color: '#34777B' },
-  { id: 5, icon: <Allaitement height={30} width={30} />, color: '#1AAAAA' },
-  { id: 3, icon: <Dodo height={30} width={30} />, color: '#E29656' },
-  { id: 1, icon: <Couche height={30} width={30} />, color: '#C75B4A' },
-  { id: 4, icon: <Thermo height={30} width={30} />, color: '#4F469F' },
-  { id: 2, icon: <Sante height={30} width={30} />, color: '#6B8DEA' },
+  { id: 0, icon: <Biberon height={30} width={30} /> },
+  { id: 5, icon: <Allaitement height={30} width={30} /> },
+  { id: 3, icon: <Dodo height={30} width={30} /> },
+  { id: 1, icon: <Couche height={30} width={30} /> },
+  { id: 4, icon: <Thermo height={30} width={30} /> },
+  { id: 2, icon: <Sante height={30} width={30} /> },
 ];
 
 const FilterBar = React.memo(({ selectedFilter, onFilterChange, t }: { selectedFilter: number | null; onFilterChange: (id: number | null) => void; t: any }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.filterContainer}>
       {/* All button */}
@@ -265,7 +271,7 @@ const FilterBar = React.memo(({ selectedFilter, onFilterChange, t }: { selectedF
         <MaterialCommunityIcons
           name="chart-box-multiple-outline"
           size={26}
-          color={selectedFilter === null ? '#C75B4A' : '#7A8889'}
+          color={selectedFilter === null ? theme.accent : theme.textSecondary}
         />
       </TouchableOpacity>
 
@@ -291,12 +297,12 @@ const TILE_SIZE = Math.floor((Dimensions.get('window').width - 48 - 28) / 3);
 
 // Mêmes couleurs / ordre que la FilterBar et la grille de la page Stats
 const EMPTY_GRID_CATEGORIES = [
-  { id: 0, Icon: Biberon, color: '#34777B' },
-  { id: 5, Icon: Allaitement, color: '#1AAAAA' },
-  { id: 3, Icon: Dodo, color: '#E29656' },
-  { id: 1, Icon: Couche, color: '#C75B4A' },
-  { id: 4, Icon: Thermo, color: '#4F469F' },
-  { id: 2, Icon: Sante, color: '#6B8DEA' },
+  { id: 0, Icon: Biberon },
+  { id: 5, Icon: Allaitement },
+  { id: 3, Icon: Dodo },
+  { id: 1, Icon: Couche },
+  { id: 4, Icon: Thermo },
+  { id: 2, Icon: Sante },
 ];
 
 const EmptyTasksGrid = ({ title, babyName, subtitle, onSelectCategory }: {
@@ -304,16 +310,19 @@ const EmptyTasksGrid = ({ title, babyName, subtitle, onSelectCategory }: {
   babyName: string;
   subtitle: string;
   onSelectCategory: (categoryId: number) => void;
-}) => (
+}) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  return (
   <ScrollView contentContainerStyle={styles.emptyTasksContainer} showsVerticalScrollIndicator={false}>
     <Text style={styles.emptyTasksTitle}>{title}</Text>
     <Text style={styles.emptyTasksName}>{babyName}</Text>
     <Text style={styles.emptyTasksSubtitle}>{subtitle}</Text>
     <View style={styles.tilesWrap}>
-      {EMPTY_GRID_CATEGORIES.map(({ id, Icon, color }) => (
+      {EMPTY_GRID_CATEGORIES.map(({ id, Icon }) => (
         <TouchableOpacity
           key={id}
-          style={[styles.tile, { backgroundColor: color }]}
+          style={[styles.tile, { backgroundColor: theme.category[id] }]}
           activeOpacity={0.8}
           onPress={() => onSelectCategory(id)}
         >
@@ -324,9 +333,13 @@ const EmptyTasksGrid = ({ title, babyName, subtitle, onSelectCategory }: {
       ))}
     </View>
   </ScrollView>
-);
+  );
+};
 
-const EmptyState = ({ icon, message, actions }) => (
+const EmptyState = ({ icon, message, actions }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  return (
   <View style={{ alignSelf: 'center', paddingTop: 50 }}>
     <View style={{ alignItems: 'center' }}>{icon}</View>
     {message && <Text style={styles.emptyStateText}>{message}</Text>}
@@ -345,21 +358,22 @@ const EmptyState = ({ icon, message, actions }) => (
       </TouchableOpacity>
     ))}
   </View>
-);
+  );
+};
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FDF1E7' },
+const makeStyles = (theme: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
   header: {
     justifyContent: 'center',
     alignItems: 'center',
     paddingBottom: 14,
     paddingHorizontal: 16,
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#F6F0EB',
+    color: theme.onPrimary,
     fontFamily: 'Pacifico',
     textAlign: 'center',
   },
@@ -367,7 +381,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: 10,
     paddingHorizontal: 8,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
     alignItems: 'center',
     justifyContent: 'space-evenly',
   },
@@ -375,34 +389,34 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderColor: theme.separator,
     alignItems: 'center',
     justifyContent: 'center',
   },
   filterButtonSelected: {
-    borderColor: '#C75B4A',
+    borderColor: theme.primary,
     borderWidth: 2.5,
   },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  sectionHeader: { color: '#7A8889', fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginBottom: 5, marginTop: 3 },
+  sectionHeader: { color: theme.textSecondary, fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginBottom: 5, marginTop: 3 },
   footer: { position: 'absolute', bottom: 40, right: 30 },
-  floatingButton: { backgroundColor: '#C75B4A', width: 70, height: 70, borderRadius: 50, alignItems: 'center', justifyContent: 'center' },
-  floatingButtonText: { color: '#F6F0EB', fontWeight: 'bold', fontSize: 35 },
-  button: { backgroundColor: '#C75B4A', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 30, alignItems: 'center', marginBottom: 15, width: 250 },
+  floatingButton: { backgroundColor: theme.primary, width: 70, height: 70, borderRadius: 50, alignItems: 'center', justifyContent: 'center' },
+  floatingButtonText: { color: theme.onPrimary, fontWeight: 'bold', fontSize: 35 },
+  button: { backgroundColor: theme.primary, borderRadius: 8, paddingVertical: 12, paddingHorizontal: 30, alignItems: 'center', marginBottom: 15, width: 250 },
   buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
   secondaryButton: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: '#C75B4A',
+    borderColor: theme.primary,
   },
   secondaryButtonText: {
-    color: '#C75B4A',
+    color: theme.primary,
   },
   emptyStateText: {
     fontSize: 18,
-    color: '#7A8889',
+    color: theme.textSecondary,
     textAlign: 'center',
     marginBottom: 30,
   },
@@ -415,20 +429,20 @@ const styles = StyleSheet.create({
   emptyTasksTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#5A5A5A',
+    color: theme.text,
     textAlign: 'center',
   },
   emptyTasksName: {
     fontFamily: 'Pacifico',
     fontSize: 34,
-    color: '#C75B4A',
+    color: theme.primary,
     textAlign: 'center',
     marginTop: 2,
     marginBottom: 10,
   },
   emptyTasksSubtitle: {
     fontSize: 14,
-    color: '#7A8889',
+    color: theme.textSecondary,
     textAlign: 'center',
     marginBottom: 28,
   },
@@ -454,7 +468,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -466,7 +480,7 @@ const styles = StyleSheet.create({
   },
   emptyFilterText: {
     fontSize: 16,
-    color: '#7A8889',
+    color: theme.textSecondary,
     textAlign: 'center',
   },
 });

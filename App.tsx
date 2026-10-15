@@ -32,7 +32,7 @@ import JoinBaby from './JoinBaby';
 import AuthentificationUserProvider, { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { ReviewPromptProvider } from './Context/ReviewPromptContext';
 import { PremiumProvider } from './Context/PremiumContext';
-import { ThemeProvider } from './Context/ThemeContext';
+import { ThemeProvider, useTheme } from './Context/ThemeContext';
 import PaywallScreen from './screens/PaywallScreen';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db, userRef } from './config';
@@ -60,6 +60,7 @@ const Tab = createBottomTabNavigator();
 SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
+  const { theme } = useTheme();
   const { user, setUser } = useContext(AuthentificationUserContext);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -237,7 +238,7 @@ log.debug('Setting up authentication listener...', 'App.tsx');
           onReady={onNavigationReady}
           onStateChange={onNavigationStateChange}
         >
-          <StatusBar barStyle="light-content" backgroundColor="#C75B4A" />
+          <StatusBar barStyle={theme.statusBar} backgroundColor={theme.dark ? theme.card : theme.primary} />
           {isLoading ? (
             <AuthStack /> //loader a mettre
           ) : !user ? (
@@ -252,6 +253,9 @@ log.debug('Setting up authentication listener...', 'App.tsx');
 }
 
 function AuthStack() {
+  const { theme } = useTheme();
+  const headerBg = theme.dark ? theme.card : theme.primary;
+  const headerFg = theme.dark ? theme.text : '#fff';
   const { t } = useTranslation();
   return (
     <Stack.Navigator initialRouteName='Connection' id={undefined}>
@@ -264,8 +268,8 @@ function AuthStack() {
         name="SignIn" 
         component={SignIn}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A',  },
-          headerTintColor: '#fff',
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
           headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
           headerTitle: t('title.signup'),
           headerBackTitle: ''
@@ -275,8 +279,8 @@ function AuthStack() {
         name="PasswordForgotten" 
         component={PasswordForgotten}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
           headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
           headerTitle: t('title.passwordForgotten'),
           headerBackTitle: ''
@@ -286,8 +290,8 @@ function AuthStack() {
         name="PrivacyPolicy" 
         component={PrivacyPolicy}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
           headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
           headerTitle: t('settings.privacyPolicy'),
           headerBackTitle: ''
@@ -297,8 +301,8 @@ function AuthStack() {
         name="TermsOfUse" 
         component={TermsOfUse}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
           headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
           headerTitle: t('termsOfUse.title'),
           headerBackTitle: ''
@@ -310,6 +314,7 @@ function AuthStack() {
 
 function TabNavigator() {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
@@ -332,11 +337,11 @@ function TabNavigator() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#C75B4A',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: theme.accent,
+        tabBarInactiveTintColor: theme.textMuted,
         tabBarStyle: {
-          backgroundColor: '#FDF1E7',
-          borderTopColor: '#E8D5C4',
+          backgroundColor: theme.dark ? theme.card : theme.background,
+          borderTopColor: theme.border,
           height: Platform.OS === 'android' ? 80 + insets.bottom : 80,
           paddingBottom: Platform.OS === 'android' ? insets.bottom + 10 : 10,
           paddingTop: 10,
@@ -377,6 +382,9 @@ function TabNavigator() {
 }
 
 function MainStack() {
+  const { theme } = useTheme();
+  const headerBg = theme.dark ? theme.card : theme.primary;
+  const headerFg = theme.dark ? theme.text : '#fff';
   const { t } = useTranslation();
   return (
     <Stack.Navigator initialRouteName='MainTabs' id={undefined}>
@@ -391,9 +399,9 @@ function MainStack() {
         name="CreateTask" 
         component={CreateTask} 
         options={{
-          headerStyle: styles.headerStyle,
-          headerTintColor: '#fff',
-          headerTitleStyle: styles.headerTitleStyle,
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize: 22, color: headerFg },
           headerTitle: t('title.addTask'),
           headerBackTitle: ''
         }}
@@ -402,9 +410,9 @@ function MainStack() {
         name="UpdateTask" 
         component={UpdateTask} 
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
           headerTitle: t('title.updateTask'),
           headerBackTitle: ''
         }}
@@ -413,9 +421,9 @@ function MainStack() {
         name="CreateBaby"
         component={Baby}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
           headerTitle: t('title.addBaby'),
           headerBackTitle: ''
         }}
@@ -432,9 +440,9 @@ function MainStack() {
         name="BabyState"
         component={BabyState}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
           headerTitle: t('title.myBaby'),
           headerBackTitle: ''
         }}
@@ -443,9 +451,9 @@ function MainStack() {
         name="EditBaby"
         component={EditBaby}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
           headerTitle: t('baby.editProfile'),
           headerBackTitle: ''
         }}
@@ -454,9 +462,9 @@ function MainStack() {
         name="EditBabyPhoto"
         component={EditBabyPhoto}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
           headerTitle: t('baby.editPhoto'),
           headerBackTitle: ''
         }}
@@ -465,9 +473,9 @@ function MainStack() {
         name="EmailOptIn"
         component={EmailOptIn}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize: 22, color: '#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize: 22, color: headerFg },
           headerTitle: t('settings.emailOptIn'),
           headerBackTitle: ''
         }}
@@ -476,9 +484,9 @@ function MainStack() {
         name="NursingLockScreenSetting"
         component={NursingLockScreenSetting}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize: 22, color: '#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize: 22, color: headerFg },
           headerTitle: t('settings.nursingLockScreenTitle'),
           headerBackTitle: ''
         }}
@@ -487,9 +495,9 @@ function MainStack() {
         name="ChangeName"
         component={ChangeName}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
           headerTitle: t('title.changeName'),
           headerBackTitle: ''
         }}
@@ -498,9 +506,9 @@ function MainStack() {
         name="ChangeEmail" 
         component={ChangeEmail}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
           headerTitle: t('title.changeEmail'),
           headerBackTitle: ''
         }}
@@ -509,9 +517,9 @@ function MainStack() {
         name="DeleteAccount" 
         component={DeleteAccount}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
           headerTitle: t('title.deleteAccount'),
           headerBackTitle: ''
         }}
@@ -520,9 +528,9 @@ function MainStack() {
         name="ChangePassword" 
         component={ChangePassword}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
           headerTitle: t('title.changePassword'),
           headerBackTitle: ''
         }}
@@ -531,9 +539,9 @@ function MainStack() {
         name="ExportTasks"
         component={ExportTasks}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
           headerTitle: t('export.page.title'),
           headerBackTitle: ''
         }}
@@ -552,9 +560,9 @@ function MainStack() {
         name="JoinBaby"
         component={JoinBaby} 
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color:'#FDF1E7' },
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
           headerTitle: t('title.joinBaby'),
           headerBackTitle: ''
         }}
@@ -563,8 +571,8 @@ function MainStack() {
         name="PrivacyPolicy" 
         component={PrivacyPolicy}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
           headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
           headerTitle: t('settings.privacyPolicy'),
           headerBackTitle: ''
@@ -574,8 +582,8 @@ function MainStack() {
         name="TermsOfUse"
         component={TermsOfUse}
         options={{
-          headerStyle: { backgroundColor: '#C75B4A' },
-          headerTintColor: '#fff',
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
           headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22 },
           headerTitle: t('termsOfUse.title'),
           headerBackTitle: ''
@@ -606,14 +614,3 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({
-  headerStyle: {
-    backgroundColor: '#C75B4A',
-  },
-
-  headerTitleStyle: {
-    fontFamily: 'Pacifico',
-    fontSize: 22,
-    color: '#FDF1E7',
-  },
-});
