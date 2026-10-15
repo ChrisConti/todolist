@@ -22,6 +22,14 @@ export interface Theme {
   /** Contenu posé sur `primary`. */
   onPrimary: string;
 
+  /**
+   * Fond des en-têtes d'écran. Terracotta en clair ; en sombre, un bandeau pleine
+   * largeur rallumerait l'écran et annulerait le bénéfice du mode, donc il s'aligne
+   * sur la carte. Six écrans ont leur propre en-tête : la règle vit ici, pas chez eux.
+   */
+  headerBackground: string;
+  onHeader: string;
+
   background: string;
   card: string;
   /** Surface douce : puces, champs, états inactifs. */
@@ -56,7 +64,10 @@ export const lightTheme: Theme = {
 
   primary: '#C75B4A',
   accent: '#C75B4A',
-  onPrimary: '#FFFFFF',
+  onPrimary: '#F6F0EB',
+
+  headerBackground: '#C75B4A',
+  onHeader: '#F6F0EB',
 
   background: '#FDF1E7',
   card: '#FFFFFF',
@@ -87,9 +98,12 @@ export const darkTheme: Theme = {
 
   primary: '#C75B4A',
   accent: '#E8846C',
-  onPrimary: '#FFFFFF',
+  onPrimary: '#F6F0EB',
 
   // Noir chaud plutôt que gris neutre : il prolonge la crème au lieu de la contredire.
+  headerBackground: '#231B17',
+  onHeader: '#F2E9E2',
+
   background: '#17120F',
   card: '#231B17',
   soft: '#2E2420',

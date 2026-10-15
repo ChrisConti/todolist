@@ -254,8 +254,8 @@ log.debug('Setting up authentication listener...', 'App.tsx');
 
 function AuthStack() {
   const { theme } = useTheme();
-  const headerBg = theme.dark ? theme.card : theme.primary;
-  const headerFg = theme.dark ? theme.text : '#fff';
+  const headerBg = theme.headerBackground;
+  const headerFg = theme.onHeader;
   const { t } = useTranslation();
   return (
     <Stack.Navigator initialRouteName='Connection' id={undefined}>
@@ -383,8 +383,8 @@ function TabNavigator() {
 
 function MainStack() {
   const { theme } = useTheme();
-  const headerBg = theme.dark ? theme.card : theme.primary;
-  const headerFg = theme.dark ? theme.text : '#fff';
+  const headerBg = theme.headerBackground;
+  const headerFg = theme.onHeader;
   const { t } = useTranslation();
   return (
     <Stack.Navigator initialRouteName='MainTabs' id={undefined}>
