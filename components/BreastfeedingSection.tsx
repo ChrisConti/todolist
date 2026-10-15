@@ -558,13 +558,16 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   stepperBtnDisabled: { backgroundColor: theme.disabled },
 
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 5 },
+  chipRow: {
+    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 4,
+    alignSelf: 'stretch',
+  },
   chip: {
-    paddingVertical: 5, paddingHorizontal: 8, borderRadius: 14, minWidth: 34, alignItems: 'center',
+    paddingVertical: 5, paddingHorizontal: 7, borderRadius: 13, alignItems: 'center',
     backgroundColor: theme.soft, borderWidth: 1, borderColor: theme.border,
   },
   chipSelected: { backgroundColor: theme.primary, borderColor: theme.accent },
-  chipText: { fontSize: 12, fontWeight: '600', color: theme.textSecondary },
+  chipText: { fontSize: 11.5, fontWeight: '600', color: theme.textSecondary },
   chipTextSelected: { color: theme.onPrimary },
 
   sideRow: { flexDirection: 'row', gap: 8, marginTop: 18, marginBottom: 4 },
