@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Linking, Platform, Switch } from 'react-native';
-import React, { useContext, useEffect } from 'react';
+import React, { useMemo, useContext, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ItemParameter from './ItemParameter.js';
 import { auth } from './config.js';
@@ -13,12 +13,14 @@ import { usePremium } from './Context/PremiumContext';
 import { SUPPORT_EMAIL } from './utils/constants';
 import { useTheme } from './Context/ThemeContext';
 import { isNursingActivitySupported } from './utils/nursingActivityBridge';
+import type { Theme } from './constants/theme';
 
 const Settings = ({ navigation }) => {
   const { user, setUser, babyID, setBabyID, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
   const { showReviewModalManually } = useReviewPrompt();
   const { isPremium } = usePremium();
   const { theme, preference, setPreference, canUseDarkMode } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
 
@@ -86,13 +88,13 @@ const Settings = ({ navigation }) => {
             }}
           >
             <View style={styles.premiumIconBox}>
-              <MaterialCommunityIcons name="star" size={22} color="#FFF" />
+              <MaterialCommunityIcons name="star" size={22} color={theme.onPrimary} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.premiumActiveText}>{t('premium.settingsBannerActive')}</Text>
               <Text style={styles.premiumActiveSub}>{t('premium.upsellSubtitle')}</Text>
             </View>
-            <MaterialCommunityIcons name="chevron-right" size={18} color="#A8956A" />
+            <MaterialCommunityIcons name="chevron-right" size={18} color={theme.gold} />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -104,13 +106,13 @@ const Settings = ({ navigation }) => {
             <Text style={styles.premiumDeco2}>+</Text>
             <View style={styles.premiumIconBox}>
               <View style={styles.premiumIconShine} />
-              <MaterialCommunityIcons name="star" size={26} color="#FFF" />
+              <MaterialCommunityIcons name="star" size={26} color={theme.onPrimary} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.premiumBannerTitle}>{t('premium.settingsBannerTitle')}</Text>
               <Text style={styles.premiumBannerSub}>{t('premium.upsellSubtitle')}</Text>
             </View>
-            <MaterialCommunityIcons name="chevron-right" size={20} color="#A8956A" />
+            <MaterialCommunityIcons name="chevron-right" size={20} color={theme.gold} />
           </TouchableOpacity>
         )}
 
@@ -122,7 +124,7 @@ const Settings = ({ navigation }) => {
             activeOpacity={0.85}
           >
             <View style={styles.quickCardIcon}>
-              <MaterialCommunityIcons name="star" size={22} color="#FFD700" />
+              <MaterialCommunityIcons name="star" size={22} color={theme.gold} />
             </View>
             <Text style={styles.quickCardTitle}>{t('settings.rateApp')}</Text>
           </TouchableOpacity>
@@ -132,7 +134,7 @@ const Settings = ({ navigation }) => {
             activeOpacity={0.85}
           >
             <View style={styles.quickCardIcon}>
-              <MaterialCommunityIcons name="lightbulb-on" size={22} color="#FFD700" />
+              <MaterialCommunityIcons name="lightbulb-on" size={22} color={theme.gold} />
             </View>
             <Text style={styles.quickCardTitle}>{t('settings.feedback')}</Text>
           </TouchableOpacity>
@@ -161,8 +163,8 @@ const Settings = ({ navigation }) => {
                     setPreference(next);
                     analytics.logEvent('theme_preference_changed', { preference: next });
                   }}
-                  trackColor={{ false: '#D8CEC7', true: '#C75B4A' }}
-                  thumbColor="#FFF"
+                  trackColor={{ false: theme.separator, true: theme.primary }}
+                  thumbColor={theme.onPrimary}
                 />
               ) : (
                 <TouchableOpacity
@@ -263,51 +265,51 @@ const Settings = ({ navigation }) => {
 
 export default Settings;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   themeCard: {
-    backgroundColor: '#FFF', borderRadius: 12, marginHorizontal: 16, marginBottom: 8,
-    borderWidth: 1, borderColor: '#EADFD6', overflow: 'hidden',
+    backgroundColor: theme.card, borderRadius: 12, marginHorizontal: 16, marginBottom: 8,
+    borderWidth: 1, borderColor: theme.border, overflow: 'hidden',
   },
   themeRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
   themeTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  themeTitle: { fontSize: 15, fontWeight: '600', color: '#333' },
-  themeStar: { fontSize: 13, color: '#E8960A', fontWeight: '700' },
-  themeSub: { fontSize: 12, color: '#7A8889', marginTop: 2 },
+  themeTitle: { fontSize: 15, fontWeight: '600', color: theme.text },
+  themeStar: { fontSize: 13, color: theme.gold, fontWeight: '700' },
+  themeSub: { fontSize: 12, color: theme.textSecondary, marginTop: 2 },
   themeUnlock: {
-    backgroundColor: '#C75B4A', borderRadius: 8, paddingVertical: 7, paddingHorizontal: 13,
+    backgroundColor: theme.primary, borderRadius: 8, paddingVertical: 7, paddingHorizontal: 13,
   },
-  themeUnlockTxt: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+  themeUnlockTxt: { color: theme.onPrimary, fontSize: 13, fontWeight: '700' },
   themeSegRow: {
     flexDirection: 'row', gap: 8, paddingHorizontal: 14, paddingBottom: 14,
-    borderTopWidth: 1, borderTopColor: '#F2EAE4', paddingTop: 12,
+    borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 12,
   },
   themeSeg: {
     flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 8,
-    backgroundColor: '#F6F0EB', borderWidth: 1, borderColor: '#EADFD6',
+    backgroundColor: theme.soft, borderWidth: 1, borderColor: theme.border,
   },
-  themeSegOn: { backgroundColor: '#C75B4A', borderColor: '#C75B4A' },
-  themeSegTxt: { fontSize: 13.5, fontWeight: '600', color: '#8A6A5E' },
-  themeSegTxtOn: { color: '#F6F0EB' },
+  themeSegOn: { backgroundColor: theme.primary, borderColor: theme.accent },
+  themeSegTxt: { fontSize: 13.5, fontWeight: '600', color: theme.textSecondary },
+  themeSegTxtOn: { color: theme.onPrimary },
 
   container: {
     flex: 1,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   header: {
     justifyContent: 'center',
     alignItems: 'center',
     paddingBottom: 14,
     paddingHorizontal: 16,
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
   },
   headerTitle: {
     fontSize: 22,
-    color: '#F6F0EB',
+    color: theme.onPrimary,
     fontFamily: 'Pacifico',
     textAlign: 'center',
   },
   titleParameter: {
-    color: '#7A8889',
+    color: theme.textSecondary,
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
@@ -321,16 +323,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: '#D4AA50',
+    borderColor: theme.gold,
     padding: 16,
     marginBottom: 4,
   },
   premiumIconBox: {
     width: 52, height: 52, borderRadius: 14,
-    backgroundColor: '#E8960A',
+    backgroundColor: theme.gold,
     alignItems: 'center', justifyContent: 'center',
     overflow: 'hidden',
   },
@@ -341,17 +343,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,220,80,0.35)',
     borderRadius: 14,
   },
-  premiumBannerTitle: { fontSize: 16, fontWeight: '800', color: '#3B1F00', marginBottom: 4, lineHeight: 21 },
-  premiumBannerSub: { fontSize: 13, color: '#7C5C2E', fontWeight: '400', lineHeight: 18 },
-  premiumDeco1: { position: 'absolute', top: 12, right: 44, fontSize: 14, color: '#C9A84C', opacity: 0.6 },
-  premiumDeco2: { position: 'absolute', bottom: 12, right: 26, fontSize: 10, color: '#C9A84C', opacity: 0.45 },
+  premiumBannerTitle: { fontSize: 16, fontWeight: '800', color: theme.goldText, marginBottom: 4, lineHeight: 21 },
+  premiumBannerSub: { fontSize: 13, color: theme.goldText, fontWeight: '400', lineHeight: 18 },
+  premiumDeco1: { position: 'absolute', top: 12, right: 44, fontSize: 14, color: theme.gold, opacity: 0.6 },
+  premiumDeco2: { position: 'absolute', bottom: 12, right: 26, fontSize: 10, color: theme.gold, opacity: 0.45 },
   premiumActiveBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#FFFFFF', borderRadius: 20, padding: 14, marginBottom: 4,
-    borderWidth: 1.5, borderColor: '#D4AA50',
+    backgroundColor: theme.card, borderRadius: 20, padding: 14, marginBottom: 4,
+    borderWidth: 1.5, borderColor: theme.gold,
   },
-  premiumActiveText: { fontSize: 14, fontWeight: '700', color: '#3B1F00' },
-  premiumActiveSub: { fontSize: 12, color: '#7C5C2E', marginTop: 2 },
+  premiumActiveText: { fontSize: 14, fontWeight: '700', color: theme.goldText },
+  premiumActiveSub: { fontSize: 12, color: theme.goldText, marginTop: 2 },
 
   quickCardsRow: {
     flexDirection: 'row',
@@ -359,7 +361,7 @@ const styles = StyleSheet.create({
   },
   quickCard: {
     flex: 1,
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 14,
     paddingVertical: 16,
     paddingHorizontal: 12,
@@ -379,7 +381,7 @@ const styles = StyleSheet.create({
   quickCardTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#FFF',
+    color: theme.onPrimary,
     textAlign: 'center',
   },
 });
