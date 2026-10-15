@@ -58,6 +58,9 @@ interface Props {
   liveActivity?: boolean; // Live Activity iOS (écran verrouillé + Dynamic Island), CreateTask uniquement
 }
 
+/** Largeur des blocs de formulaire, commune à CreateTask et UpdateTask. */
+const FORM_WIDTH = 280;
+
 const MIN_CHIPS = [5, 10, 15, 20];      // durées de tétée les plus fréquentes
 const ML_CHIPS = [60, 90, 120, 150, 180]; // alignées sur celles des biberons
 const MAX_MIN = 120;
@@ -402,7 +405,7 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
       </View>
 
       {nursingType === 'pumping' ? (
-        <View>
+        <View style={styles.pumpingForm}>
           <Stepper
             label={t('breastfeeding.pumpedQuantity')}
             value={pumpedMl}
@@ -523,7 +526,10 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
 });
 
 const makeStyles = (theme: Theme) => StyleSheet.create({
-  modeRow: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20, gap: 10 },
+  modeRow: {
+    width: FORM_WIDTH,
+    flexDirection: 'row', justifyContent: 'center', marginBottom: 20, gap: 10,
+  },
   modeButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1.5, borderColor: theme.accent },
   modeButtonSelected: { backgroundColor: theme.primary },
   modeText: { fontSize: 14, fontWeight: '600', color: theme.accent },
@@ -534,7 +540,11 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   timerButtons: { flexDirection: 'row', gap: 12 },
   timerBtn: { backgroundColor: theme.primary, borderRadius: 8, padding: 10 },
   timerBtnDisabled: { backgroundColor: theme.disabled },
-  manualRow: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, gap: 10 },
+  manualRow: {
+    width: FORM_WIDTH,
+    flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, gap: 10,
+  },
+  pumpingForm: { width: FORM_WIDTH },
 
   // Sélecteur de nature d'acte — même gabarit que le choix de saisie, teinte plus douce
   // pour que la hiérarchie entre les deux rangées reste lisible.
@@ -559,11 +569,11 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   stepperBtnDisabled: { backgroundColor: theme.disabled },
 
   chipRow: {
-    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 4,
+    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 3,
     alignSelf: 'stretch',
   },
   chip: {
-    paddingVertical: 5, paddingHorizontal: 7, borderRadius: 13, alignItems: 'center',
+    paddingVertical: 5, paddingHorizontal: 6, borderRadius: 13, alignItems: 'center',
     backgroundColor: theme.soft, borderWidth: 1, borderColor: theme.border,
   },
   chipSelected: { backgroundColor: theme.primary, borderColor: theme.accent },
