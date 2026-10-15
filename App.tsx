@@ -32,6 +32,7 @@ import JoinBaby from './JoinBaby';
 import AuthentificationUserProvider, { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { ReviewPromptProvider } from './Context/ReviewPromptContext';
 import { PremiumProvider } from './Context/PremiumContext';
+import { ThemeProvider } from './Context/ThemeContext';
 import PaywallScreen from './screens/PaywallScreen';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db, userRef } from './config';
@@ -594,9 +595,11 @@ export default function App() {
     <ErrorBoundary>
       <AuthentificationUserProvider>
         <PremiumProvider>
-          <ReviewPromptProvider>
-            <RootNavigator />
-          </ReviewPromptProvider>
+          <ThemeProvider>
+            <ReviewPromptProvider>
+              <RootNavigator />
+            </ReviewPromptProvider>
+          </ThemeProvider>
         </PremiumProvider>
       </AuthentificationUserProvider>
     </ErrorBoundary>
