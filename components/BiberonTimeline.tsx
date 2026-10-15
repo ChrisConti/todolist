@@ -1,18 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import moment from 'moment';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 
-const MATERNAL_COLOR = '#34777B';
-const ARTIFICIAL_COLOR = '#E29656';
-const UNKNOWN_COLOR = '#B0B0B0';
-const YESTERDAY_COLOR = '#B0B0B0';
-const BG = '#FDF1E7';
-
-const getMilkColor = (milkType?: string | null) => {
-  if (milkType === 'maternal') return MATERNAL_COLOR;
-  if (milkType === 'artificial') return ARTIFICIAL_COLOR;
-  return UNKNOWN_COLOR;
+const getMilkColor = (milkType: string | null | undefined, theme: Theme) => {
+  if (milkType === 'maternal') return theme.category[0];
+  if (milkType === 'artificial') return theme.warning;
+  return theme.textMuted;
 };
 
 const getMilkEmoji = (milkType?: string | null) => {
@@ -28,6 +24,8 @@ interface SingleProps {
 }
 
 export const SingleDayTimeline: React.FC<SingleProps> = ({ tasks }) => {
+  const { theme } = useTheme();
+  const s = useMemo(() => makeS(theme), [theme]);
   if (tasks.length === 0) return null;
 
   const sorted = [...tasks].sort((a, b) =>
@@ -89,7 +87,7 @@ export const SingleDayTimeline: React.FC<SingleProps> = ({ tasks }) => {
       {sorted.map((task, i) => {
         const dotY = getY(moment(task.date, 'YYYY-MM-DD HH:mm:ss'));
         const labelY = labelPositions[i];
-        const color = getMilkColor(task.milkType);
+        const color = getMilkColor(task.milkType, theme);
         const ml = parseFloat(task.label) || 0;
         const hasOffset = Math.abs(dotY - labelY) > 6;
 
@@ -134,6 +132,8 @@ interface CompareProps {
 }
 
 export const CompareDayTimeline: React.FC<CompareProps> = ({ todayTasks, yesterdayTasks }) => {
+  const { theme } = useTheme();
+  const s = useMemo(() => makeS(theme), [theme]);
   const { t } = useTranslation();
   const [containerWidth, setContainerWidth] = React.useState(0);
 
@@ -184,8 +184,8 @@ export const CompareDayTimeline: React.FC<CompareProps> = ({ todayTasks, yesterd
     <View>
       {/* Headers */}
       <View style={s.cmpHeaders}>
-        <Text style={[s.cmpHeader, { color: MATERNAL_COLOR }]}>{t('days.today')}</Text>
-        <Text style={[s.cmpHeader, { color: YESTERDAY_COLOR }]}>{t('days.yesterday')}</Text>
+        <Text style={[s.cmpHeader, { color: theme.category[0] }]}>{t('days.today')}</Text>
+        <Text style={[s.cmpHeader, { color: theme.textMuted }]}>{t('days.yesterday')}</Text>
       </View>
 
       <View
@@ -211,7 +211,7 @@ export const CompareDayTimeline: React.FC<CompareProps> = ({ todayTasks, yesterd
             {todayTasks.map((task, i) => {
               const dotY = getY(moment(task.date, 'YYYY-MM-DD HH:mm:ss'));
               const labelY = todayPositions[i];
-              const color = getMilkColor(task.milkType);
+              const color = getMilkColor(task.milkType, theme);
               const ml = parseFloat(task.label) || 0;
               const hasOffset = Math.abs(dotY - labelY) > 6;
 
@@ -245,7 +245,7 @@ export const CompareDayTimeline: React.FC<CompareProps> = ({ todayTasks, yesterd
             {yesterdayTasks.map((task, i) => {
               const dotY = getY(moment(task.date, 'YYYY-MM-DD HH:mm:ss'));
               const labelY = yesterdayPositions[i];
-              const color = getMilkColor(task.milkType);
+              const color = getMilkColor(task.milkType, theme);
               const ml = parseFloat(task.label) || 0;
               const hasOffset = Math.abs(dotY - labelY) > 6;
 
@@ -283,11 +283,11 @@ export const CompareDayTimeline: React.FC<CompareProps> = ({ todayTasks, yesterd
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const makeS = (theme: Theme) => StyleSheet.create({
   axis: {
     position: 'absolute',
     width: 2,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: theme.separator,
   },
   hourRow: {
     position: 'absolute',
@@ -297,14 +297,14 @@ const s = StyleSheet.create({
   },
   hourText: {
     fontSize: 11,
-    color: '#AAA',
+    color: theme.textMuted,
     width: 30,
     textAlign: 'right',
   },
   hourTick: {
     width: 8,
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: theme.separator,
     marginLeft: 3,
   },
   dot: {
@@ -313,7 +313,7 @@ const s = StyleSheet.create({
     height: 14,
     borderRadius: 7,
     borderWidth: 2,
-    borderColor: '#FFF',
+    borderColor: theme.card,
   },
   connector: {
     position: 'absolute',
@@ -327,7 +327,7 @@ const s = StyleSheet.create({
   },
   labelEmoji: { fontSize: 15 },
   labelTime: { fontSize: 13, fontWeight: '700' },
-  labelMl: { fontSize: 11, color: '#999', marginTop: 1 },
+  labelMl: { fontSize: 11, color: theme.textMuted, marginTop: 1 },
 
   labelRowLeft: {
     position: 'absolute',
@@ -354,8 +354,8 @@ const s = StyleSheet.create({
   },
   cmpHourText: {
     fontSize: 11,
-    color: '#AAA',
-    backgroundColor: BG,
+    color: theme.textMuted,
+    backgroundColor: theme.background,
     paddingHorizontal: 2,
     textAlign: 'center',
   },

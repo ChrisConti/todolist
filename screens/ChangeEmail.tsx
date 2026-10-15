@@ -1,15 +1,19 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import React, { useContext, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useContext, useState, useEffect, useRef } from 'react';
 import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { db, userRef } from '../config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
 import { getAuth, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import Analytics from '../services/analytics';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ChangeEmail = ({ route, navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const { user, userInfo, setUserInfo } = useContext(AuthentificationUserContext);
   const [email, setEmail] = useState(userInfo.email || '');
@@ -89,7 +93,7 @@ const ChangeEmail = ({ route, navigation }) => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#FDF1E7' }}
+      style={{ flex: 1, backgroundColor: theme.background }}
       behavior="padding"
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70}
     >
@@ -148,10 +152,10 @@ const ChangeEmail = ({ route, navigation }) => {
 
 export default ChangeEmail;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   description: {
     fontSize: 15,
-    color: '#666',
+    color: theme.textSecondary,
     marginBottom: 30,
     lineHeight: 22,
     textAlign: 'center',
@@ -160,20 +164,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
     borderWidth: 1,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     borderRadius: 8,
     paddingHorizontal: 15,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     marginBottom: 20,
-    color: '#333333',
+    color: theme.text,
   },
   inputReadOnly: {
-    backgroundColor: '#F5F5F5',
-    borderColor: '#DDD',
-    color: '#666',
+    backgroundColor: theme.soft,
+    borderColor: theme.separator,
+    color: theme.textSecondary,
   },
   footer: {
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
     paddingVertical: 10,
     paddingHorizontal: 20,
     paddingBottom: Platform.select({
@@ -185,7 +189,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -194,12 +198,12 @@ const styles = StyleSheet.create({
     width: 250,
   },
   buttonText: {
-    color: '#F6F0EB',
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
   errorText: {
-    color: '#C75B4A',
+    color: theme.accent,
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 10,

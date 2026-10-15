@@ -1,13 +1,17 @@
 import { View, Text, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import React, { useContext } from 'react';
+import React, { useMemo, useContext } from 'react';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../config.js';
 import { useTranslation } from 'react-i18next';
 import { KEYBOARD_CONFIG } from '../utils/constants';
 import Analytics from '../services/analytics';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 
 const ChangePassword = ({ route, navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const { user } = useContext(AuthentificationUserContext);
 
@@ -48,17 +52,17 @@ const ChangePassword = ({ route, navigation }) => {
 
 export default ChangePassword;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   content: {
     padding: 20,
   },
   description: {
     fontSize: 15,
-    color: '#666',
+    color: theme.textSecondary,
     marginBottom: 30,
     lineHeight: 22,
     textAlign: 'center',
@@ -74,7 +78,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   button: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -83,7 +87,7 @@ const styles = StyleSheet.create({
     width: 250,
   },
   buttonText: {
-    color: '#F6F0EB',
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },

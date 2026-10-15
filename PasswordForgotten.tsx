@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from './config';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from './Context/ThemeContext';
+import type { Theme } from './constants/theme';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const PasswordForgotten = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [userError, setError] = useState('');
@@ -103,10 +107,10 @@ const PasswordForgotten = ({ navigation }) => {
 
 export default PasswordForgotten;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
@@ -114,13 +118,13 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 15,
-    color: '#666',
+    color: theme.textSecondary,
     marginBottom: 30,
     lineHeight: 22,
   },
   successText: {
     fontSize: 16,
-    color: '#4CAF50',
+    color: theme.success,
     textAlign: 'center',
     marginTop: 40,
     lineHeight: 24,
@@ -130,14 +134,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
     borderBottomWidth: 1,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 10,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
   },
   errorText: {
-    color: '#C75B4A',
+    color: theme.accent,
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 10,
@@ -148,7 +152,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -161,7 +165,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#F6F0EB',
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },

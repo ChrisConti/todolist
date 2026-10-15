@@ -1,10 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getDatabase, ref, set } from 'firebase/database';
+import { useTheme } from './Context/ThemeContext';
+import type { Theme } from './constants/theme';
 import { auth } from './config'; // Adjust the import according to your Firebase config file
 
 const TwoTimers = ({ babyID, taskID }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [timer1, setTimer1] = useState(0);
   const [timer2, setTimer2] = useState(0);
   const [isRunning1, setIsRunning1] = useState(false);
@@ -58,10 +62,10 @@ const TwoTimers = ({ babyID, taskID }) => {
         <Text>Timer 1: {formatTime(timer1)}</Text>
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={() => startTimer(setTimer1, setIsRunning1, interval1)} disabled={isRunning1}>
-            <Ionicons name="play" size={24} color={isRunning1 ? "#C75B4A" : "black"} />
+            <Ionicons name="play" size={24} color={isRunning1 ? theme.accent : theme.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => pauseTimer(setIsRunning1, interval1)} disabled={!isRunning1}>
-            <Ionicons name="pause" size={24} color={!isRunning1 ? "#C75B4A" : "black"} />
+            <Ionicons name="pause" size={24} color={!isRunning1 ? theme.accent : theme.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => stopTimer(setTimer1, setIsRunning1, interval1)}>
             <Ionicons name="stop" size={24} color="black" />
@@ -72,10 +76,10 @@ const TwoTimers = ({ babyID, taskID }) => {
         <Text>Timer 2: {formatTime(timer2)}</Text>
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={() => startTimer(setTimer2, setIsRunning2, interval2)} disabled={isRunning2}>
-            <Ionicons name="play" size={24} color={isRunning2 ? "#C75B4A" : "black"} />
+            <Ionicons name="play" size={24} color={isRunning2 ? theme.accent : theme.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => pauseTimer(setIsRunning2, interval2)} disabled={!isRunning2}>
-            <Ionicons name="pause" size={24} color={!isRunning2 ? "#C75B4A" : "black"} />
+            <Ionicons name="pause" size={24} color={!isRunning2 ? theme.accent : theme.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => stopTimer(setTimer2, setIsRunning2, interval2)}>
             <Ionicons name="stop" size={24} color="black" />
@@ -86,7 +90,7 @@ const TwoTimers = ({ babyID, taskID }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',

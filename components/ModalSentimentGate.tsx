@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 
 interface ModalSentimentGateProps {
   visible: boolean;
@@ -11,6 +13,8 @@ interface ModalSentimentGateProps {
 }
 
 const ModalSentimentGate: React.FC<ModalSentimentGateProps> = ({ visible, onClose, onYes, onNo }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
 
   return (
@@ -18,7 +22,7 @@ const ModalSentimentGate: React.FC<ModalSentimentGateProps> = ({ visible, onClos
       <View style={styles.overlay}>
         <View style={styles.container}>
           <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Ionicons name="close" size={20} color="#999" />
+            <Ionicons name="close" size={20} color={theme.textMuted} />
           </TouchableOpacity>
 
           <Text style={styles.question}>{t('review.sentimentQuestion')}</Text>
@@ -37,7 +41,7 @@ const ModalSentimentGate: React.FC<ModalSentimentGateProps> = ({ visible, onClos
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',
@@ -45,7 +49,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
     borderRadius: 18,
     padding: 24,
     width: '78%',
@@ -60,7 +64,7 @@ const styles = StyleSheet.create({
   question: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#333',
+    color: theme.text,
     textAlign: 'center',
     marginTop: 8,
     marginBottom: 22,
@@ -74,25 +78,25 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: '#E8D5C4',
+    backgroundColor: theme.border,
     alignItems: 'center',
   },
   noBtnText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#666',
+    color: theme.textSecondary,
   },
   yesBtn: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     alignItems: 'center',
   },
   yesBtnText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#fff',
+    color: theme.onPrimary,
   },
 });
 

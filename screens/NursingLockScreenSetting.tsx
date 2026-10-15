@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch, Image } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import analytics from '../services/analytics';
 import { getNursingActivityEnabled, setNursingActivityEnabled } from '../utils/nursingActivityBridge';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 
 const NursingLockScreenSetting = () => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const [enabled, setEnabled] = useState(true);
 
@@ -52,7 +56,7 @@ const NursingLockScreenSetting = () => {
           value={enabled}
           onValueChange={handleToggle}
           thumbColor={enabled ? '#C75B4A' : '#ccc'}
-          trackColor={{ false: '#E0E0E0', true: '#F0C4BB' }}
+          trackColor={{ false: theme.separator, true: theme.switchOn }}
         />
       </View>
     </ScrollView>
@@ -61,7 +65,7 @@ const NursingLockScreenSetting = () => {
 
 export default NursingLockScreenSetting;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     padding: 24,
   },
@@ -126,7 +130,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 15,
-    color: '#666',
+    color: theme.textSecondary,
     lineHeight: 22,
     textAlign: 'center',
     marginBottom: 32,
@@ -135,17 +139,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderRadius: 10,
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderWidth: 1,
-    borderColor: '#E8D5C4',
+    borderColor: theme.border,
   },
   rowLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333',
+    color: theme.text,
     flex: 1,
     marginRight: 12,
   },

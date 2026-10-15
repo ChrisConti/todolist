@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useMemo, useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Switch } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { auth, db } from './config';
@@ -8,8 +8,12 @@ import analytics from './services/analytics';
 import * as Localization from 'expo-localization';
 import { KEYBOARD_CONFIG } from './utils/constants';
 import i18n from './i18n';
+import { useTheme } from './Context/ThemeContext';
+import type { Theme } from './constants/theme';
 
 const SignIn = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -266,8 +270,8 @@ const validateEmail = (value: string): string => {
                 <Switch
                   value={emailOptIn}
                   onValueChange={setEmailOptIn}
-                  thumbColor={emailOptIn ? '#C75B4A' : '#ccc'}
-                  trackColor={{ false: '#E0E0E0', true: '#F0C4BB' }}
+                  thumbColor={emailOptIn ? '#C75B4A' : theme.textMuted}
+                  trackColor={{ false: theme.separator, true: theme.switchOn }}
                   disabled={loading}
                 />
                 <Text style={styles.emailOptInText}>{t('conditions.emailOptIn')}</Text>
@@ -300,15 +304,15 @@ const validateEmail = (value: string): string => {
 
 export default SignIn;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
     justifyContent: 'space-between',
   },
   inputContainer: {
@@ -318,21 +322,21 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
     borderWidth: 1,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     borderRadius: 8,
     paddingHorizontal: 15,
     marginBottom: 4,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
   },
   inputError: {
-    borderColor: '#E53935',
+    borderColor: theme.danger,
     borderWidth: 2,
   },
   inputValid: {
-    borderColor: '#43A047',
+    borderColor: theme.success,
   },
   inlineError: {
-    color: '#E53935',
+    color: theme.danger,
     fontSize: 12,
     marginBottom: 11,
     paddingHorizontal: 4,
@@ -342,7 +346,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   conditionsLabel: {
-    color: '#7A8889',
+    color: theme.textSecondary,
     fontSize: 14,
     marginBottom: 10,
     textAlign: 'center',
@@ -352,7 +356,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   linkText: {
-    color: '#C75B4A',
+    color: theme.accent,
     fontSize: 15,
     fontWeight: '600',
     textDecorationLine: 'underline',
@@ -369,7 +373,7 @@ const styles = StyleSheet.create({
   emailOptInText: {
     flex: 1,
     fontSize: 13,
-    color: '#7A8889',
+    color: theme.textSecondary,
     lineHeight: 18,
   },
   errorContainer: {
@@ -378,13 +382,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   errorText: {
-    color: '#FFD700',
+    color: theme.gold,
     fontSize: 16,
     textAlign: 'center',
     fontWeight: 'bold',
   },
   button: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -397,7 +401,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#F6F0EB',
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: 'bold',
     fontFamily: 'Pacifico',

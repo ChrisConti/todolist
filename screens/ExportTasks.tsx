@@ -9,8 +9,12 @@ import analytics from '../services/analytics';
 import moment from 'moment';
 import { usePremium } from '../Context/PremiumContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 
 const ExportTasks = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t, i18n } = useTranslation();
   const { user, babyID } = useContext(AuthentificationUserContext);
   const { isPremium } = usePremium();
@@ -152,7 +156,7 @@ const ExportTasks = ({ navigation }) => {
           >
             <View style={styles.premiumButtonIcon}>
               <View style={styles.premiumButtonIconShine} />
-              <MaterialCommunityIcons name="star" size={18} color="#FFF" />
+              <MaterialCommunityIcons name="star" size={18} color={theme.onPrimary} />
             </View>
             <View>
               <Text style={styles.exportButtonText}>{t('premium.exportCta')}</Text>
@@ -166,10 +170,10 @@ const ExportTasks = ({ navigation }) => {
             disabled={loading || !babyData}
           >
             {loading ? (
-              <ActivityIndicator color="#FFF" />
+              <ActivityIndicator color={theme.onPrimary} />
             ) : (
               <>
-                <MaterialCommunityIcons name="file-export" size={20} color="#FFF" />
+                <MaterialCommunityIcons name="file-export" size={20} color={theme.onPrimary} />
                 <Text style={styles.exportButtonText}>{t('export.page.exportButton')}</Text>
               </>
             )}
@@ -184,10 +188,10 @@ const ExportTasks = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   content: {
     padding: 20,
@@ -198,29 +202,29 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: theme.text,
     marginBottom: 15,
   },
   periodButton: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderRadius: 12,
     marginBottom: 10,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderColor: theme.separator,
   },
   periodButtonSelected: {
-    borderColor: '#C75B4A',
-    backgroundColor: '#FDF1E7',
+    borderColor: theme.accent,
+    backgroundColor: theme.background,
   },
   radioOuter: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -229,27 +233,27 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
   },
   periodTextContainer: {
     flex: 1,
   },
   periodText: {
     fontSize: 16,
-    color: '#333',
+    color: theme.text,
     fontWeight: '500',
   },
   periodTextSelected: {
-    color: '#C75B4A',
+    color: theme.accent,
     fontWeight: '600',
   },
   periodSubtext: {
     fontSize: 13,
-    color: '#999',
+    color: theme.textMuted,
     marginTop: 3,
   },
   formatInfo: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: theme.soft,
     padding: 15,
     borderRadius: 12,
     marginBottom: 25,
@@ -257,10 +261,10 @@ const styles = StyleSheet.create({
   },
   formatText: {
     fontSize: 14,
-    color: '#666',
+    color: theme.textSecondary,
   },
   exportButton: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -271,11 +275,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   exportButtonDisabled: {
-    backgroundColor: '#D8ABA0',
+    backgroundColor: theme.disabled,
     opacity: 0.7,
   },
   exportButtonText: {
-    color: 'white',
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -283,17 +287,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#D4AA50',
+    borderColor: theme.gold,
     paddingVertical: 14,
     paddingHorizontal: 16,
     marginBottom: 15,
   },
   premiumButtonIcon: {
     width: 38, height: 38, borderRadius: 10,
-    backgroundColor: '#E8960A',
+    backgroundColor: theme.gold,
     alignItems: 'center', justifyContent: 'center',
     overflow: 'hidden',
   },
@@ -302,14 +306,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 10,
   },
   premiumButtonSub: {
-    color: '#7C5C2E',
+    color: theme.onGold,
     fontSize: 12,
     fontWeight: '400',
     marginTop: 2,
   },
   helpText: {
     fontSize: 13,
-    color: '#999',
+    color: theme.textMuted,
     textAlign: 'center',
     lineHeight: 20,
   },

@@ -53,6 +53,8 @@ export interface Theme {
   gold: string;
 
   disabled: string;
+  /** Rail d'un interrupteur actif : teinte atténuée de la couleur d'accent. */
+  switchOn: string;
   separator: string;
   overlay: string;
 
@@ -100,6 +102,7 @@ export const lightTheme: Theme = {
   gold: '#E8960A',
 
   disabled: '#E8D5C4',
+  switchOn: '#F0C4BB',
   separator: '#E0E0E0',
   overlay: 'rgba(0,0,0,0.45)',
 
@@ -142,6 +145,7 @@ export const darkTheme: Theme = {
   gold: '#E8A93C',
 
   disabled: '#4A3B35',
+  switchOn: '#7A3E33',
   separator: '#3A2E29',
   overlay: 'rgba(0,0,0,0.65)',
 

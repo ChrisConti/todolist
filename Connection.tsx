@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useMemo, useContext, useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, GestureResponderEvent, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import Logo from './assets/logo.svg';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
@@ -13,8 +13,12 @@ import { Ionicons } from '@expo/vector-icons';
 import GoogleLogo from './assets/GoogleLogo';
 import Analytics from './services/analytics';
 import i18n from './i18n';
+import { useTheme } from './Context/ThemeContext';
+import type { Theme } from './constants/theme';
 
 const ConnectionScreen = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userError, setError] = useState('');
@@ -125,11 +129,11 @@ const ConnectionScreen = ({ navigation }) => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#C75B4A' }}
+      style={{ flex: 1, backgroundColor: theme.primary }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        style={{ flex: 1, backgroundColor: '#C75B4A' }}
+        style={{ flex: 1, backgroundColor: theme.primary }}
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
       >
@@ -214,7 +218,7 @@ const ConnectionScreen = ({ navigation }) => {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#7A8889" />
+            <ActivityIndicator color={theme.textSecondary} />
           ) : (
             <Text style={styles.buttonText}>{t('button.login')}</Text>
           )}
@@ -244,7 +248,7 @@ const ConnectionScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     padding: 20,
@@ -262,7 +266,7 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 32,
-    color: '#F6F0EB',
+    color: theme.onPrimary,
     fontFamily: 'Pacifico',
     textAlign: 'center',
     marginBottom: 40,
@@ -271,18 +275,18 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: theme.textMuted,
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 10,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   forgotPasswordLink: {
     alignSelf: 'flex-end',
     marginBottom: 20,
   },
   forgotPasswordText: {
-    color: '#F6F0EB',
+    color: theme.onPrimary,
     fontSize: 14,
   },
   errorContainer: {
@@ -291,13 +295,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   errorText: {
-    color: '#FFD700',
+    color: theme.gold,
     fontSize: 16,
     textAlign: 'center',
     fontWeight: 'bold',
   },
   button: {
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -311,7 +315,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#7A8889',
+    color: theme.textSecondary,
     fontSize: 16,
     fontFamily: 'Pacifico',
   },
@@ -319,13 +323,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   signupPromptText: {
-    color: '#F6F0EB',
+    color: theme.onPrimary,
     fontSize: 14,
   },
   secondaryButton: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: '#FDF1E7',
+    borderColor: theme.background,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -333,7 +337,7 @@ const styles = StyleSheet.create({
     width: 200,
   },
   secondaryButtonText: {
-    color: '#FDF1E7',
+    color: theme.onPrimary,
     fontSize: 16,
     fontFamily: 'Pacifico',
   },
@@ -353,7 +357,7 @@ const styles = StyleSheet.create({
     width: 93,
     height: 47,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -363,7 +367,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   socialAuthText: {
-    color: '#F6F0EB',
+    color: theme.onPrimary,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -376,11 +380,11 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#F6F0EB',
+    backgroundColor: theme.soft,
     opacity: 0.3,
   },
   dividerText: {
-    color: '#F6F0EB',
+    color: theme.onPrimary,
     paddingHorizontal: 10,
     fontSize: 14,
     fontFamily: 'Pacifico',

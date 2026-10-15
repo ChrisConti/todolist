@@ -1,12 +1,16 @@
-import React, { useContext, useState } from 'react';
+import React, { useMemo, useContext, useState } from 'react';
 import { View, Text, StyleSheet, Switch, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { db, userRef } from '../config';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 
 const EmailOptIn = () => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const { user, userInfo, setUserInfo } = useContext(AuthentificationUserContext);
   const [emailOptIn, setEmailOptInState] = useState(userInfo?.emailOptIn ?? false);
@@ -32,13 +36,13 @@ const EmailOptIn = () => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#FDF1E7' }}
+      style={{ flex: 1, backgroundColor: theme.background }}
       behavior="padding"
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70}
     >
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.iconContainer}>
-          <MaterialCommunityIcons name="email-newsletter" size={48} color="#C75B4A" />
+          <MaterialCommunityIcons name="email-newsletter" size={48} color={theme.accent} />
         </View>
 
         <Text style={styles.description}>{t('settings.emailOptInDescription')}</Text>
@@ -48,8 +52,8 @@ const EmailOptIn = () => {
           <Switch
             value={emailOptIn}
             onValueChange={handleToggle}
-            thumbColor={emailOptIn ? '#C75B4A' : '#ccc'}
-            trackColor={{ false: '#E0E0E0', true: '#F0C4BB' }}
+            thumbColor={emailOptIn ? '#C75B4A' : theme.textMuted}
+            trackColor={{ false: theme.separator, true: theme.switchOn }}
             disabled={saving}
           />
         </View>
@@ -60,7 +64,7 @@ const EmailOptIn = () => {
 
 export default EmailOptIn;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     padding: 24,
   },
@@ -71,7 +75,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 15,
-    color: '#666',
+    color: theme.textSecondary,
     lineHeight: 22,
     textAlign: 'center',
     marginBottom: 32,
@@ -80,16 +84,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderRadius: 10,
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderWidth: 1,
-    borderColor: '#E8D5C4',
+    borderColor: theme.border,
   },
   rowLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333',
+    color: theme.text,
   },
 });

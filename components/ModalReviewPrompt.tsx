@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 
 interface ModalReviewPromptProps {
   visible: boolean;
@@ -10,6 +12,8 @@ interface ModalReviewPromptProps {
 }
 
 const ModalReviewPrompt: React.FC<ModalReviewPromptProps> = ({ visible, onClose, onRate }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   
   return (
@@ -23,7 +27,7 @@ const ModalReviewPrompt: React.FC<ModalReviewPromptProps> = ({ visible, onClose,
         <View style={styles.container}>
           {/* Icon */}
           <View style={styles.iconContainer}>
-            <Ionicons name="heart" size={60} color="#C75B4A" />
+            <Ionicons name="heart" size={60} color={theme.accent} />
           </View>
 
           {/* Title */}
@@ -56,7 +60,7 @@ const ModalReviewPrompt: React.FC<ModalReviewPromptProps> = ({ visible, onClose,
               style={styles.reviewButton}
               onPress={onRate}
             >
-              <Ionicons name="chatbox-ellipses" size={20} color="#fff" style={styles.buttonIcon} />
+              <Ionicons name="chatbox-ellipses" size={20} color={theme.onPrimary} style={styles.buttonIcon} />
               <Text style={styles.reviewButtonText}>
                 {t('review.writeReview')}
               </Text>
@@ -68,7 +72,7 @@ const ModalReviewPrompt: React.FC<ModalReviewPromptProps> = ({ visible, onClose,
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -76,7 +80,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
     borderRadius: 20,
     padding: 30,
     width: '85%',
@@ -94,21 +98,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#C75B4A',
+    color: theme.accent,
     marginBottom: 15,
     textAlign: 'center',
     fontFamily: 'Pacifico',
   },
   message: {
     fontSize: 16,
-    color: '#333',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 15,
     lineHeight: 22,
   },
   commentCTA: {
     fontSize: 15,
-    color: '#C75B4A',
+    color: theme.accent,
     textAlign: 'center',
     marginBottom: 25,
     fontWeight: '600',
@@ -125,12 +129,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
-    backgroundColor: '#E8D5C4',
+    backgroundColor: theme.border,
     alignItems: 'center',
   },
   laterButtonText: {
     fontSize: 16,
-    color: '#666',
+    color: theme.textSecondary,
     fontWeight: '600',
   },
   reviewButton: {
@@ -138,11 +142,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    shadowColor: '#C75B4A',
+    shadowColor: theme.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -153,7 +157,7 @@ const styles = StyleSheet.create({
   },
   reviewButtonText: {
     fontSize: 16,
-    color: '#fff',
+    color: theme.onPrimary,
     fontWeight: 'bold',
   },
 });
