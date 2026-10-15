@@ -1,4 +1,6 @@
-import React, { useContext, useState } from 'react';
+import React, { useMemo, useContext, useState } from 'react';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +33,8 @@ const MILK_TYPES = [
 ];
 
 const FirstTaskBiberon = ({ navigation, route }: any) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user, userInfo, babyID: contextBabyID } = useContext(AuthentificationUserContext);
@@ -186,7 +190,7 @@ const FirstTaskBiberon = ({ navigation, route }: any) => {
           disabled={selectedMinutes === null || loading}
         >
           {loading
-            ? <ActivityIndicator color="#FFF" />
+            ? <ActivityIndicator color={theme.card} />
             : <Text style={styles.saveButtonText}>{t('firstTask.save')}</Text>}
         </TouchableOpacity>
         <TouchableOpacity style={styles.skipButton} onPress={handleSkip} disabled={loading}>
@@ -197,8 +201,8 @@ const FirstTaskBiberon = ({ navigation, route }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FDF1E7' },
+const makeStyles = (theme: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
   scroll: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -210,7 +214,7 @@ const styles = StyleSheet.create({
     width: 84,
     height: 84,
     borderRadius: 42,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -223,20 +227,20 @@ const styles = StyleSheet.create({
   babyName: {
     fontFamily: 'Pacifico',
     fontSize: 32,
-    color: '#C75B4A',
+    color: theme.accent,
     textAlign: 'center',
     marginBottom: 12,
   },
   title: {
     fontSize: 19,
     fontWeight: '600',
-    color: '#5A5A5A',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: '#7A8889',
+    color: theme.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
   },
@@ -250,7 +254,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 4,
@@ -258,19 +262,19 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   chipSelected: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
   },
   chipText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#555',
+    color: theme.text,
   },
   chipTextSelected: {
-    color: '#FFF',
+    color: theme.card,
   },
   quantityLabel: {
     fontSize: 13,
-    color: '#7A8889',
+    color: theme.textSecondary,
     marginTop: 28,
     marginBottom: 12,
   },
@@ -278,7 +282,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   saveButton: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',
@@ -288,19 +292,19 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   saveButtonText: {
-    color: '#FFF',
+    color: theme.card,
     fontSize: 16,
     fontWeight: '700',
   },
   skipButton: {
     borderWidth: 1.5,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',
   },
   skipButtonText: {
-    color: '#C75B4A',
+    color: theme.accent,
     fontSize: 16,
     fontWeight: '600',
   },

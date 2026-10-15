@@ -1,4 +1,6 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useMemo, useContext, useEffect, useRef, useState } from 'react';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Keyboard, ScrollView, TouchableWithoutFeedback, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { db, babiesRef } from '../config.js';
 import { doc, getDocsFromServer, query, updateDoc, where } from 'firebase/firestore';
@@ -36,6 +38,8 @@ interface CreateTaskProps {
   navigation: any;
 }
 const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { handleTaskCreated } = useReviewPrompt();
   const { t } = useTranslation();
   const task = undefined;
@@ -276,7 +280,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
               onSubmitEditing={Keyboard.dismiss}
               maxLength={10}
               placeholder={t('placeholder.millilitres')}
-              placeholderTextColor="#9BA3A4"
+              placeholderTextColor={theme.textMuted}
               inputAccessoryViewID="none"
             />
             {label.length > 0 && (
@@ -324,7 +328,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
               onSubmitEditing={Keyboard.dismiss}
               maxLength={30}
               placeholder={t('placeholder.medicaments')}
-              placeholderTextColor="#9BA3A4"
+              placeholderTextColor={theme.textMuted}
               inputAccessoryViewID="none"
             />
             {label.length > 0 && (
@@ -359,7 +363,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
             value={sleepHours}
             maxLength={2}
             placeholder={t('placeholder.sleepHours')}
-            placeholderTextColor="#9BA3A4"
+            placeholderTextColor={theme.textMuted}
             returnKeyType='done'
             onSubmitEditing={Keyboard.dismiss}
             inputAccessoryViewID="none"
@@ -371,7 +375,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
             value={sleepMinutes}
             maxLength={3}
             placeholder={t('placeholder.sleepMinutes')}
-            placeholderTextColor="#9BA3A4"
+            placeholderTextColor={theme.textMuted}
             returnKeyType='done'
             onSubmitEditing={Keyboard.dismiss}
             inputAccessoryViewID="none"
@@ -394,7 +398,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
               onSubmitEditing={Keyboard.dismiss}
               maxLength={5}
               placeholder={t('placeholder.temperature')}
-              placeholderTextColor="#9BA3A4"
+              placeholderTextColor={theme.textMuted}
               inputAccessoryViewID="none"
             />
           </View>
@@ -410,7 +414,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
               onSubmitEditing={Keyboard.dismiss}
               maxLength={4}
               placeholder={t('placeholder.temperatureDuration')}
-              placeholderTextColor="#9BA3A4"
+              placeholderTextColor={theme.textMuted}
               inputAccessoryViewID="none"
             />
           </View>
@@ -453,7 +457,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         behavior={KEYBOARD_CONFIG.BEHAVIOR}
         keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
       >
-        <View style={{ flex: 1, backgroundColor: '#FDF1E7', alignItems: 'center', paddingTop: 10, }}>
+        <View style={{ flex: 1, backgroundColor: theme.background, alignItems: 'center', paddingTop: 10, }}>
           <ScrollView
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: 100, alignItems: 'center' }}
@@ -491,7 +495,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
               {/* Diaper Type (consistency) - Only for diaper (id === 1) */}
               {selectedImage === 1 && (
                 <View style={{ paddingTop: 30, width: 280 }}>
-                  <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                  <Text style={{ color: theme.textMuted, paddingBottom: 12 }}>
                     {t('diapers.type')}
                   </Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 8 }}>
@@ -517,7 +521,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
               {/* Diaper Content - Only for diaper (id === 1) */}
               {selectedImage === 1 && (
                 <View style={{ paddingTop: 30, width: 280 }}>
-                  <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                  <Text style={{ color: theme.textMuted, paddingBottom: 12 }}>
                     {t('diapers.content')}
                   </Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 8 }}>
@@ -543,7 +547,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
               {/* Sleep Type - Only for sleep (id === 3) */}
               {selectedImage === 3 && (
                 <View style={{ paddingTop: 30, width: 280 }}>
-                  <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                  <Text style={{ color: theme.textMuted, paddingBottom: 12 }}>
                     {t('sleepType.title')}
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'center' }}>
@@ -577,7 +581,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
               {/* Sleep Location - Only for sleep (id === 3) */}
               {selectedImage === 3 && (
                 <View style={{ paddingTop: 30, alignSelf: 'center', width: 280 }}>
-                  <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                  <Text style={{ color: theme.textMuted, paddingBottom: 12 }}>
                     {t('sleepLocation.title')}
                   </Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
@@ -604,18 +608,18 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
 
               {/* Time - Show for all tasks (including diaper) */}
               <View style={{ paddingTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', gap: 16 }}>
-                <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                <Text style={{ color: theme.textMuted, paddingBottom: 12 }}>
                   {t('task.whenTask')}
                 </Text>
                 {isDateLocked ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#D8ABA0', borderRadius: 8, padding: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: theme.disabled, borderRadius: 8, padding: 10 }}>
                     <Ionicons name="lock-closed" size={14} color="white" />
-                    <Text style={{ color: 'white' }}>
+                    <Text style={{ color: theme.card }}>
                       {t('task.startedAt')} {moment(bfStartTime).format('DD MMM · HH:mm')}
                     </Text>
                   </View>
                 ) : (
-                  <TouchableOpacity onPress={() => {isDateTimePickerVisible ? setIsDateTimePickerVisible(false) : setIsDateTimePickerVisible(true)}} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#C75B4A', borderRadius: 8, padding: 10, width: 120 }}>
+                  <TouchableOpacity onPress={() => {isDateTimePickerVisible ? setIsDateTimePickerVisible(false) : setIsDateTimePickerVisible(true)}} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: theme.primary, borderRadius: 8, padding: 10, width: 120 }}>
                     <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
                   </TouchableOpacity>
                 )}
@@ -637,7 +641,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
               {/* Milk Type - Only for bottle (id === 0) */}
               {selectedImage === 0 && (
                 <View style={{ paddingTop: 30, alignSelf: 'center' }}>
-                  <Text style={{ color: 'gray', paddingBottom: 12 }}>
+                  <Text style={{ color: theme.textMuted, paddingBottom: 12 }}>
                     {t('milkType.title')}
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -676,7 +680,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                   numberOfLines={3}
                   value={note}
                   placeholder={t('placeholder.comment')}
-                  placeholderTextColor="#9BA3A4"
+                  placeholderTextColor={theme.textMuted}
                   onChangeText={(inputText) => setNote(inputText)}
                   maxLength={60}
                   onSubmitEditing={Keyboard.dismiss}
@@ -699,7 +703,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
             <TouchableOpacity onPress={updateBabyTasks} disabled={loading}>
               <View style={[styles.button, loading && styles.buttonDisabled]}>
                 {loading ? (
-                  <ActivityIndicator color="#F6F0EB" />
+                  <ActivityIndicator color={theme.onPrimary} />
                 ) : (
                   <Text style={styles.buttonText}>{t('button.validate')}</Text>
                 )}
@@ -714,7 +718,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
 
 export default CreateTask;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
 
   image: {
     width: 30,
@@ -725,8 +729,8 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FFF',
-    borderColor: '#C75B4A',
+    backgroundColor: theme.card,
+    borderColor: theme.accent,
     borderWidth: 3,
     justifyContent: 'center',
     alignItems: 'center',
@@ -735,9 +739,9 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderColor: theme.separator,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -748,22 +752,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     borderBottomWidth: 1,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-    color: '#333333',
+    backgroundColor: theme.card,
+    color: theme.text,
   },
   input: {
     width: 280,
     height: 50,
     borderBottomWidth: 1,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 20,
     alignSelf: 'center',
-    backgroundColor: '#FFFFFF',
-    color: '#333333',
+    backgroundColor: theme.card,
+    color: theme.text,
   },
   footer: {
     height: 100, // Adjust as needed
@@ -773,7 +777,7 @@ const styles = StyleSheet.create({
     // Other styles for the footer
   },
   button: {
-    backgroundColor: '#C75B4A', // Dark blue button background
+    backgroundColor: theme.primary, // Dark blue button background
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -782,11 +786,11 @@ const styles = StyleSheet.create({
     width: 300,
   },
   buttonDisabled: {
-    backgroundColor: '#D8ABA0',
+    backgroundColor: theme.disabled,
     opacity: 0.7,
   },
   buttonText: {
-    color: 'white',
+    color: theme.card,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -795,40 +799,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     backgroundColor: 'transparent',
     minWidth: 80,
     alignItems: 'center',
   },
   milkTypeButtonSelected: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
   },
   milkTypeText: {
-    color: '#C75B4A',
+    color: theme.accent,
     fontSize: 14,
     fontWeight: '600',
   },
   milkTypeTextSelected: {
-    color: '#F6F0EB',
+    color: theme.onPrimary,
   },
   medChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     backgroundColor: 'transparent',
   },
   medChipSelected: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
   },
   medChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#C75B4A',
+    color: theme.accent,
   },
   medChipTextSelected: {
-    color: '#FFF',
+    color: theme.card,
   },
   medClearBtn: {
     position: 'absolute',
@@ -837,20 +841,20 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   medClearText: {
     fontSize: 12,
-    color: '#FFF',
+    color: theme.card,
     fontWeight: '700',
   },
   locationChip: {
     flex: 1,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -866,7 +870,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -875,7 +879,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  chipCardSelected: { backgroundColor: '#C75B4A' },
+  chipCardSelected: { backgroundColor: theme.primary },
   chipCheck: {
     position: 'absolute',
     top: 4,
@@ -887,14 +891,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chipCheckText: { color: '#FFF', fontSize: 8, fontWeight: '700' },
-  chipLabel: { fontSize: 13, fontWeight: '600', color: '#555' },
-  chipLabelSelected: { color: '#FFF' },
+  chipCheckText: { color: theme.card, fontSize: 8, fontWeight: '700' },
+  chipLabel: { fontSize: 13, fontWeight: '600', color: theme.text },
+  chipLabelSelected: { color: theme.card },
   milkCard: {
     width: 90,
     aspectRatio: 1,
     borderRadius: 14,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
@@ -904,7 +908,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  milkCardSelected: { backgroundColor: '#C75B4A' },
+  milkCardSelected: { backgroundColor: theme.primary },
   milkCheck: {
     position: 'absolute',
     top: 6,
@@ -916,31 +920,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  milkCheckText: { color: '#FFF', fontSize: 10, fontWeight: '700' },
+  milkCheckText: { color: theme.card, fontSize: 10, fontWeight: '700' },
   milkEmoji: { fontSize: 26 },
-  milkLabel: { fontSize: 11, fontWeight: '600', color: '#555' },
-  milkLabelSelected: { color: '#FFF' },
+  milkLabel: { fontSize: 11, fontWeight: '600', color: theme.text },
+  milkLabelSelected: { color: theme.card },
   sleepLocationButton: {
     paddingVertical: 8,
     paddingHorizontal: 8,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     backgroundColor: 'transparent',
     width: '48%',
     alignItems: 'center',
     marginBottom: 8,
   },
   sleepLocationButtonSelected: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
   },
   sleepLocationText: {
-    color: '#C75B4A',
+    color: theme.accent,
     fontSize: 13,
     fontWeight: '600',
     textAlign: 'center',
   },
   sleepLocationTextSelected: {
-    color: '#F6F0EB',
+    color: theme.onPrimary,
   },
 });

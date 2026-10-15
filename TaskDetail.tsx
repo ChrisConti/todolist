@@ -1,5 +1,7 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
-import React, { useContext, useState } from 'react';
+import { useTheme } from './Context/ThemeContext';
+import type { Theme } from './constants/theme';
+import React, { useMemo, useContext, useState } from 'react';
 import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { babiesRef, db } from './config';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
@@ -7,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import Card from './Card';
 
 const TaskDetail = ({ route, navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const [task, setTask] = useState(route.params.task);
   const [idTask, setIDTask] = useState(route.params.task.uid);
@@ -43,7 +47,7 @@ const TaskDetail = ({ route, navigation }) => {
   };
 
   return (
-    <View style={{ flex: 1, padding: 10, backgroundColor: '#FDF1E7' }}>
+    <View style={{ flex: 1, padding: 10, backgroundColor: theme.background }}>
       <Card key={task.id} task={task} navigation={navigation} editable={false} /> 
       <TextInput
         style={styles.inputComment}
@@ -85,7 +89,7 @@ const TaskDetail = ({ route, navigation }) => {
 
 export default TaskDetail;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   image: {
     width: 30,
     height: 30,
@@ -95,7 +99,7 @@ const styles = StyleSheet.create({
     width: 55,
     height: 55,
     resizeMode: 'cover',
-    borderColor: '#0074D9',
+    borderColor: theme.accent,
     borderWidth: 5,
     borderRadius: 60,
     justifyContent: 'center',
@@ -118,18 +122,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     borderBottomWidth: 1,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     borderRadius: 8,
   },
   input: {
     width: 280,
     height: 50,
     borderBottomWidth: 1,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 20,
-    backgroundColor: 'white', // White input background
+    backgroundColor: theme.card, // White input background
   },
   footer: {
     height: 100, // Adjust as needed
@@ -137,7 +141,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    backgroundColor: '#C75B4A', // Dark blue button background
+    backgroundColor: theme.primary, // Dark blue button background
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -146,11 +150,11 @@ const styles = StyleSheet.create({
     width: 300,
   },
   buttonText: {
-    color: 'white',
+    color: theme.card,
     fontSize: 16,
     fontWeight: 'bold',
   },
   textInfo: {
-    color:"#7A8889"
+    color: theme.textSecondary
   },
 });
