@@ -400,7 +400,12 @@
       "emailOptInDescription": "Receive feedback requests and app improvement messages",
       "emailOptInUpdated": "Preference updated",
       "signOutConfirm": "You will be signed out of your account.",
-      "feedbackSub": "Share an idea"
+      "feedbackSub": "Share an idea",
+      "appearance": "Appearance",
+      "followSystem": "Follow system",
+      "followSystemSub": "The app follows your phone setting",
+      "themeLight": "☀️  Light",
+      "themeDark": "🌙  Dark"
     },
     "title": {
       "signup": "Sign Up",
@@ -786,7 +791,7 @@
       "restoreError": "No purchase found for this account.",
       "activeBadge": "Tribu Premium · Active ✓",
       "upsellTitle": "Get Tribu Premium",
-      "upsellSubtitle": "Advanced stats, unlimited export, widget",
+      "upsellSubtitle": "Advanced stats, unlimited export, widget, dark mode",
       "exportCta": "Export my data · Premium",
       "feature": {
         "export": {
@@ -804,6 +809,10 @@
         "support": {
           "title": "Support Tribu",
           "subtitle": "No ads, no data selling"
+        },
+        "darkMode": {
+          "title": "Dark mode",
+          "subtitle": "For those 4 a.m. feeds"
         }
       },
       "exportCtaTitle": "Export my data",
@@ -1261,7 +1270,12 @@
       "emailOptInDescription": "Recevoir des demandes de retour et messages d'amélioration de l'app",
       "emailOptInUpdated": "Préférence mise à jour",
       "signOutConfirm": "Tu vas être déconnecté de ton compte.",
-      "feedbackSub": "Partage une idée"
+      "feedbackSub": "Partage une idée",
+      "appearance": "Apparence",
+      "followSystem": "Suivre le système",
+      "followSystemSub": "L'app suit le réglage de votre téléphone",
+      "themeLight": "☀️  Clair",
+      "themeDark": "🌙  Sombre"
     },
     "enterValidName": "Veuillez entrer un nom valide",
     "modification": "Modification",
@@ -1633,7 +1647,7 @@
       "restoreError": "Aucun achat trouvé pour ce compte.",
       "activeBadge": "Tribu Premium · Activé ✓",
       "upsellTitle": "Passer à Tribu Premium",
-      "upsellSubtitle": "Stats avancées, export illimité, widget",
+      "upsellSubtitle": "Stats avancées, export illimité, widget, mode sombre",
       "exportCta": "Exporter mes données · Premium",
       "feature": {
         "export": {
@@ -1651,6 +1665,10 @@
         "support": {
           "title": "Soutenir Tribu",
           "subtitle": "Sans pub, ni revente de data"
+        },
+        "darkMode": {
+          "title": "Mode sombre",
+          "subtitle": "Pour les tétées de 4 h du matin"
         }
       },
       "exportCtaTitle": "Exporter mes données",
@@ -2096,7 +2114,12 @@
       "emailOptInDescription": "Recibir solicitudes de opinión y mensajes de mejora de la app",
       "emailOptInUpdated": "Preferencia actualizada",
       "signOutConfirm": "Cerrarás sesión en tu cuenta.",
-      "feedbackSub": "Comparte una idea"
+      "feedbackSub": "Comparte una idea",
+      "appearance": "Apariencia",
+      "followSystem": "Seguir el sistema",
+      "followSystemSub": "La app sigue el ajuste de tu teléfono",
+      "themeLight": "☀️  Claro",
+      "themeDark": "🌙  Oscuro"
     },
     "enterValidName": "Por favor, introduce un nombre válido",
     "enterValidEmail": "Por favor, introduce un correo válido",
@@ -2465,7 +2488,7 @@
       "restoreError": "No se encontró ninguna compra para esta cuenta.",
       "activeBadge": "Tribu Premium · Activo ✓",
       "upsellTitle": "Pasar a Tribu Premium",
-      "upsellSubtitle": "Estadísticas avanzadas, exportación ilimitada, widget",
+      "upsellSubtitle": "Estadísticas avanzadas, exportación ilimitada, widget, modo oscuro",
       "exportCta": "Exportar mis datos · Premium",
       "feature": {
         "export": {
@@ -2483,6 +2506,10 @@
         "support": {
           "title": "Apoyar Tribu",
           "subtitle": "Sin publicidad, sin venta de datos"
+        },
+        "darkMode": {
+          "title": "Modo oscuro",
+          "subtitle": "Para las tomas de las 4 de la mañana"
         }
       },
       "exportCtaTitle": "Exportar mis datos",

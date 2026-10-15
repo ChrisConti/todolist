@@ -93,22 +93,22 @@ function WidgetPreview() {
 
 // ─── Mini-preview : Soutenir Tribu ────────────────────────────────────────────
 
-function SoutenirPreview() {
-  const { t } = useTranslation();
+/** Deux moitiés d'écran côte à côte : le sombre se montre mieux qu'il ne se décrit. */
+function DarkModePreview() {
   return (
-    <View style={preview.soutenir}>
-      <Ionicons name="heart" size={28} color="#C75B4A" />
-      <View style={preview.soutenirStats}>
-        <View style={preview.soutenirRow}>
-          <View style={preview.dot} />
-          <Text style={preview.soutenirStat}>0 pub</Text>
-        </View>
-        <View style={preview.soutenirRow}>
-          <View style={preview.dot} />
-          <Text style={preview.soutenirStat}>0 tracking</Text>
-        </View>
+    <View style={preview.theme}>
+      <View style={[preview.themeHalf, preview.themeLight]}>
+        <View style={[preview.themeBar, { backgroundColor: '#C75B4A' }]} />
+        <View style={[preview.themeLine, { backgroundColor: '#E0D5CC', width: '70%' }]} />
+        <View style={[preview.themeLine, { backgroundColor: '#E0D5CC', width: '45%' }]} />
+        <Ionicons name="sunny" size={13} color="#C75B4A" style={preview.themeIcon} />
       </View>
-      <Text style={preview.soutenirSub}>{t('premium.preview.team')}</Text>
+      <View style={[preview.themeHalf, preview.themeDark]}>
+        <View style={[preview.themeBar, { backgroundColor: '#231B17' }]} />
+        <View style={[preview.themeLine, { backgroundColor: '#3A2E29', width: '70%' }]} />
+        <View style={[preview.themeLine, { backgroundColor: '#3A2E29', width: '45%' }]} />
+        <Ionicons name="moon" size={13} color="#E8846C" style={preview.themeIcon} />
+      </View>
     </View>
   );
 }
@@ -119,7 +119,7 @@ const FEATURES = [
   { titleKey: 'premium.feature.export.title', subtitleKey: 'premium.feature.export.subtitle', Preview: ExportPreview },
   { titleKey: 'premium.feature.stats.title',  subtitleKey: 'premium.feature.stats.subtitle',  Preview: StatsPreview },
   { titleKey: 'premium.feature.widget.title', subtitleKey: 'premium.feature.widget.subtitle', Preview: WidgetPreview },
-  { titleKey: 'premium.feature.support.title',subtitleKey: 'premium.feature.support.subtitle',Preview: SoutenirPreview },
+  { titleKey: 'premium.feature.darkMode.title', subtitleKey: 'premium.feature.darkMode.subtitle', Preview: DarkModePreview },
 ];
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
@@ -286,12 +286,13 @@ const preview = StyleSheet.create({
   widgetTime: { fontSize: 8, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
 
   // Soutenir
-  soutenir: { width: '100%', alignItems: 'center', gap: 6, marginTop: 4 },
-  soutenirStats: { gap: 3 },
-  soutenirRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#4CAF50' },
-  soutenirStat: { fontSize: 10, fontWeight: '700', color: '#333' },
-  soutenirSub: { fontSize: 8, color: '#999' },
+  theme: { width: '100%', flexDirection: 'row', gap: 5, marginTop: 4 },
+  themeHalf: { flex: 1, borderRadius: 7, padding: 5, gap: 3.5, overflow: 'hidden', minHeight: 54 },
+  themeLight: { backgroundColor: '#FDF1E7', borderWidth: 1, borderColor: '#EADFD6' },
+  themeDark: { backgroundColor: '#17120F', borderWidth: 1, borderColor: '#3A2E29' },
+  themeBar: { height: 8, borderRadius: 3, marginBottom: 1 },
+  themeLine: { height: 4, borderRadius: 2 },
+  themeIcon: { alignSelf: 'flex-end', marginTop: 'auto' },
 });
 
 // ─── Screen styles ────────────────────────────────────────────────────────────

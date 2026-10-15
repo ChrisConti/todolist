@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Linking, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Linking, Platform, Switch } from 'react-native';
 import React, { useContext, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ItemParameter from './ItemParameter.js';
@@ -11,12 +11,14 @@ import { useReviewPrompt } from './Context/ReviewPromptContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { usePremium } from './Context/PremiumContext';
 import { SUPPORT_EMAIL } from './utils/constants';
+import { useTheme } from './Context/ThemeContext';
 import { isNursingActivitySupported } from './utils/nursingActivityBridge';
 
 const Settings = ({ navigation }) => {
   const { user, setUser, babyID, setBabyID, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
   const { showReviewModalManually } = useReviewPrompt();
   const { isPremium } = usePremium();
+  const { theme, preference, setPreference, canUseDarkMode } = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
 
@@ -136,6 +138,68 @@ const Settings = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
+        {/* Apparence — visible pour tous, verrouillé hors premium : la masquer
+            empêcherait de découvrir la fonctionnalité. */}
+        <View>
+          <View>
+            <Text style={styles.titleParameter}>{t('settings.appearance')}</Text>
+          </View>
+          <View style={styles.themeCard}>
+            <View style={styles.themeRow}>
+              <View style={{ flex: 1 }}>
+                <View style={styles.themeTitleRow}>
+                  <Text style={styles.themeTitle}>{t('settings.followSystem')}</Text>
+                  {!canUseDarkMode && <Text style={styles.themeStar}>★</Text>}
+                </View>
+                <Text style={styles.themeSub}>{t('settings.followSystemSub')}</Text>
+              </View>
+              {canUseDarkMode ? (
+                <Switch
+                  value={preference === 'system'}
+                  onValueChange={(v) => {
+                    const next = v ? 'system' : (theme.dark ? 'dark' : 'light');
+                    setPreference(next);
+                    analytics.logEvent('theme_preference_changed', { preference: next });
+                  }}
+                  trackColor={{ false: '#D8CEC7', true: '#C75B4A' }}
+                  thumbColor="#FFF"
+                />
+              ) : (
+                <TouchableOpacity
+                  onPress={() => {
+                    analytics.logEvent('paywall_opened', { source: 'dark_mode' });
+                    navigation.navigate('Paywall');
+                  }}
+                  style={styles.themeUnlock}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.themeUnlockTxt}>{t('premium.cta_short')}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {canUseDarkMode && preference !== 'system' && (
+              <View style={styles.themeSegRow}>
+                {(['light', 'dark'] as const).map((mode) => (
+                  <TouchableOpacity
+                    key={mode}
+                    onPress={() => {
+                      setPreference(mode);
+                      analytics.logEvent('theme_preference_changed', { preference: mode });
+                    }}
+                    style={[styles.themeSeg, preference === mode && styles.themeSegOn]}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={[styles.themeSegTxt, preference === mode && styles.themeSegTxtOn]}>
+                      {t(mode === 'light' ? 'settings.themeLight' : 'settings.themeDark')}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+
         <View>
           <View>
             <Text style={styles.titleParameter}>{t('settings.personalOptions')}</Text>
@@ -200,6 +264,31 @@ const Settings = ({ navigation }) => {
 export default Settings;
 
 const styles = StyleSheet.create({
+  themeCard: {
+    backgroundColor: '#FFF', borderRadius: 12, marginHorizontal: 16, marginBottom: 8,
+    borderWidth: 1, borderColor: '#EADFD6', overflow: 'hidden',
+  },
+  themeRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
+  themeTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  themeTitle: { fontSize: 15, fontWeight: '600', color: '#333' },
+  themeStar: { fontSize: 13, color: '#E8960A', fontWeight: '700' },
+  themeSub: { fontSize: 12, color: '#7A8889', marginTop: 2 },
+  themeUnlock: {
+    backgroundColor: '#C75B4A', borderRadius: 8, paddingVertical: 7, paddingHorizontal: 13,
+  },
+  themeUnlockTxt: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+  themeSegRow: {
+    flexDirection: 'row', gap: 8, paddingHorizontal: 14, paddingBottom: 14,
+    borderTopWidth: 1, borderTopColor: '#F2EAE4', paddingTop: 12,
+  },
+  themeSeg: {
+    flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 8,
+    backgroundColor: '#F6F0EB', borderWidth: 1, borderColor: '#EADFD6',
+  },
+  themeSegOn: { backgroundColor: '#C75B4A', borderColor: '#C75B4A' },
+  themeSegTxt: { fontSize: 13.5, fontWeight: '600', color: '#8A6A5E' },
+  themeSegTxtOn: { color: '#F6F0EB' },
+
   container: {
     flex: 1,
     backgroundColor: '#FDF1E7',
