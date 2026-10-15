@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   SafeAreaView, Platform, ActivityIndicator,
@@ -9,6 +9,8 @@ import DodoIcon from '../assets/dodo-color.svg';
 import { useTranslation } from 'react-i18next';
 import { usePremium } from '../Context/PremiumContext';
 import Analytics from '../services/analytics';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 
 // ─── Mini-preview : CSV export ───────────────────────────────────────────────
 
@@ -125,6 +127,8 @@ const FEATURES = [
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function PaywallScreen({ navigation }: any) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const { purchase, restore, isLoading, purchaseError, priceString, priceStatus, retryPrice } = usePremium();
 
@@ -155,7 +159,7 @@ export default function PaywallScreen({ navigation }: any) {
         onPress={handleClose}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
-        <Ionicons name="close" size={24} color="#666" />
+        <Ionicons name="close" size={24} color={theme.textSecondary} />
       </TouchableOpacity>
 
       <ScrollView
@@ -166,7 +170,7 @@ export default function PaywallScreen({ navigation }: any) {
         <View style={styles.header}>
           <View style={styles.premiumIcon}>
             <View style={styles.premiumIconShine} />
-            <MaterialCommunityIcons name="star" size={36} color="#FFF" />
+            <MaterialCommunityIcons name="star" size={36} color={theme.onPrimary} />
           </View>
           <Text style={styles.title}>{t('premium.title')}</Text>
           <Text style={styles.subtitle}>{t('premium.subtitle')}</Text>
@@ -188,13 +192,13 @@ export default function PaywallScreen({ navigation }: any) {
         {/* Price badge */}
         <View style={styles.priceBadge}>
           <View style={styles.priceBadgeLeft}>
-            <MaterialCommunityIcons name="check-circle" size={18} color="#C75B4A" />
+            <MaterialCommunityIcons name="check-circle" size={18} color={theme.accent} />
             <Text style={styles.priceBadgeName}>{t('premium.badgeTitle')}</Text>
           </View>
           {priceReady ? (
             <Text style={styles.priceAmount}>{priceString}</Text>
           ) : priceStatus === 'loading' ? (
-            <ActivityIndicator size="small" color="#C75B4A" />
+            <ActivityIndicator size="small" color={theme.accent} />
           ) : (
             <TouchableOpacity onPress={retryPrice} activeOpacity={0.7}>
               <Text style={styles.priceRetry}>{t('premium.priceUnavailable')}</Text>
@@ -214,17 +218,17 @@ export default function PaywallScreen({ navigation }: any) {
           activeOpacity={0.85}
         >
           {isLoading || priceStatus === 'loading' ? (
-            <ActivityIndicator color="#E8960A" />
+            <ActivityIndicator color={theme.gold} />
           ) : (
             <>
               <View style={styles.ctaIcon}>
                 <View style={styles.ctaIconShine} />
-                <MaterialCommunityIcons name="star" size={18} color="#FFF" />
+                <MaterialCommunityIcons name="star" size={18} color={theme.onPrimary} />
               </View>
               <Text style={styles.ctaText}>
                 {priceReady ? t('premium.cta', { price: priceString }) : t('premium.ctaNoPrice')}
               </Text>
-              <MaterialCommunityIcons name="chevron-right" size={20} color="#A8956A" />
+              <MaterialCommunityIcons name="chevron-right" size={20} color={theme.gold} />
             </>
           )}
         </TouchableOpacity>
@@ -297,11 +301,11 @@ const preview = StyleSheet.create({
 
 // ─── Screen styles ────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FDF1E7' },
+const makeStyles = (theme: Theme) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: theme.background },
   closeBtn: {
     position: 'absolute', top: 52, left: 16, zIndex: 10,
-    padding: 6, backgroundColor: '#FFF', borderRadius: 20,
+    padding: 6, backgroundColor: theme.card, borderRadius: 20,
     shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
   },
   scroll: {
@@ -310,45 +314,45 @@ const styles = StyleSheet.create({
   header: { alignItems: 'center', marginBottom: 24 },
   premiumIcon: {
     width: 72, height: 72, borderRadius: 20,
-    backgroundColor: '#E8960A',
+    backgroundColor: theme.gold,
     alignItems: 'center', justifyContent: 'center',
     marginBottom: 16,
     overflow: 'hidden',
-    shadowColor: '#C47A00', shadowOpacity: 0.35, shadowRadius: 10, elevation: 6,
+    shadowColor: theme.gold, shadowOpacity: 0.35, shadowRadius: 10, elevation: 6,
   },
   premiumIconShine: {
     position: 'absolute', top: 0, left: 0, right: 0, height: 36,
     backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 20,
   },
-  title: { fontSize: 24, fontWeight: '900', color: '#1A1A1A', textAlign: 'center', marginBottom: 6 },
-  subtitle: { fontSize: 14, color: '#666', textAlign: 'center', lineHeight: 20 },
+  title: { fontSize: 24, fontWeight: '900', color: theme.text, textAlign: 'center', marginBottom: 6 },
+  subtitle: { fontSize: 14, color: theme.textSecondary, textAlign: 'center', lineHeight: 20 },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
   card: {
-    width: '47.5%', backgroundColor: '#FFF', borderRadius: 14,
+    width: '47.5%', backgroundColor: theme.card, borderRadius: 14,
     padding: 12,
     shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, elevation: 2,
   },
-  cardTitle: { fontSize: 12, fontWeight: '800', color: '#1A1A1A', marginBottom: 2 },
-  cardSubtitle: { fontSize: 10, color: '#888', marginBottom: 6 },
+  cardTitle: { fontSize: 12, fontWeight: '800', color: theme.text, marginBottom: 2 },
+  cardSubtitle: { fontSize: 10, color: theme.textMuted, marginBottom: 6 },
   previewWrap: { marginTop: 2 },
 
   priceBadge: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#FFF', borderRadius: 12, padding: 14, marginBottom: 14,
-    borderWidth: 1.5, borderColor: '#E8D5C4',
+    backgroundColor: theme.card, borderRadius: 12, padding: 14, marginBottom: 14,
+    borderWidth: 1.5, borderColor: theme.border,
   },
   priceBadgeLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  priceBadgeName: { fontSize: 13, fontWeight: '700', color: '#1A1A1A' },
-  priceAmount: { fontSize: 16, fontWeight: '900', color: '#C75B4A' },
+  priceBadgeName: { fontSize: 13, fontWeight: '700', color: theme.text },
+  priceAmount: { fontSize: 16, fontWeight: '900', color: theme.accent },
 
-  error: { fontSize: 13, color: '#E53935', textAlign: 'center', marginBottom: 10 },
+  error: { fontSize: 13, color: theme.danger, textAlign: 'center', marginBottom: 10 },
 
   ctaDisabled: { opacity: 0.5 },
   priceRetry: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#C75B4A',
+    color: theme.accent,
     textDecorationLine: 'underline',
   },
   cta: {
@@ -356,16 +360,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: '#D4AA50',
+    borderColor: theme.gold,
     paddingVertical: 16,
     marginBottom: 14,
   },
   ctaIcon: {
     width: 32, height: 32, borderRadius: 9,
-    backgroundColor: '#E8960A',
+    backgroundColor: theme.gold,
     alignItems: 'center', justifyContent: 'center',
     overflow: 'hidden',
   },
@@ -373,9 +377,9 @@ const styles = StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, height: 16,
     backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 9,
   },
-  ctaText: { color: '#3B1F00', fontSize: 16, fontWeight: '800' },
+  ctaText: { color: theme.onGold, fontSize: 16, fontWeight: '800' },
 
   footer: { alignItems: 'center', gap: 6 },
-  restoreLink: { fontSize: 13, color: '#999', textDecorationLine: 'underline' },
-  footerNote: { fontSize: 11, color: '#BBB' },
+  restoreLink: { fontSize: 13, color: theme.textMuted, textDecorationLine: 'underline' },
+  footerNote: { fontSize: 11, color: theme.textMuted },
 });
