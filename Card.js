@@ -264,13 +264,13 @@ const styles = StyleSheet.create({
   iconRow: { height: 20, marginBottom: 2 },
   emojiIcon: { fontSize: 20, lineHeight: 20 },
   centerSection: { flexDirection: 'row' },
-  labelText: { color: onCat, fontSize: 25, marginRight: 8, alignSelf: 'flex-end' },
+  labelText: { fontSize: 25, marginRight: 8, alignSelf: 'flex-end' },
   timeSection: { flexDirection: 'column', alignItems: 'flex-end' },
   timeRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  timeText: { color: onCat, fontSize: 25 },
-  periodText: { color: onCat, fontSize: 15, marginLeft: 2 },
+  timeText: { fontSize: 25 },
+  periodText: { fontSize: 15, marginLeft: 2 },
   timeAgoRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  timeAgoText: { color: onCat, fontSize: 11, opacity: 0.75 },
+  timeAgoText: { fontSize: 11, opacity: 0.75 },
 });
 
 export default React.memo(Card);
