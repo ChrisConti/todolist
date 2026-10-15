@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from 'react';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import moment from 'moment';
@@ -7,8 +9,6 @@ interface Props {
   tasks: any[];
 }
 
-const BIBERON_COLOR = '#34777B';
-const BG = '#FDF1E7';
 const REGULARITY_WINDOW = 30; // ±30 min around average = "regular"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -46,11 +46,11 @@ const regularity = (intervals: number[]): number | null => {
   return Math.round((within / intervals.length) * 100);
 };
 
-const regularityColor = (r: number | null): string => {
-  if (r === null) return '#CCC';
-  if (r >= 75) return '#4CAF50';
-  if (r >= 50) return '#E29656';
-  return '#E53935';
+const regularityColor = (r: number | null, theme: Theme): string => {
+  if (r === null) return theme.textMuted;
+  if (r >= 75) return theme.success;
+  if (r >= 50) return theme.warning;
+  return theme.danger;
 };
 
 const regularityLabel = (r: number | null, t: (key: string) => string): string => {
@@ -72,6 +72,8 @@ const getSlot = (h: number): SlotKey => {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const RythmeChart: React.FC<Props> = ({ tasks }) => {
+  const { theme } = useTheme();
+  const s = useMemo(() => makeS(theme), [theme]);
   const { t } = useTranslation();
   const [showTip, setShowTip] = useState(false);
 
@@ -197,21 +199,21 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
           </View>
           <View style={s.metricBox}>
             <Text style={s.metricLabel}>{t('rythme.shortest')}</Text>
-            <Text style={[s.metricValue, { color: '#E29656' }]}>{fmtDuration(g.min)}</Text>
+            <Text style={[s.metricValue, { color: theme.warning }]}>{fmtDuration(g.min)}</Text>
           </View>
           <View style={s.metricBox}>
             <Text style={s.metricLabel}>{t('rythme.longest')}</Text>
-            <Text style={[s.metricValue, { color: '#6B8DEA' }]}>{fmtDuration(g.max)}</Text>
+            <Text style={[s.metricValue, { color: theme.category[2] }]}>{fmtDuration(g.max)}</Text>
           </View>
           <TouchableOpacity style={s.metricBox} onPress={() => setShowTip(v => !v)}>
             <View style={s.metricLabelRow}>
               <Text style={s.metricLabel}>{t('rythme.regularity')}</Text>
               <Text style={s.infoIcon}>ⓘ</Text>
             </View>
-            <Text style={[s.metricValue, { color: regularityColor(g.regularity) }]}>
+            <Text style={[s.metricValue, { color: regularityColor(g.regularity, theme) }]}>
               {g.regularity !== null ? `${g.regularity}%` : '—'}
             </Text>
-            <Text style={[s.metricSub, { color: regularityColor(g.regularity) }]}>
+            <Text style={[s.metricSub, { color: regularityColor(g.regularity, theme) }]}>
               {regularityLabel(g.regularity, t)}
             </Text>
           </TouchableOpacity>
@@ -223,9 +225,9 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
             <Text style={s.tooltipText}>
               <Text style={{ fontWeight: '700' }}>{t('rythme.regularity')}</Text>
               {' '}{t('rythme.tooltipDesc')}{'\n\n'}
-              <Text style={{ color: '#4CAF50', fontWeight: '700' }}>≥ 75%</Text> {t('rythme.tooltipRegular')}{'\n'}
-              <Text style={{ color: '#E29656', fontWeight: '700' }}>50–74%</Text> {t('rythme.tooltipVariable')}{'\n'}
-              <Text style={{ color: '#E53935', fontWeight: '700' }}>&lt; 50%</Text> {t('rythme.tooltipIrregular')}
+              <Text style={{ color: theme.success, fontWeight: '700' }}>≥ 75%</Text> {t('rythme.tooltipRegular')}{'\n'}
+              <Text style={{ color: theme.warning, fontWeight: '700' }}>50–74%</Text> {t('rythme.tooltipVariable')}{'\n'}
+              <Text style={{ color: theme.danger, fontWeight: '700' }}>&lt; 50%</Text> {t('rythme.tooltipIrregular')}
             </Text>
             <TouchableOpacity onPress={() => setShowTip(false)} style={s.tooltipClose}>
               <Text style={s.tooltipCloseText}>{t('rythme.close')}</Text>
@@ -249,15 +251,15 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
           </View>
         </View>
         <View style={s.activeIntervalRow}>
-          <View style={[s.aiChip, { backgroundColor: '#EBF5F5' }]}>
+          <View style={[s.aiChip, { backgroundColor: theme.soft }]}>
             <Text style={s.aiChipLabel}>{t('rythme.dayInterval')}</Text>
-            <Text style={[s.aiChipValue, { color: BIBERON_COLOR }]}>
+            <Text style={[s.aiChipValue, { color: theme.category[0] }]}>
               {aw.activeAvg ? fmtDuration(aw.activeAvg) : '—'}
             </Text>
           </View>
-          <View style={[s.aiChip, { backgroundColor: '#F0EEF9' }]}>
+          <View style={[s.aiChip, { backgroundColor: theme.soft }]}>
             <Text style={s.aiChipLabel}>{t('rythme.nightInterval')}</Text>
-            <Text style={[s.aiChipValue, { color: '#4F469F' }]}>
+            <Text style={[s.aiChipValue, { color: theme.category[4] }]}>
               {aw.nightAvg ? fmtDuration(aw.nightAvg) : '—'}
             </Text>
           </View>
@@ -269,7 +271,7 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
         <Text style={s.sectionTitle}>{t('rythme.byTimeSlot')}</Text>
         {slots.map((slot) => {
           const reg = slot.regularity;
-          const regColor = regularityColor(reg);
+          const regColor = regularityColor(reg, theme);
           const hasData = slot.avg !== null;
 
           return (
@@ -294,12 +296,12 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
                   <View style={s.slotDivider} />
                   <View style={s.slotMetricItem}>
                     <Text style={s.slotMetricLabel}>{t('rythme.short')}</Text>
-                    <Text style={[s.slotMetricValue, { color: '#E29656' }]}>{fmtDuration(slot.min!)}</Text>
+                    <Text style={[s.slotMetricValue, { color: theme.warning }]}>{fmtDuration(slot.min!)}</Text>
                   </View>
                   <View style={s.slotDivider} />
                   <View style={s.slotMetricItem}>
                     <Text style={s.slotMetricLabel}>{t('rythme.long')}</Text>
-                    <Text style={[s.slotMetricValue, { color: '#6B8DEA' }]}>{fmtDuration(slot.max!)}</Text>
+                    <Text style={[s.slotMetricValue, { color: theme.category[2] }]}>{fmtDuration(slot.max!)}</Text>
                   </View>
                   <View style={s.slotDivider} />
                   <View style={s.slotMetricItem}>
@@ -323,21 +325,21 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const makeS = (theme: Theme) => StyleSheet.create({
   card: {
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
   },
   cardTitle: {
-    fontSize: 16, fontWeight: '700', color: BIBERON_COLOR, marginBottom: 4,
+    fontSize: 16, fontWeight: '700', color: theme.category[0], marginBottom: 4,
   },
   subtitle: {
-    fontSize: 12, color: '#AAA', marginBottom: 16,
+    fontSize: 12, color: theme.textMuted, marginBottom: 16,
   },
   empty: {
-    color: '#BBB', fontSize: 13, textAlign: 'center', paddingVertical: 20,
+    color: theme.textMuted, fontSize: 13, textAlign: 'center', paddingVertical: 20,
   },
 
   // Sections
@@ -345,7 +347,7 @@ const s = StyleSheet.create({
     marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 11, fontWeight: '700', color: '#BBB',
+    fontSize: 11, fontWeight: '700', color: theme.textMuted,
     textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 10,
   },
 
@@ -354,38 +356,38 @@ const s = StyleSheet.create({
     flexDirection: 'row', gap: 6,
   },
   metricBox: {
-    flex: 1, backgroundColor: BG, borderRadius: 10,
+    flex: 1, backgroundColor: theme.background, borderRadius: 10,
     paddingVertical: 10, paddingHorizontal: 4, alignItems: 'center', gap: 2,
   },
   metricLabelRow: {
     flexDirection: 'row', alignItems: 'center', gap: 3,
   },
   metricLabel: {
-    fontSize: 9, color: '#999', fontWeight: '500', textAlign: 'center',
+    fontSize: 9, color: theme.textMuted, fontWeight: '500', textAlign: 'center',
   },
   metricValue: {
-    fontSize: 15, fontWeight: '800', color: BIBERON_COLOR, textAlign: 'center',
+    fontSize: 15, fontWeight: '800', color: theme.category[0], textAlign: 'center',
   },
   metricSub: {
     fontSize: 8, fontWeight: '600', textAlign: 'center',
   },
   infoIcon: {
-    fontSize: 10, color: '#AAA',
+    fontSize: 10, color: theme.textMuted,
   },
 
   // Tooltip
   tooltip: {
-    marginTop: 10, backgroundColor: '#F8F8F8', borderRadius: 10,
-    padding: 14, borderLeftWidth: 3, borderLeftColor: BIBERON_COLOR,
+    marginTop: 10, backgroundColor: theme.soft, borderRadius: 10,
+    padding: 14, borderLeftWidth: 3, borderLeftColor: theme.category[0],
   },
   tooltipText: {
-    fontSize: 12, color: '#555', lineHeight: 18,
+    fontSize: 12, color: theme.textSecondary, lineHeight: 18,
   },
   tooltipClose: {
     marginTop: 10, alignSelf: 'flex-end',
   },
   tooltipCloseText: {
-    fontSize: 12, color: BIBERON_COLOR, fontWeight: '700',
+    fontSize: 12, color: theme.category[0], fontWeight: '700',
   },
 
   // Section 2 — active window
@@ -393,12 +395,12 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10,
   },
   awBadge: {
-    flex: 1, backgroundColor: BG, borderRadius: 10,
+    flex: 1, backgroundColor: theme.background, borderRadius: 10,
     paddingVertical: 12, alignItems: 'center',
   },
-  awLabel: { fontSize: 10, color: '#999' },
-  awValue: { fontSize: 20, fontWeight: '800', color: BIBERON_COLOR, marginTop: 2 },
-  awArrow: { fontSize: 18, color: '#CCC' },
+  awLabel: { fontSize: 10, color: theme.textMuted },
+  awValue: { fontSize: 20, fontWeight: '800', color: theme.category[0], marginTop: 2 },
+  awArrow: { fontSize: 18, color: theme.textMuted },
   activeIntervalRow: {
     flexDirection: 'row', gap: 8,
   },
@@ -406,31 +408,31 @@ const s = StyleSheet.create({
     flex: 1, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 12,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
-  aiChipLabel: { fontSize: 11, color: '#777', fontWeight: '500' },
+  aiChipLabel: { fontSize: 11, color: theme.textMuted, fontWeight: '500' },
   aiChipValue: { fontSize: 15, fontWeight: '800' },
 
   // Section 3 — slot cards
   slotCard: {
-    backgroundColor: BG, borderRadius: 12, padding: 12, marginBottom: 8,
+    backgroundColor: theme.background, borderRadius: 12, padding: 12, marginBottom: 8,
   },
   slotHeader: {
     flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 6,
   },
   slotTitle: {
-    fontSize: 13, fontWeight: '700', color: '#444', flex: 1,
+    fontSize: 13, fontWeight: '700', color: theme.text, flex: 1,
   },
   slotRange: {
-    fontSize: 11, color: '#AAA',
+    fontSize: 11, color: theme.textMuted,
   },
   slotCountBadge: {
-    backgroundColor: BIBERON_COLOR + '20', borderRadius: 6,
+    backgroundColor: theme.category[0] + '20', borderRadius: 6,
     paddingHorizontal: 7, paddingVertical: 2,
   },
   slotCount: {
-    fontSize: 11, fontWeight: '700', color: BIBERON_COLOR,
+    fontSize: 11, fontWeight: '700', color: theme.category[0],
   },
   slotEmpty: {
-    fontSize: 11, color: '#BBB', fontStyle: 'italic',
+    fontSize: 11, color: theme.textMuted, fontStyle: 'italic',
   },
   slotMetrics: {
     flexDirection: 'row', alignItems: 'flex-start',
@@ -439,15 +441,15 @@ const s = StyleSheet.create({
     flex: 1, alignItems: 'center', gap: 2,
   },
   slotMetricLabel: {
-    fontSize: 9, color: '#AAA', fontWeight: '500',
+    fontSize: 9, color: theme.textMuted, fontWeight: '500',
   },
   slotMetricValue: {
-    fontSize: 13, fontWeight: '800', color: BIBERON_COLOR, textAlign: 'center',
+    fontSize: 13, fontWeight: '800', color: theme.category[0], textAlign: 'center',
   },
   slotMetricSub: {
     fontSize: 8, fontWeight: '600', textAlign: 'center',
   },
   slotDivider: {
-    width: 1, backgroundColor: '#DDD', alignSelf: 'stretch', marginHorizontal: 2,
+    width: 1, backgroundColor: theme.separator, alignSelf: 'stretch', marginHorizontal: 2,
   },
 });

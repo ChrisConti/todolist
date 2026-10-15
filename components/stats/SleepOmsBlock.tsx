@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { useTheme } from '../../Context/ThemeContext';
+import type { Theme } from '../../constants/theme';
 import { View, Text, TouchableOpacity, Modal, Linking, ScrollView, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -42,11 +44,11 @@ const fmt = (min: number): string => {
   return `${h}h${m}m`;
 };
 
-const getStatus = (avg: number, min: number, max: number) => {
-  if (avg === 0)        return { key: 'statusInsufficient', color: '#999',     bg: '#F5F5F5' };
-  if (avg < min * 0.85) return { key: 'statusInsufficient', color: '#C62828',  bg: '#FFEBEE' };
-  if (avg < min)        return { key: 'statusShort',        color: '#E65100',  bg: '#FFF3E0' };
-  return                       { key: 'statusOk',           color: '#1B5E20',  bg: '#E6F4EA' };
+const getStatus = (avg: number, min: number, max: number, theme: Theme) => {
+  if (avg === 0)        return { key: 'statusInsufficient', color: theme.textMuted, bg: theme.soft };
+  if (avg < min * 0.85) return { key: 'statusInsufficient', color: theme.danger,    bg: theme.dangerSoft };
+  if (avg < min)        return { key: 'statusShort',        color: theme.warning,   bg: theme.dangerSoft };
+  return                       { key: 'statusOk',           color: theme.success,   bg: theme.successSoft };
 };
 
 interface Props {
@@ -59,26 +61,28 @@ interface Props {
 }
 
 const SleepOmsBlock: React.FC<Props> = ({ babyBirthDate, avgTotalMin, avgNightMin, avgNapMin, period, daysWithData }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const [showInfo, setShowInfo] = useState(false);
 
   const rec           = getOmsRec(babyBirthDate);
   const hasEnoughData = daysWithData >= (MIN_DAYS_REQUIRED[period] ?? 3);
-  const status        = getStatus(hasEnoughData ? avgTotalMin : 0, rec.totalMin, rec.totalMax);
+  const status        = getStatus(hasEnoughData ? avgTotalMin : 0, rec.totalMin, rec.totalMax, theme);
 
   return (
     <View style={styles.container}>
       {/* Double card: OMS reco (left) + average (right) */}
       <TouchableOpacity style={[styles.omsDoubleCard, { overflow: 'hidden' }]} onPress={() => setShowInfo(true)} activeOpacity={0.9}>
         <View style={[StyleSheet.absoluteFillObject, { flexDirection: 'row' }]} pointerEvents="none">
-          <View style={{ flex: 1, backgroundColor: '#E6F4EA' }} />
+          <View style={{ flex: 1, backgroundColor: theme.successSoft }} />
           <View style={{ flex: 1, backgroundColor: status.bg }} />
         </View>
         <View style={styles.omsLabelsRow}>
           <View style={styles.omsHalf}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Text style={[styles.omsCardLabel, { color: '#2E7D32' }]}>{t('sleepAdvanced.omsTitle')}</Text>
-              <MaterialCommunityIcons name="information-outline" size={13} color="#2E7D32" />
+              <Text style={[styles.omsCardLabel, { color: theme.success }]}>{t('sleepAdvanced.omsTitle')}</Text>
+              <MaterialCommunityIcons name="information-outline" size={13} color={theme.success} />
             </View>
           </View>
           <View style={styles.omsHalf}>
@@ -86,7 +90,7 @@ const SleepOmsBlock: React.FC<Props> = ({ babyBirthDate, avgTotalMin, avgNightMi
           </View>
         </View>
         <View style={styles.omsValuesRow}>
-          <Text style={[styles.omsCardValue, { flex: 1, textAlign: 'center', color: '#1B5E20' }]}>
+          <Text style={[styles.omsCardValue, { flex: 1, textAlign: 'center', color: theme.success }]}>
             {Math.floor(rec.totalMin / 60)}-{Math.floor(rec.totalMax / 60)}h/{t('sleepAdvanced.perDay')}
           </Text>
           <Text style={[styles.omsCardValue, { flex: 1, textAlign: 'center', color: status.color }]}>
@@ -98,13 +102,13 @@ const SleepOmsBlock: React.FC<Props> = ({ babyBirthDate, avgTotalMin, avgNightMi
       {/* Category cards */}
       {hasEnoughData && (
         <View style={styles.catRow}>
-          <View style={[styles.catCard, { backgroundColor: '#EEF0FF' }]}>
+          <View style={[styles.catCard, { backgroundColor: theme.soft }]}>
             <Text style={styles.catIcon}>🌙</Text>
             <Text style={styles.catLabel}>{t('sleepAdvanced.nightLabel')}</Text>
             <Text style={styles.catValue}>{fmt(avgNightMin)}</Text>
             <Text style={styles.catSub}>/{t('sleepAdvanced.perDay')}</Text>
           </View>
-          <View style={[styles.catCard, { backgroundColor: '#FFF8ED' }]}>
+          <View style={[styles.catCard, { backgroundColor: theme.soft }]}>
             <Text style={styles.catIcon}>😴</Text>
             <Text style={styles.catLabel}>{t('sleepAdvanced.napLabel')}</Text>
             <Text style={styles.catValue}>{fmt(avgNapMin)}</Text>
@@ -162,7 +166,7 @@ const SleepOmsBlock: React.FC<Props> = ({ babyBirthDate, avgTotalMin, avgNightMi
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container:           { marginBottom: 16 },
   omsDoubleCard:       { borderRadius: 12, marginBottom: 10 },
   omsLabelsRow:        { flexDirection: 'row', paddingTop: 12, paddingHorizontal: 8, paddingBottom: 2 },
@@ -174,26 +178,26 @@ const styles = StyleSheet.create({
   catRow:              { flexDirection: 'row', gap: 10 },
   catCard:             { flex: 1, borderRadius: 12, padding: 14, alignItems: 'center' },
   catIcon:             { fontSize: 20, marginBottom: 4 },
-  catLabel:            { fontSize: 11, color: '#666', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
-  catValue:            { fontSize: 22, fontWeight: '800', color: '#333', marginTop: 4 },
-  catSub:              { fontSize: 11, color: '#888', marginTop: 1 },
+  catLabel:            { fontSize: 11, color: theme.textSecondary, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
+  catValue:            { fontSize: 22, fontWeight: '800', color: theme.text, marginTop: 4 },
+  catSub:              { fontSize: 11, color: theme.textMuted, marginTop: 1 },
   // Modal
-  overlay:             { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center' },
-  modal:               { backgroundColor: '#FDF1E7', borderRadius: 16, padding: 20, width: '86%', maxWidth: 360 },
-  modalTitle:          { fontSize: 16, fontWeight: '700', color: '#333', marginBottom: 10 },
-  modalText:           { fontSize: 14, color: '#555', lineHeight: 20, marginBottom: 14 },
-  modalLink:           { fontSize: 14, color: '#C75B4A', fontWeight: '600', marginBottom: 16 },
-  modalCloseBtn:       { backgroundColor: '#C75B4A', borderRadius: 10, paddingVertical: 10, alignItems: 'center', marginTop: 14 },
-  modalCloseTxt:       { color: '#FFF', fontWeight: '700', fontSize: 14 },
-  table:               { borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: '#E8D5C4', marginBottom: 14 },
-  tableRow:            { flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 8, borderBottomWidth: 1, borderBottomColor: '#F0E0D0' },
-  tableHeaderRow:      { backgroundColor: '#F0E0D0' },
-  tableRowCurrent:     { backgroundColor: '#ECEAFC' },
+  overlay:             { flex: 1, backgroundColor: theme.overlay, justifyContent: 'center', alignItems: 'center' },
+  modal:               { backgroundColor: theme.background, borderRadius: 16, padding: 20, width: '86%', maxWidth: 360 },
+  modalTitle:          { fontSize: 16, fontWeight: '700', color: theme.text, marginBottom: 10 },
+  modalText:           { fontSize: 14, color: theme.textSecondary, lineHeight: 20, marginBottom: 14 },
+  modalLink:           { fontSize: 14, color: theme.accent, fontWeight: '600', marginBottom: 16 },
+  modalCloseBtn:       { backgroundColor: theme.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center', marginTop: 14 },
+  modalCloseTxt:       { color: theme.card, fontWeight: '700', fontSize: 14 },
+  table:               { borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: theme.border, marginBottom: 14 },
+  tableRow:            { flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 8, borderBottomWidth: 1, borderBottomColor: theme.border },
+  tableHeaderRow:      { backgroundColor: theme.border },
+  tableRowCurrent:     { backgroundColor: theme.soft },
   tableColAge:         { flex: 1.8 },
   tableColVal:         { flex: 1.2, textAlign: 'center' },
-  tableHeaderTxt:      { fontSize: 11, fontWeight: '700', color: '#555' },
-  tableCellTxt:        { fontSize: 11, color: '#555' },
-  tableCellCurrentTxt: { fontWeight: '700', color: '#4F469F' },
+  tableHeaderTxt:      { fontSize: 11, fontWeight: '700', color: theme.textSecondary },
+  tableCellTxt:        { fontSize: 11, color: theme.textSecondary },
+  tableCellCurrentTxt: { fontWeight: '700', color: theme.category[4] },
 });
 
 export default SleepOmsBlock;

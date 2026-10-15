@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from 'react';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import moment from 'moment';
@@ -17,8 +19,6 @@ interface BarData {
   hasData: boolean;
 }
 
-const BIBERON_COLOR = '#34777B';
-const BG = '#FDF1E7';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 const CHART_H_VERT = 140;   // height of vertical bar chart area (7j)
@@ -68,6 +68,8 @@ const buildWeeklyBars = (tasks: any[], metric: Metric, weeks: number): BarData[]
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const TendanceChart: React.FC<Props> = ({ tasks }) => {
+  const { theme } = useTheme();
+  const s = useMemo(() => makeS(theme), [theme]);
   const { t } = useTranslation();
   const [period, setPeriod] = useState<Period>('30');
   const [metric, setMetric] = useState<Metric>('ml');
@@ -98,10 +100,10 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
   const trendPct = avgFirst > 0 ? ((avgSecond - avgFirst) / avgFirst) * 100 : 0;
   const trend =
     Math.abs(trendPct) < 5
-      ? { label: t('tendance.stable'), color: '#999' }
+      ? { label: t('tendance.stable'), color: theme.textMuted }
       : trendPct > 0
-      ? { label: `↗ +${Math.round(trendPct)}%`, color: '#4CAF50' }
-      : { label: `↘ ${Math.round(trendPct)}%`, color: '#E53935' };
+      ? { label: `↗ +${Math.round(trendPct)}%`, color: theme.success }
+      : { label: `↘ ${Math.round(trendPct)}%`, color: theme.danger };
 
   const maxBar = bars.reduce((m, b) => (b.value > m.value ? b : m), bars[0]);
   const unit = metric === 'ml' ? ` ${t('ml')}` : '';
@@ -135,7 +137,7 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
                       {Math.round(bar.value)}
                     </Text>
                   )}
-                  <View style={[s.vBar, { height: barH, backgroundColor: bar.hasData ? BIBERON_COLOR : '#E0E0E0' }]} />
+                  <View style={[s.vBar, { height: barH, backgroundColor: bar.hasData ? theme.category[0] : theme.separator }]} />
                   <Text style={s.vBarLabel} numberOfLines={1}>{bar.label}</Text>
                 </View>
               );
@@ -171,7 +173,7 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
               const barW = bar.value > 0
                 ? Math.max((bar.value / maxValue) * barAreaW, 3)
                 : 0;
-              const barColor = bar.hasData ? BIBERON_COLOR : '#EEE';
+              const barColor = bar.hasData ? theme.category[0] : theme.separator;
               const valueStr = bar.value > 0 ? String(Math.round(bar.value)) : '—';
               // Highlight every 7th row for 30j
               const isWeekBoundary = period === '30' && i % 7 === 0;
@@ -196,7 +198,7 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
                   </View>
 
                   {/* Value */}
-                  <Text style={[s.hValue, { fontSize: fSize, width: VALUE_W, color: bar.hasData ? BIBERON_COLOR : '#CCC' }]} numberOfLines={1}>
+                  <Text style={[s.hValue, { fontSize: fSize, width: VALUE_W, color: bar.hasData ? theme.category[0] : theme.textMuted }]} numberOfLines={1}>
                     {valueStr}{bar.hasData ? unit : ''}
                   </Text>
                 </View>
@@ -272,9 +274,9 @@ export const TendanceChart: React.FC<Props> = ({ tasks }) => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const makeS = (theme: Theme) => StyleSheet.create({
   card: {
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
@@ -282,23 +284,23 @@ const s = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: BIBERON_COLOR,
+    color: theme.category[0],
     marginBottom: 16,
   },
   segRow: {
     flexDirection: 'row',
-    backgroundColor: BG,
+    backgroundColor: theme.background,
     borderRadius: 10,
     padding: 3,
     gap: 3,
   },
   segBtn: { flex: 1, paddingVertical: 8, borderRadius: 7, alignItems: 'center' },
-  segBtnActive: { backgroundColor: BIBERON_COLOR },
-  segText: { fontSize: 13, fontWeight: '600', color: '#7A8889' },
-  segTextActive: { color: '#FFF' },
+  segBtnActive: { backgroundColor: theme.category[0] },
+  segText: { fontSize: 13, fontWeight: '600', color: theme.textSecondary },
+  segTextActive: { color: theme.card },
 
   // ── Vertical chart (7j) ────────────────────────────────────────────────────
-  yAxisLabel: { fontSize: 10, color: '#BBB', marginBottom: 2, marginLeft: 2 },
+  yAxisLabel: { fontSize: 10, color: theme.textMuted, marginBottom: 2, marginLeft: 2 },
   vBarsRow: {
     position: 'absolute',
     bottom: 0, left: 0, right: 0,
@@ -314,12 +316,12 @@ const s = StyleSheet.create({
     height: CHART_H_VERT + 28,
   },
   vBarValue: {
-    fontSize: 9, fontWeight: '700', color: BIBERON_COLOR,
+    fontSize: 9, fontWeight: '700', color: theme.category[0],
     marginBottom: 2, width: '100%', textAlign: 'center',
   },
   vBar: { width: '80%', borderRadius: 4, minHeight: 2 },
   vBarLabel: {
-    marginTop: 4, fontSize: 9, color: '#AAA', fontWeight: '600',
+    marginTop: 4, fontSize: 9, color: theme.textMuted, fontWeight: '600',
     width: '100%', textAlign: 'center',
   },
   vAvgLine: {
@@ -328,9 +330,9 @@ const s = StyleSheet.create({
   },
   vAvgDash: {
     flex: 1, height: 1,
-    borderStyle: 'dashed', borderWidth: 1, borderColor: '#E29656',
+    borderStyle: 'dashed', borderWidth: 1, borderColor: theme.warning,
   },
-  vAvgLabel: { fontSize: 9, color: '#E29656', fontWeight: '700' },
+  vAvgLabel: { fontSize: 9, color: theme.warning, fontWeight: '700' },
 
   // ── Horizontal chart (30j / 90j) ──────────────────────────────────────────
   hRow: {
@@ -338,13 +340,13 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   hLabel: {
-    color: '#888',
+    color: theme.textMuted,
     textAlign: 'right',
     paddingRight: 6,
   },
   hTrack: {
     flex: 1,
-    backgroundColor: '#F4F4F4',
+    backgroundColor: theme.soft,
     borderRadius: 3,
     overflow: 'hidden',
     justifyContent: 'center',
@@ -363,13 +365,13 @@ const s = StyleSheet.create({
     width: 1,
     borderStyle: 'dashed',
     borderLeftWidth: 1,
-    borderColor: '#E29656',
+    borderColor: theme.warning,
     zIndex: 2,
   },
   hAvgLabel: {
     position: 'absolute',
     fontSize: 7,
-    color: '#E29656',
+    color: theme.warning,
     fontWeight: '700',
     textAlign: 'center',
     marginTop: 2,
@@ -378,10 +380,10 @@ const s = StyleSheet.create({
   // ── Summary ────────────────────────────────────────────────────────────────
   summaryRow: { flexDirection: 'row', gap: 8, marginTop: 16 },
   summaryBadge: {
-    flex: 1, backgroundColor: BG, borderRadius: 10,
+    flex: 1, backgroundColor: theme.background, borderRadius: 10,
     paddingVertical: 10, alignItems: 'center', gap: 4,
   },
-  summaryLabel: { fontSize: 10, color: '#999', fontWeight: '500' },
-  summaryValue: { fontSize: 14, fontWeight: '800', color: BIBERON_COLOR },
-  periodNote: { marginTop: 10, fontSize: 10, color: '#CCC', textAlign: 'center' },
+  summaryLabel: { fontSize: 10, color: theme.textMuted, fontWeight: '500' },
+  summaryValue: { fontSize: 14, fontWeight: '800', color: theme.category[0] },
+  periodNote: { marginTop: 10, fontSize: 10, color: theme.textMuted, textAlign: 'center' },
 });
