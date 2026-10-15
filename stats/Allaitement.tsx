@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAllaitementStats, useAllaitementCountStats, usePumpingStats } from '../hooks/useTaskStatistics';
@@ -12,6 +14,8 @@ import Analytics from '../services/analytics';
 type ViewMode = 'duration' | 'count' | 'pumping';
 
 const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewMode>('count');
   const [selectedItem, setSelectedItem] = useState(0);
@@ -216,7 +220,7 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
                         <Text style={styles.balanceSmall}>
                           {t('breastfeeding.balanceDrunk')} {fmtMl(w.maternalMl)}
                         </Text>
-                        <Text style={[styles.balanceValue, { color: w.balance >= 0 ? '#2C6E49' : '#C75B4A' }]}>
+                        <Text style={[styles.balanceValue, { color: w.balance >= 0 ? theme.success : theme.category[1] }]}>
                           {w.balance >= 0 ? '+' : ''}{fmtMl(w.balance)}
                         </Text>
                       </View>
@@ -235,7 +239,7 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
                     }}
                     activeOpacity={0.9}
                   >
-                    <MaterialCommunityIcons name="star" size={15} color="#FFF" />
+                    <MaterialCommunityIcons name="star" size={15} color={theme.card} />
                     <Text style={styles.balanceCtaTxt}>{t('premium.cta_short')}</Text>
                   </TouchableOpacity>
                 </View>
@@ -305,36 +309,36 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   balanceCard: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 16, marginTop: 18,
-    borderWidth: 1, borderColor: '#EFE3DB',
+    backgroundColor: theme.card, borderRadius: 14, padding: 16, marginTop: 18,
+    borderWidth: 1, borderColor: theme.border,
   },
   balanceHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  balanceTitle: { fontSize: 16, fontWeight: '700', color: '#333', flex: 1 },
-  balanceStar: { fontSize: 15, color: '#E8960A', fontWeight: '700' },
+  balanceTitle: { fontSize: 16, fontWeight: '700', color: theme.text, flex: 1 },
+  balanceStar: { fontSize: 15, color: theme.gold, fontWeight: '700' },
   balanceRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#F2EAE4',
+    paddingVertical: 10, borderTopWidth: 1, borderTopColor: theme.border,
   },
-  balancePeriod: { fontSize: 14, fontWeight: '600', color: '#7A8889' },
+  balancePeriod: { fontSize: 14, fontWeight: '600', color: theme.textSecondary },
   balanceNums: { alignItems: 'flex-end', gap: 2 },
-  balanceSmall: { fontSize: 12, color: '#9AA3A4' },
+  balanceSmall: { fontSize: 12, color: theme.textMuted },
   balanceValue: { fontSize: 19, fontWeight: '700', marginTop: 2 },
-  balanceNote: { fontSize: 11.5, color: '#9AA3A4', marginTop: 12, lineHeight: 16 },
-  balanceLocked: { fontSize: 14, color: '#7A8889', lineHeight: 20, marginBottom: 14 },
+  balanceNote: { fontSize: 11.5, color: theme.textMuted, marginTop: 12, lineHeight: 16 },
+  balanceLocked: { fontSize: 14, color: theme.textSecondary, lineHeight: 20, marginBottom: 14 },
   balanceCta: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
-    backgroundColor: '#C75B4A', borderRadius: 10, paddingVertical: 11,
+    backgroundColor: theme.primary, borderRadius: 10, paddingVertical: 11,
   },
-  balanceCtaTxt: { color: '#FFF', fontSize: 14.5, fontWeight: '700' },
+  balanceCtaTxt: { color: theme.card, fontSize: 14.5, fontWeight: '700' },
   section: {
     marginBottom: STATS_CONFIG.SPACING.LARGE,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: theme.text,
     marginBottom: 16,
   },
   viewModeContainer: {
@@ -360,10 +364,10 @@ const styles = StyleSheet.create({
   viewModeText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#7A8889',
+    color: theme.textSecondary,
   },
   viewModeTextActive: {
-    color: '#FFF',
+    color: theme.card,
   },
   selectorContainer: {
     flexDirection: 'row',
@@ -388,10 +392,10 @@ const styles = StyleSheet.create({
   selectorText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#7A8889',
+    color: theme.textSecondary,
   },
   selectorTextActive: {
-    color: '#FFF',
+    color: theme.card,
   },
   statsRow: {
     flexDirection: 'row',

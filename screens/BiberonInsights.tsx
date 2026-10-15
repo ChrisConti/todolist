@@ -1,4 +1,6 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import {
   View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity,
 } from 'react-native';
@@ -36,11 +38,10 @@ const EMPTY_DAY: DayStats = {
   unknown: { count: 0, ml: 0 },
 };
 
-const BIBERON_COLOR = '#34777B';
-const BG = '#FDF1E7';
-const WHITE = '#FFF';
 
 export default function BiberonInsights({ navigation }: any) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user, babyID } = useContext(AuthentificationUserContext) as any;
@@ -137,13 +138,13 @@ export default function BiberonInsights({ navigation }: any) {
 
   const diff = (a: number, b: number) => {
     const d = a - b;
-    if (d === 0) return { label: '=', color: '#999' };
-    return { label: (d > 0 ? '+' : '') + d, color: d > 0 ? '#4CAF50' : '#E53935' };
+    if (d === 0) return { label: '=', color: theme.textMuted };
+    return { label: (d > 0 ? '+' : '') + d, color: d > 0 ? theme.success : theme.danger };
   };
   const diffMl = (a: number, b: number) => {
     const d = a - b;
-    if (d === 0) return { label: '=', color: '#999' };
-    return { label: (d > 0 ? '+' : '') + d + ' ' + t('ml'), color: d > 0 ? '#4CAF50' : '#E53935' };
+    if (d === 0) return { label: '=', color: theme.textMuted };
+    return { label: (d > 0 ? '+' : '') + d + ' ' + t('ml'), color: d > 0 ? theme.success : theme.danger };
   };
 
   // ── Render helpers ─────────────────────────────────────────────────────────
@@ -357,7 +358,7 @@ export default function BiberonInsights({ navigation }: any) {
     <ScrollView contentContainerStyle={[styles.content, { alignItems: 'center', paddingTop: 32 }]}>
       <View style={styles.premiumIconLock}>
         <View style={styles.premiumIconLockShine} />
-        <MaterialCommunityIcons name="star" size={32} color="#FFF" />
+        <MaterialCommunityIcons name="star" size={32} color={theme.card} />
       </View>
       <Text style={styles.lockedTitle}>{t('premium.advancedBiberon.title')}</Text>
       <Text style={styles.lockedSub}>{t('premium.upsellTitle')}</Text>
@@ -366,7 +367,7 @@ export default function BiberonInsights({ navigation }: any) {
         {BIBERON_FEATS.map(({ icon, key }) => (
           <View key={key} style={styles.featRow}>
             <View style={styles.featIconWrap}>
-              <MaterialCommunityIcons name={icon as any} size={16} color={BIBERON_COLOR} />
+              <MaterialCommunityIcons name={icon as any} size={16} color={theme.category[0]} />
             </View>
             <Text style={styles.featText}>{t(key)}</Text>
           </View>
@@ -380,10 +381,10 @@ export default function BiberonInsights({ navigation }: any) {
       >
         <View style={styles.lockedCtaIcon}>
           <View style={styles.lockedCtaIconShine} />
-          <MaterialCommunityIcons name="star" size={16} color="#FFF" />
+          <MaterialCommunityIcons name="star" size={16} color={theme.card} />
         </View>
         <Text style={styles.lockedCtaText}>{t('premium.unlockCta')}</Text>
-        <MaterialCommunityIcons name="chevron-right" size={18} color="#A8956A" />
+        <MaterialCommunityIcons name="chevron-right" size={18} color={theme.gold} />
       </TouchableOpacity>
     </ScrollView>
   );
@@ -408,7 +409,7 @@ export default function BiberonInsights({ navigation }: any) {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={26} color="#F6F0EB" />
+          <Ionicons name="chevron-back" size={26} color={theme.onPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('biberon.insightsTitle')}</Text>
         <View style={{ width: 40 }} />
@@ -435,7 +436,7 @@ export default function BiberonInsights({ navigation }: any) {
       </View>
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={BIBERON_COLOR} />
+        <ActivityIndicator style={{ marginTop: 40 }} color={theme.category[0]} />
       ) : topTab === 'global' ? (
         renderGlobalTab()
       ) : !isPremium ? (
@@ -504,25 +505,25 @@ export default function BiberonInsights({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG },
+const makeStyles = (theme: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
 
   // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: BIBERON_COLOR,
+    backgroundColor: theme.category[0],
     paddingBottom: 14,
     paddingHorizontal: 16,
   },
   backBtn: { width: 40, alignItems: 'flex-start' },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: '#F6F0EB' },
+  headerTitle: { fontSize: 20, fontWeight: '700', color: theme.onPrimary },
 
   // Top-level Global / Avancé tabs
   topTabRow: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderRadius: 10,
     padding: 3,
     margin: 12,
@@ -532,14 +533,14 @@ const styles = StyleSheet.create({
   topTabBtn: {
     flex: 1, paddingVertical: 9, borderRadius: 7, alignItems: 'center',
   },
-  topTabBtnActive: { backgroundColor: BIBERON_COLOR },
-  topTabText: { fontSize: 14, fontWeight: '600', color: '#7A8889' },
-  topTabTextActive: { color: '#FFF' },
+  topTabBtnActive: { backgroundColor: theme.category[0] },
+  topTabText: { fontSize: 14, fontWeight: '600', color: theme.textSecondary },
+  topTabTextActive: { color: theme.card },
 
   // Main tabs (Détail / Tendance / Rythme)
   mainTabRow: {
     flexDirection: 'row',
-    backgroundColor: BIBERON_COLOR,
+    backgroundColor: theme.category[0],
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 14,
@@ -549,14 +550,14 @@ const styles = StyleSheet.create({
     flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.15)',
   },
-  mainTabBtnActive: { backgroundColor: WHITE },
+  mainTabBtnActive: { backgroundColor: theme.card },
   mainTabText: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.7)' },
-  mainTabTextActive: { color: BIBERON_COLOR },
+  mainTabTextActive: { color: theme.category[0] },
 
   // Day sub-tabs (Aujourd'hui / Hier / Comparatif)
   dayTabRow: {
     flexDirection: 'row',
-    backgroundColor: WHITE,
+    backgroundColor: theme.card,
     marginHorizontal: 16,
     marginTop: 14,
     borderRadius: 12,
@@ -566,101 +567,101 @@ const styles = StyleSheet.create({
   dayTabBtn: {
     flex: 1, paddingVertical: 9, borderRadius: 8, alignItems: 'center',
   },
-  dayTabBtnActive: { backgroundColor: BIBERON_COLOR },
-  dayTabText: { fontSize: 12, fontWeight: '600', color: '#7A8889' },
-  dayTabTextActive: { color: WHITE },
+  dayTabBtnActive: { backgroundColor: theme.category[0] },
+  dayTabText: { fontSize: 12, fontWeight: '600', color: theme.textSecondary },
+  dayTabTextActive: { color: theme.card },
 
   content: { padding: 16, paddingBottom: 40 },
 
   // Cards
-  card: { backgroundColor: WHITE, borderRadius: 16, padding: 16, marginBottom: 16 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: BIBERON_COLOR, marginBottom: 16 },
+  card: { backgroundColor: theme.card, borderRadius: 16, padding: 16, marginBottom: 16 },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: theme.category[0], marginBottom: 16 },
   totalsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   totalBadge: {
-    flex: 1, backgroundColor: BG, borderRadius: 12,
+    flex: 1, backgroundColor: theme.background, borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
   },
-  totalBadgeValue: { fontSize: 28, fontWeight: '800', color: BIBERON_COLOR },
-  totalBadgeLabel: { fontSize: 13, color: '#7A8889', marginTop: 2 },
-  emptyText: { textAlign: 'center', color: '#999', fontSize: 14, paddingVertical: 16 },
+  totalBadgeValue: { fontSize: 28, fontWeight: '800', color: theme.category[0] },
+  totalBadgeLabel: { fontSize: 13, color: theme.textSecondary, marginTop: 2 },
+  emptyText: { textAlign: 'center', color: theme.textMuted, fontSize: 14, paddingVertical: 16 },
 
   // Table
   table: { gap: 0 },
-  tableHeader: { borderBottomWidth: 1, borderBottomColor: '#EEE', paddingBottom: 8, marginBottom: 4 },
-  tableHeaderText: { fontSize: 12, color: '#999', fontWeight: '600' },
+  tableHeader: { borderBottomWidth: 1, borderBottomColor: theme.separator, paddingBottom: 8, marginBottom: 4 },
+  tableHeaderText: { fontSize: 12, color: theme.textMuted, fontWeight: '600' },
   tableRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: '#F5F5F5',
+    borderBottomWidth: 1, borderBottomColor: theme.soft,
   },
-  tableCell: { flex: 1, fontSize: 14, color: '#333', fontWeight: '500' },
+  tableCell: { flex: 1, fontSize: 14, color: theme.text, fontWeight: '500' },
   tableCellCenter: { textAlign: 'center' },
   tableCellRight: { textAlign: 'right' },
 
   // Compare
-  compareHeaderRow: { borderBottomWidth: 1, borderBottomColor: '#EEE', paddingBottom: 8, marginBottom: 4 },
-  compareHeaderText: { fontSize: 12, color: '#999', fontWeight: '600' },
-  compareSection: { fontSize: 13, fontWeight: '700', color: BIBERON_COLOR, marginTop: 14, marginBottom: 4 },
+  compareHeaderRow: { borderBottomWidth: 1, borderBottomColor: theme.separator, paddingBottom: 8, marginBottom: 4 },
+  compareHeaderText: { fontSize: 12, color: theme.textMuted, fontWeight: '600' },
+  compareSection: { fontSize: 13, fontWeight: '700', color: theme.category[0], marginTop: 14, marginBottom: 4 },
   compareRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 8,
-    borderBottomWidth: 1, borderBottomColor: '#F5F5F5',
+    borderBottomWidth: 1, borderBottomColor: theme.soft,
   },
-  compareLabel: { flex: 2, fontSize: 13, color: '#333', fontWeight: '500' },
-  compareCell: { flex: 1, textAlign: 'center', fontSize: 13, color: '#333' },
+  compareLabel: { flex: 2, fontSize: 13, color: theme.text, fontWeight: '500' },
+  compareCell: { flex: 1, textAlign: 'center', fontSize: 13, color: theme.text },
 
   // Timeline
-  timelineSection: { marginTop: 20, borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 16 },
+  timelineSection: { marginTop: 20, borderTopWidth: 1, borderTopColor: theme.separator, paddingTop: 16 },
   timelineSectionTitle: {
-    fontSize: 13, fontWeight: '700', color: '#999',
+    fontSize: 13, fontWeight: '700', color: theme.textMuted,
     textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12,
   },
 
   // Global tab mode selector + stats
   globalModeRow: {
-    flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 8,
+    flexDirection: 'row', backgroundColor: theme.soft, borderRadius: 8,
     padding: 4, marginBottom: 16, gap: 4,
   },
   globalModeBtn: {
     flex: 1, paddingVertical: 9, borderRadius: 6, alignItems: 'center',
   },
-  globalModeBtnActive: { backgroundColor: BIBERON_COLOR },
-  globalModeTxt: { fontSize: 13, fontWeight: '600', color: '#7A8889' },
-  globalModeTxtActive: { color: '#FFF' },
+  globalModeBtnActive: { backgroundColor: theme.category[0] },
+  globalModeTxt: { fontSize: 13, fontWeight: '600', color: theme.textSecondary },
+  globalModeTxtActive: { color: theme.card },
   statsRow: { flexDirection: 'row', justifyContent: 'space-around' },
   statsColumn: { gap: 8 },
-  statLabel: { fontSize: 14, color: '#374151' },
-  statValue: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  statLabel: { fontSize: 14, color: theme.textSecondary },
+  statValue: { fontSize: 14, fontWeight: '600', color: theme.text },
 
   // Locked view
-  lockedTitle: { fontSize: 18, fontWeight: '800', color: '#333', marginBottom: 6, textAlign: 'center' },
-  lockedSub:   { fontSize: 13, color: '#7A8889', marginBottom: 24, textAlign: 'center' },
+  lockedTitle: { fontSize: 18, fontWeight: '800', color: theme.text, marginBottom: 6, textAlign: 'center' },
+  lockedSub:   { fontSize: 13, color: theme.textSecondary, marginBottom: 24, textAlign: 'center' },
   featList: { width: '100%', gap: 10, marginBottom: 28 },
   featRow:  { flexDirection: 'row', alignItems: 'center', gap: 12 },
   featIconWrap: {
     width: 32, height: 32, borderRadius: 8,
-    backgroundColor: `${BIBERON_COLOR}18`,
+    backgroundColor: `${theme.category[0]}18`,
     alignItems: 'center', justifyContent: 'center',
   },
-  featText: { fontSize: 14, color: '#374151', fontWeight: '500', flex: 1 },
+  featText: { fontSize: 14, color: theme.textSecondary, fontWeight: '500', flex: 1 },
   lockedCta: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#FFFFFF', borderRadius: 16,
-    borderWidth: 1.5, borderColor: '#D4AA50',
+    backgroundColor: theme.card, borderRadius: 16,
+    borderWidth: 1.5, borderColor: theme.gold,
     paddingVertical: 14, paddingHorizontal: 18, width: '100%',
   },
   lockedCtaIcon: {
     width: 30, height: 30, borderRadius: 8,
-    backgroundColor: '#E8960A', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+    backgroundColor: theme.gold, alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
   lockedCtaIconShine: {
     position: 'absolute', top: 0, left: 0, right: 0, height: 15,
     backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 8,
   },
-  lockedCtaText: { flex: 1, fontSize: 15, fontWeight: '700', color: '#3B1F00' },
+  lockedCtaText: { flex: 1, fontSize: 15, fontWeight: '700', color: theme.onGold },
 
   // Premium lock icon
   premiumIconLock: {
     width: 64, height: 64, borderRadius: 18,
-    backgroundColor: '#E8960A',
+    backgroundColor: theme.gold,
     alignItems: 'center', justifyContent: 'center',
     marginBottom: 16, overflow: 'hidden',
   },
@@ -675,11 +676,11 @@ const styles = StyleSheet.create({
     height: 150, marginTop: 8,
   },
   globalChartCol: { alignItems: 'center', flex: 1 },
-  globalBarAbove: { fontSize: 10, fontWeight: '600', color: '#7A8889', marginBottom: 3, textAlign: 'center' },
+  globalBarAbove: { fontSize: 10, fontWeight: '600', color: theme.textSecondary, marginBottom: 3, textAlign: 'center' },
   globalBar: {
-    width: 30, backgroundColor: BIBERON_COLOR, borderRadius: 4,
+    width: 30, backgroundColor: theme.category[0], borderRadius: 4,
     alignItems: 'center', justifyContent: 'center',
   },
-  globalBarVal: { color: '#FFF', fontSize: 11, fontWeight: '700' },
-  globalChartLabel: { fontSize: 11, color: '#7A8889', marginTop: 4 },
+  globalBarVal: { color: theme.card, fontSize: 11, fontWeight: '700' },
+  globalChartLabel: { fontSize: 11, color: theme.textSecondary, marginTop: 4 },
 });

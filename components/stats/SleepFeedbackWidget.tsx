@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useTheme } from '../../Context/ThemeContext';
+import type { Theme } from '../../constants/theme';
 import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +14,8 @@ interface Props {
 }
 
 const SleepFeedbackWidget: React.FC<Props> = ({ userId }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const [visible, setVisible]       = useState(false);
   const [showThanks, setShowThanks] = useState(false);
@@ -71,15 +75,15 @@ const SleepFeedbackWidget: React.FC<Props> = ({ userId }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { backgroundColor: '#FFF', borderRadius: 12, padding: 14, marginTop: 8, alignItems: 'center', borderWidth: 1, borderColor: '#E8D5C4' },
-  title:     { fontSize: 14, fontWeight: '600', color: '#444', marginBottom: 12, textAlign: 'center' },
+const makeStyles = (theme: Theme) => StyleSheet.create({
+  container: { backgroundColor: theme.card, borderRadius: 12, padding: 14, marginTop: 8, alignItems: 'center', borderWidth: 1, borderColor: theme.border },
+  title:     { fontSize: 14, fontWeight: '600', color: theme.text, marginBottom: 12, textAlign: 'center' },
   btns:      { flexDirection: 'row', gap: 10, width: '100%' },
-  yesBtn:    { flex: 1, backgroundColor: '#C75B4A', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
-  yesTxt:    { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  ideaBtn:   { flex: 1, backgroundColor: '#F8F0E8', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
-  ideaTxt:   { color: '#555', fontWeight: '600', fontSize: 13 },
-  thanks:    { fontSize: 16, fontWeight: '700', color: '#4CAF50' },
+  yesBtn:    { flex: 1, backgroundColor: theme.primary, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
+  yesTxt:    { color: theme.card, fontWeight: '700', fontSize: 13 },
+  ideaBtn:   { flex: 1, backgroundColor: theme.soft, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
+  ideaTxt:   { color: theme.textSecondary, fontWeight: '600', fontSize: 13 },
+  thanks:    { fontSize: 16, fontWeight: '700', color: theme.success },
 });
 
 export default SleepFeedbackWidget;

@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { useTheme } from '../../Context/ThemeContext';
+import type { Theme } from '../../constants/theme';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
   Modal, useWindowDimensions,
@@ -37,6 +39,9 @@ const PREVIEW_CELL = 13;
 const PREVIEW_GAP  = 2;
 
 const SleepAdvancedTab: React.FC<Props> = ({ tasks, babyBirthDate, userId }) => {
+  const { theme } = useTheme();
+  const styles  = useMemo(() => makeStyles(theme), [theme]);
+  const hStyles = useMemo(() => makeHStyles(theme), [theme]);
   const { t } = useTranslation();
   const { width, height } = useWindowDimensions();
   const [period, setPeriod] = useState<SleepPeriod>(7);
@@ -61,8 +66,8 @@ const SleepAdvancedTab: React.FC<Props> = ({ tasks, babyBirthDate, userId }) => 
     const date       = startMonday.clone().add(wi, 'weeks').add(dow, 'days');
     const outOfRange = date.isBefore(startDay, 'day') || date.isAfter(today, 'day');
     const totalMin   = dailyMap.get(date.format('YYYY-MM-DD')) ?? 0;
-    let bg = outOfRange ? 'transparent' : '#EBEBEB';
-    if (!outOfRange && totalMin > 0) bg = totalMin >= omsMinTotal ? '#81C784' : '#EF9A9A';
+    let bg = outOfRange ? 'transparent' : theme.separator;
+    if (!outOfRange && totalMin > 0) bg = totalMin >= omsMinTotal ? theme.success : theme.danger;
     return { bg, totalMin, outOfRange };
   };
 
@@ -158,11 +163,11 @@ const SleepAdvancedTab: React.FC<Props> = ({ tasks, babyBirthDate, userId }) => 
           ))}
           {/* Legend */}
           <View style={[hStyles.legend, { marginTop: 8 }]}>
-            <View style={[hStyles.dot, { backgroundColor: '#81C784' }]} />
+            <View style={[hStyles.dot, { backgroundColor: theme.success }]} />
             <Text style={hStyles.legendTxt}>{t('sleepAdvanced.heatOk')}</Text>
-            <View style={[hStyles.dot, { backgroundColor: '#EF9A9A', marginLeft: 14 }]} />
+            <View style={[hStyles.dot, { backgroundColor: theme.danger, marginLeft: 14 }]} />
             <Text style={hStyles.legendTxt}>{t('sleepAdvanced.heatNok')}</Text>
-            <View style={[hStyles.dot, { backgroundColor: '#EBEBEB', marginLeft: 14 }]} />
+            <View style={[hStyles.dot, { backgroundColor: theme.separator, marginLeft: 14 }]} />
             <Text style={hStyles.legendTxt}>{t('sleepAdvanced.heatNoData')}</Text>
           </View>
         </View>
@@ -222,9 +227,9 @@ const SleepAdvancedTab: React.FC<Props> = ({ tasks, babyBirthDate, userId }) => 
             {/* Semi-transparent veil + CTA */}
             <View style={[StyleSheet.absoluteFillObject, styles.previewVeil]}>
               <View style={styles.previewCta}>
-                <Ionicons name="calendar-outline" size={18} color="#4F469F" />
+                <Ionicons name="calendar-outline" size={18} color={theme.category[4]} />
                 <Text style={styles.previewCtaTxt}>{t('sleepAdvanced.seeGraph')}</Text>
-                <Ionicons name="chevron-forward" size={15} color="#4F469F" />
+                <Ionicons name="chevron-forward" size={15} color={theme.category[4]} />
               </View>
             </View>
           </TouchableOpacity>
@@ -245,7 +250,7 @@ const SleepAdvancedTab: React.FC<Props> = ({ tasks, babyBirthDate, userId }) => 
           {renderFullHeatmap()}
           {/* Close button — absolutely over the rotated content */}
           <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setShowHeatmap(false)}>
-            <Ionicons name="close-circle" size={30} color="#555" />
+            <Ionicons name="close-circle" size={30} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
       </Modal>
@@ -253,28 +258,28 @@ const SleepAdvancedTab: React.FC<Props> = ({ tasks, babyBirthDate, userId }) => 
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   scroll:          { flex: 1 },
   content:         { padding: 16, paddingBottom: 32 },
   periodRow:       {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderRadius: 10,
     padding: 3,
     marginBottom: 16,
     gap: 3,
   },
   periodBtn:       { flex: 1, paddingVertical: 8, borderRadius: 7, alignItems: 'center' },
-  periodBtnActive: { backgroundColor: '#4F469F' },
-  periodTxt:       { fontSize: 13, fontWeight: '600', color: '#7A8889' },
-  periodTxtActive: { color: '#FFF' },
-  section:         { marginBottom: 16, backgroundColor: '#FFF', borderRadius: 14, padding: 16 },
-  sectionTitle:    { fontSize: 16, fontWeight: '700', color: '#333', marginBottom: 12 },
+  periodBtnActive: { backgroundColor: theme.category[4] },
+  periodTxt:       { fontSize: 13, fontWeight: '600', color: theme.textSecondary },
+  periodTxtActive: { color: theme.card },
+  section:         { marginBottom: 16, backgroundColor: theme.card, borderRadius: 14, padding: 16 },
+  sectionTitle:    { fontSize: 16, fontWeight: '700', color: theme.text, marginBottom: 12 },
   empty:           { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 40 },
-  emptyTxt:        { fontSize: 14, color: '#7A8889', textAlign: 'center' },
+  emptyTxt:        { fontSize: 14, color: theme.textSecondary, textAlign: 'center' },
   // Preview card
   previewCard:     {
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderRadius: 14,
     marginBottom: 16,
     overflow: 'hidden',
@@ -289,33 +294,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 24,
     borderWidth: 1.5,
-    borderColor: '#4F469F',
-    shadowColor: '#4F469F',
+    borderColor: theme.category[4],
+    shadowColor: theme.category[4],
     shadowOpacity: 0.12,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-  previewCtaTxt:   { fontSize: 14, fontWeight: '700', color: '#4F469F' },
+  previewCtaTxt:   { fontSize: 14, fontWeight: '700', color: theme.category[4] },
   // Fullscreen modal
-  modalFull:       { flex: 1, backgroundColor: '#FFF' },
+  modalFull:       { flex: 1, backgroundColor: theme.card },
   modalCloseBtn:   { position: 'absolute', top: 48, right: 16, zIndex: 10 },
 });
 
-const hStyles = StyleSheet.create({
+const makeHStyles = (theme: Theme) => StyleSheet.create({
   heatRow:   { flexDirection: 'row', alignItems: 'center' },
-  weekLabel: { fontSize: 9, color: '#AAA', textAlign: 'center' },
-  dayLabel:  { fontSize: 11, color: '#777', textAlign: 'center' },
+  weekLabel: { fontSize: 9, color: theme.textMuted, textAlign: 'center' },
+  dayLabel:  { fontSize: 11, color: theme.textMuted, textAlign: 'center' },
   cell:      { borderRadius: 5, justifyContent: 'center', alignItems: 'center' },
-  cellText:  { fontSize: 9, fontWeight: '700', color: '#FFF' },
+  cellText:  { fontSize: 9, fontWeight: '700', color: theme.card },
   legend:    { flexDirection: 'row', alignItems: 'center' },
   dot:       { width: 10, height: 10, borderRadius: 2 },
-  legendTxt: { fontSize: 11, color: '#777', marginLeft: 4 },
+  legendTxt: { fontSize: 11, color: theme.textMuted, marginLeft: 4 },
 });
 
 export default SleepAdvancedTab;

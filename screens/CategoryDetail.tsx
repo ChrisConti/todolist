@@ -1,4 +1,6 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useMemo, useContext, useEffect, useRef, useState } from 'react';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,18 +15,13 @@ import AllaitementComponent from '../stats/Allaitement';
 import { useTranslation } from 'react-i18next';
 import Analytics from '../services/analytics';
 
-const CATEGORY_COLORS: Record<number, string> = {
-  0: '#34777B',
-  1: '#C75B4A',
-  3: '#E29656',
-  4: '#4F469F',
-  5: '#1AAAAA',
-};
 
 export default function CategoryDetail({ navigation, route }: any) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const { categoryId } = route.params as { categoryId: number };
-  const color = CATEGORY_COLORS[categoryId] ?? '#C75B4A';
+  const color = theme.category[categoryId] ?? theme.category[1];
 
   const CATEGORY_TITLES: Record<number, string> = {
     0: t('stats.category.bottle'),
@@ -97,7 +94,7 @@ export default function CategoryDetail({ navigation, route }: any) {
     <View style={styles.container}>
       <View style={[styles.header, { backgroundColor: color, paddingTop: insets.top }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={26} color="#F6F0EB" />
+          <Ionicons name="chevron-back" size={26} color={theme.onPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{title}</Text>
         <View style={{ width: 40 }} />
@@ -109,8 +106,8 @@ export default function CategoryDetail({ navigation, route }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FDF1E7' },
+const makeStyles = (theme: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -119,5 +116,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   backBtn: { width: 40, alignItems: 'flex-start' },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: '#F6F0EB' },
+  headerTitle: { fontSize: 20, fontWeight: '700', color: theme.onPrimary },
 });

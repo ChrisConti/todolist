@@ -43,7 +43,12 @@ export interface Theme {
   onCategory: string;
 
   success: string;
+  /** État intermédiaire : régularité moyenne, valeur à surveiller. */
+  warning: string;
   danger: string;
+  /** Fonds teintés des indicateurs (température basse, température haute). */
+  successSoft: string;
+  dangerSoft: string;
   /** Doré des éléments premium (étoiles, badges). */
   gold: string;
 
@@ -53,6 +58,14 @@ export interface Theme {
 
   /** Indexé par `task.id` : 0 biberon · 1 couche · 2 santé · 3 sommeil · 4 thermo · 5 allaitement. */
   category: readonly [string, string, string, string, string, string];
+  /** Tire-lait : variante du bleu biberon, pour le distinguer de l'allaitement. */
+  pumping: string;
+  /** Sieste : nuance claire du violet sommeil, empilée sous la nuit. */
+  napColor: string;
+  /** Carte d'export, hors palette de catégories. */
+  export: string;
+  /** Contenu posé sur un bouton doré (premium). */
+  onGold: string;
 
   /** Barre de statut : clair sur fond foncé, et inversement. */
   statusBar: 'light-content' | 'dark-content';
@@ -80,7 +93,10 @@ export const lightTheme: Theme = {
   onCategory: '#F6F0EB',
 
   success: '#4CAF50',
+  warning: '#E29656',
   danger: '#E53935',
+  successSoft: '#E5F5E5',
+  dangerSoft: '#FFE5E5',
   gold: '#E8960A',
 
   disabled: '#E8D5C4',
@@ -88,6 +104,10 @@ export const lightTheme: Theme = {
   overlay: 'rgba(0,0,0,0.45)',
 
   category: ['#34777B', '#C75B4A', '#6B8DEA', '#E29656', '#4F469F', '#1AAAAA'],
+  pumping: '#1A7F8C',
+  napColor: '#A89FD8',
+  export: '#4A7FC1',
+  onGold: '#3B1F00',
 
   statusBar: 'light-content',
 };
@@ -115,7 +135,10 @@ export const darkTheme: Theme = {
   onCategory: '#F6F0EB',
 
   success: '#6FBF74',
+  warning: '#E8A86B',
   danger: '#EF6C60',
+  successSoft: '#1D2E23',
+  dangerSoft: '#33201E',
   gold: '#E8A93C',
 
   disabled: '#4A3B35',
@@ -125,6 +148,10 @@ export const darkTheme: Theme = {
   // Teinte conservée, luminosité descendue : une catégorie reste reconnaissable
   // sans éblouir lors d'une tétée nocturne.
   category: ['#2A5457', '#8E4035', '#4B5F9B', '#9A663A', '#3B3470', '#157373'],
+  pumping: '#15636C',
+  napColor: '#6A61A8',
+  export: '#39608F',
+  onGold: '#1E1408',
 
   statusBar: 'light-content',
 };

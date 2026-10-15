@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useDiaperStats } from '../hooks/useTaskStatistics';
@@ -14,6 +16,8 @@ interface DiaperProps {
 }
 
 const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const { dailyCountStats, countChartData, dailyStats, dailyContentStats, chartData, contentChartData, lastTask, isLoading, error } = useDiaperStats(tasks, t);
 
@@ -183,7 +187,7 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
             <StackedBarChart
               labels={countChartData.labels}
               data={(countChartData.datasets[0].data as number[]).map(v => [v])}
-              barColors={['#C75B4A']}
+              barColors={[theme.category[1]]}
             />
           </View>
         </>
@@ -234,14 +238,14 @@ const Diaper: React.FC<DiaperProps> = ({ navigation, tasks }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   section: {
     marginBottom: STATS_CONFIG.SPACING.LARGE,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: theme.text,
     marginBottom: 16,
   },
   tabContainer: {
@@ -262,15 +266,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tabButtonActive: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
   },
   tabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#7A8889',
+    color: theme.textSecondary,
   },
   tabTextActive: {
-    color: '#FFF',
+    color: theme.card,
   },
   statsTable: {
     backgroundColor: STATS_CONFIG.COLORS.WHITE,

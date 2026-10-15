@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useTheme } from '../../Context/ThemeContext';
+import type { Theme } from '../../constants/theme';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SleepGroupData } from '../../hooks/useTaskStatistics';
 
 const BAR_MAX_HEIGHT = 120;
-const NIGHT_COLOR    = '#4F469F';
-const NAP_COLOR      = '#A89FD8';
+
 
 const fmtShort = (min: number): string => {
   if (min === 0) return '';
@@ -20,6 +21,8 @@ interface Props {
 }
 
 const SleepStackedChart: React.FC<Props> = ({ groups }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const getAvg = (g: SleepGroupData) =>
     g.daysCount > 0 ? Math.round((g.nightMinutes + g.napMinutes) / g.daysCount) : 0;
@@ -31,11 +34,11 @@ const SleepStackedChart: React.FC<Props> = ({ groups }) => {
     <View>
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.dot, { backgroundColor: NIGHT_COLOR }]} />
+          <View style={[styles.dot, { backgroundColor: theme.category[4] }]} />
           <Text style={styles.legendTxt}>🌙 {t('sleepAdvanced.nightLabel')}</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.dot, { backgroundColor: NAP_COLOR }]} />
+          <View style={[styles.dot, { backgroundColor: theme.napColor }]} />
           <Text style={styles.legendTxt}>😴 {t('sleepAdvanced.napLabel')}</Text>
         </View>
       </View>
@@ -57,10 +60,10 @@ const SleepStackedChart: React.FC<Props> = ({ groups }) => {
               <View style={styles.barWrap}>
                 <View style={{ height: totalH, width: 28, opacity: isMax ? 1 : 0.72 }}>
                   {napH > 0 && (
-                    <View style={{ height: napH, backgroundColor: NAP_COLOR, borderTopLeftRadius: napRadius, borderTopRightRadius: napRadius }} />
+                    <View style={{ height: napH, backgroundColor: theme.napColor, borderTopLeftRadius: napRadius, borderTopRightRadius: napRadius }} />
                   )}
                   {nightH > 0 && (
-                    <View style={{ height: nightH, backgroundColor: NIGHT_COLOR, borderBottomLeftRadius: 4, borderBottomRightRadius: 4, borderTopLeftRadius: nightTopR, borderTopRightRadius: nightTopR }} />
+                    <View style={{ height: nightH, backgroundColor: theme.category[4], borderBottomLeftRadius: 4, borderBottomRightRadius: 4, borderTopLeftRadius: nightTopR, borderTopRightRadius: nightTopR }} />
                   )}
                 </View>
               </View>
@@ -73,17 +76,17 @@ const SleepStackedChart: React.FC<Props> = ({ groups }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   legend:     { flexDirection: 'row', gap: 16, marginBottom: 12, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   dot:        { width: 10, height: 10, borderRadius: 5 },
-  legendTxt:  { fontSize: 12, color: '#666' },
+  legendTxt:  { fontSize: 12, color: theme.textSecondary },
   chart:      {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'flex-end',
     height: BAR_MAX_HEIGHT + 44,
-    backgroundColor: '#F5EDE4',
+    backgroundColor: theme.soft,
     borderRadius: 14,
     paddingHorizontal: 8,
     paddingBottom: 8,
@@ -91,8 +94,8 @@ const styles = StyleSheet.create({
   },
   col:        { alignItems: 'center', flex: 1 },
   barWrap:    { height: BAR_MAX_HEIGHT, justifyContent: 'flex-end', alignItems: 'center' },
-  valAbove:   { fontSize: 10, color: '#555', fontWeight: '600', marginBottom: 2 },
-  label:      { marginTop: 5, fontSize: 10, color: '#7A8889', fontWeight: '500' },
+  valAbove:   { fontSize: 10, color: theme.textSecondary, fontWeight: '600', marginBottom: 2 },
+  label:      { marginTop: 5, fontSize: 10, color: theme.textSecondary, fontWeight: '500' },
 });
 
 export default SleepStackedChart;

@@ -1,4 +1,6 @@
 import React, { useMemo } from 'react';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
@@ -114,6 +116,8 @@ const getRowValues = (
 const PREMIUM_CATEGORIES = new Set(['biberon', 'sommeil']);
 
 const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { isPremium } = usePremium();
@@ -291,7 +295,7 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
         </View>
         <View style={styles.row}>
           {(todayStats.tireLait.count + yesterdayStats.tireLait.count + last7DaysStats.tireLait.count) > 0 &&
-            renderCard(AllaitementIcon as any, '#1A7F8C', 'tireLait')}
+            renderCard(AllaitementIcon as any, theme.pumping, 'tireLait')}
           {renderCard(DodoIcon as any, STATS_CONFIG.COLORS.SLEEP, 'sommeil')}
           <View style={styles.rowSpacer} />
           {renderCard(CoucheIcon as any, STATS_CONFIG.COLORS.DIAPER, 'couche')}
@@ -311,7 +315,7 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
                 <Text style={styles.premiumBadgeTxt}>★</Text>
               </View>
             )}
-            <MaterialCommunityIcons name="arrow-down-circle" size={38} color="#FFF" />
+            <MaterialCommunityIcons name="arrow-down-circle" size={38} color={theme.card} />
             <Text style={styles.exportTitle} allowFontScaling={false}>{t('stats.overview.export')}</Text>
             <View style={styles.exportBadge}>
               <Text style={styles.exportBadgeText} allowFontScaling={false}>CSV</Text>
@@ -323,18 +327,18 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: { flex: 1 },
 
   /* Summary card */
   summaryCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderRadius: 14,
     paddingVertical: 16,
     paddingHorizontal: 12,
     marginHorizontal: H_PAD,
     marginBottom: GAP,
-    shadowColor: '#000',
+    shadowColor: theme.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 6,
@@ -342,7 +346,7 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     fontSize: 17,
-    color: '#C75B4A',
+    color: theme.accent,
     textAlign: 'center',
     marginBottom: 12,
     fontWeight: '700',
@@ -357,12 +361,12 @@ const styles = StyleSheet.create({
   summaryCount: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#2D2D2D',
+    color: theme.text,
     lineHeight: 40,
   },
   summaryLabel: {
     fontSize: 12,
-    color: '#ADADAD',
+    color: theme.textMuted,
     fontWeight: '500',
     marginTop: 2,
   },
@@ -380,7 +384,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 14,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: theme.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
@@ -429,7 +433,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     fontWeight: '700',
-    color: '#FFF',
+    color: theme.card,
     textAlign: 'right',
   },
   premiumBadge: {
@@ -438,20 +442,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 2,
   },
-  premiumBadgeTxt: { fontSize: 10, color: '#FFF', fontWeight: '700' },
+  premiumBadgeTxt: { fontSize: 10, color: theme.card, fontWeight: '700' },
 
   /* largeur fixée pour tenir xxhxx (ex: 4h53) sans jamais s'adapter */
   dataVal2: {
     width: 52,
     fontSize: 12,
     fontWeight: '700',
-    color: '#FFF',
+    color: theme.card,
     textAlign: 'right',
   },
 
   /* Export card */
   exportCard: {
-    backgroundColor: '#4A7FC1',
+    backgroundColor: theme.export,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
@@ -460,7 +464,7 @@ const styles = StyleSheet.create({
   exportTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFF',
+    color: theme.card,
   },
   exportBadge: {
     backgroundColor: 'rgba(255,255,255,0.25)',
@@ -471,7 +475,7 @@ const styles = StyleSheet.create({
   exportBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#FFF',
+    color: theme.card,
     letterSpacing: 1,
   },
 });

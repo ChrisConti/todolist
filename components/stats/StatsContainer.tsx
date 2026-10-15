@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useTheme } from '../../Context/ThemeContext';
+import type { Theme } from '../../constants/theme';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import SleepingBaby from '../../assets/sleepingBaby.svg';
@@ -23,6 +25,8 @@ const StatsContainer: React.FC<StatsContainerProps> = ({
   hasData = true,
   emptyMessage,
 }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
 
   if (loading) {
@@ -58,7 +62,7 @@ const StatsContainer: React.FC<StatsContainerProps> = ({
   return <View style={styles.container}>{children}</View>;
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     padding: STATS_CONFIG.SPACING.LARGE,
@@ -82,7 +86,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 8,
   },

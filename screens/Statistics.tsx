@@ -1,5 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import React, { useContext, useEffect, useState } from 'react';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
+import React, { useMemo, useContext, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import AllComponent from '../stats/All';
@@ -10,6 +12,8 @@ import Analytics from '../services/analytics';
 import Stork from '../assets/parachute2.svg';
 
 export default function Statistics({ navigation }: any) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user, babyID }: any = useContext(AuthentificationUserContext);
@@ -84,10 +88,10 @@ export default function Statistics({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FDF1E7' },
+const makeStyles = (theme: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
   header: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     paddingVertical: 14,
     paddingHorizontal: 16,
     alignItems: 'center',
@@ -95,12 +99,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#F6F0EB',
+    color: theme.onPrimary,
     fontFamily: 'Pacifico',
   },
   content: {
     flex: 1,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   emptyStateContainer: {
     flexGrow: 1,
@@ -115,18 +119,18 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#333',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#7A8889',
+    color: theme.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
   },
   primaryButton: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 32,
@@ -135,13 +139,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   primaryButtonText: {
-    color: '#FFF',
+    color: theme.card,
     fontSize: 16,
     fontWeight: '700',
   },
   secondaryButton: {
     borderWidth: 1.5,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 32,
@@ -149,7 +153,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#C75B4A',
+    color: theme.accent,
     fontSize: 16,
     fontWeight: '600',
   },

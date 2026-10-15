@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useThermoStats } from '../hooks/useTaskStatistics';
@@ -12,6 +14,8 @@ interface ThermoProps {
 }
 
 const Thermo: React.FC<ThermoProps> = ({ navigation, tasks }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t, i18n } = useTranslation();
   const { dailyStats, chartData, lastTask, isLoading, error } = useThermoStats(tasks, i18n.language);
 
@@ -36,11 +40,11 @@ const Thermo: React.FC<ThermoProps> = ({ navigation, tasks }) => {
           let textColor = STATS_CONFIG.COLORS.TEXT_PRIMARY;
 
           if (row.isMax) {
-            backgroundColor = '#FFE5E5';
+            backgroundColor = theme.dangerSoft;
             textColor = STATS_CONFIG.COLORS.DIAPER;
           } else if (row.isMin) {
-            backgroundColor = '#E5F5E5';
-            textColor = '#4CAF50';
+            backgroundColor = theme.successSoft;
+            textColor = theme.success;
           }
 
           return (
@@ -114,14 +118,14 @@ const Thermo: React.FC<ThermoProps> = ({ navigation, tasks }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   section: {
     marginBottom: STATS_CONFIG.SPACING.LARGE,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: theme.text,
     marginBottom: 16,
   },
   statsBlock: {

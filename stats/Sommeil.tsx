@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +23,8 @@ interface SommeilProps {
 type ViewMode = 'duration' | 'count';
 
 const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks, babyName, babyBirthDate, userId }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const { isPremium } = usePremium();
   const [mainTab, setMainTab] = useState<'global' | 'advanced'>('global');
@@ -121,7 +125,7 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks, babyName, babyBirt
         <ScrollView contentContainerStyle={styles.lockedWrap}>
           <View style={styles.lockedIcon}>
             <View style={styles.lockedIconShine} />
-            <MaterialCommunityIcons name="star" size={32} color="#FFF" />
+            <MaterialCommunityIcons name="star" size={32} color={theme.card} />
           </View>
           <Text style={styles.lockedTitle}>{t('premium.advancedSommeil.title')}</Text>
           <Text style={styles.lockedSub}>{t('premium.upsellTitle')}</Text>
@@ -147,10 +151,10 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks, babyName, babyBirt
           >
             <View style={styles.lockedCtaIcon}>
               <View style={styles.lockedCtaIconShine} />
-              <MaterialCommunityIcons name="star" size={16} color="#FFF" />
+              <MaterialCommunityIcons name="star" size={16} color={theme.card} />
             </View>
             <Text style={styles.lockedCtaText}>{t('premium.unlockCta')}</Text>
-            <MaterialCommunityIcons name="chevron-right" size={18} color="#A8956A" />
+            <MaterialCommunityIcons name="chevron-right" size={18} color={theme.gold} />
           </TouchableOpacity>
         </ScrollView>
       ) : mainTab === 'advanced' ? (
@@ -229,19 +233,19 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks, babyName, babyBirt
   );
 };
 
-const styles = StyleSheet.create({
-  mainTabRow:       { flexDirection: 'row', backgroundColor: '#FFF', borderRadius: 10, padding: 3, margin: 12, marginBottom: 0, gap: 3 },
+const makeStyles = (theme: Theme) => StyleSheet.create({
+  mainTabRow:       { flexDirection: 'row', backgroundColor: theme.card, borderRadius: 10, padding: 3, margin: 12, marginBottom: 0, gap: 3 },
   mainTabBtn:       { flex: 1, paddingVertical: 9, borderRadius: 7, alignItems: 'center' },
-  mainTabBtnActive: { backgroundColor: '#4F469F' },
-  mainTabTxt:       { fontSize: 14, fontWeight: '600', color: '#7A8889' },
-  mainTabTxtActive: { color: '#FFF' },
+  mainTabBtnActive: { backgroundColor: theme.category[4] },
+  mainTabTxt:       { fontSize: 14, fontWeight: '600', color: theme.textSecondary },
+  mainTabTxtActive: { color: theme.card },
   section: {
     marginBottom: STATS_CONFIG.SPACING.LARGE,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: theme.text,
     marginBottom: 16,
   },
   viewModeContainer: {
@@ -267,10 +271,10 @@ const styles = StyleSheet.create({
   viewModeText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#7A8889',
+    color: theme.textSecondary,
   },
   viewModeTextActive: {
-    color: '#FFF',
+    color: theme.card,
   },
   statsRow: {
     flexDirection: 'row',
@@ -333,15 +337,15 @@ const styles = StyleSheet.create({
   lockedWrap: { alignItems: 'center', padding: 24, paddingTop: 36 },
   lockedIcon: {
     width: 64, height: 64, borderRadius: 18,
-    backgroundColor: '#E8960A', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: theme.gold, alignItems: 'center', justifyContent: 'center',
     marginBottom: 16, overflow: 'hidden',
   },
   lockedIconShine: {
     position: 'absolute', top: 0, left: 0, right: 0, height: 32,
     backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 18,
   },
-  lockedTitle: { fontSize: 18, fontWeight: '800', color: '#333', marginBottom: 6, textAlign: 'center' },
-  lockedSub:   { fontSize: 13, color: '#7A8889', marginBottom: 24, textAlign: 'center' },
+  lockedTitle: { fontSize: 18, fontWeight: '800', color: theme.text, marginBottom: 6, textAlign: 'center' },
+  lockedSub:   { fontSize: 13, color: theme.textSecondary, marginBottom: 24, textAlign: 'center' },
   featList: { width: '100%', gap: 10, marginBottom: 28 },
   featRow:  { flexDirection: 'row', alignItems: 'center', gap: 12 },
   featIconWrap: {
@@ -349,22 +353,22 @@ const styles = StyleSheet.create({
     backgroundColor: `${STATS_CONFIG.COLORS.SLEEP}18`,
     alignItems: 'center', justifyContent: 'center',
   },
-  featText: { fontSize: 14, color: '#374151', fontWeight: '500', flex: 1 },
+  featText: { fontSize: 14, color: theme.textSecondary, fontWeight: '500', flex: 1 },
   lockedCta: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#FFFFFF', borderRadius: 16,
-    borderWidth: 1.5, borderColor: '#D4AA50',
+    backgroundColor: theme.card, borderRadius: 16,
+    borderWidth: 1.5, borderColor: theme.gold,
     paddingVertical: 14, paddingHorizontal: 18, width: '100%',
   },
   lockedCtaIcon: {
     width: 30, height: 30, borderRadius: 8,
-    backgroundColor: '#E8960A', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+    backgroundColor: theme.gold, alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
   lockedCtaIconShine: {
     position: 'absolute', top: 0, left: 0, right: 0, height: 15,
     backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 8,
   },
-  lockedCtaText: { flex: 1, fontSize: 15, fontWeight: '700', color: '#3B1F00' },
+  lockedCtaText: { flex: 1, fontSize: 15, fontWeight: '700', color: theme.onGold },
 });
 
 export default Sommeil;

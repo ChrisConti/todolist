@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useTheme } from '../../Context/ThemeContext';
+import type { Theme } from '../../constants/theme';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Task } from '../../types/stats';
@@ -71,6 +73,8 @@ interface TypeRowProps {
 }
 
 const TypeRow: React.FC<TypeRowProps> = ({ icon, label, stats, total, days, color }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   if (stats.count === 0) return null;
   return (
@@ -91,6 +95,8 @@ const TypeRow: React.FC<TypeRowProps> = ({ icon, label, stats, total, days, colo
 };
 
 const PeriodCard: React.FC<{ period: PeriodStats }> = ({ period }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const { total, artificial, maternal, unknown, days } = period;
 
@@ -113,7 +119,7 @@ const PeriodCard: React.FC<{ period: PeriodStats }> = ({ period }) => {
             stats={artificial}
             total={total.count}
             days={days}
-            color="#5ac8fa"
+            color={theme.category[2]}
           />
           <TypeRow
             icon="🤱"
@@ -121,7 +127,7 @@ const PeriodCard: React.FC<{ period: PeriodStats }> = ({ period }) => {
             stats={maternal}
             total={total.count}
             days={days}
-            color="#34c759"
+            color={theme.success}
           />
           <TypeRow
             icon="—"
@@ -129,7 +135,7 @@ const PeriodCard: React.FC<{ period: PeriodStats }> = ({ period }) => {
             stats={unknown}
             total={total.count}
             days={days}
-            color="#c7c7cc"
+            color={theme.textMuted}
           />
         </View>
       )}
@@ -138,6 +144,8 @@ const PeriodCard: React.FC<{ period: PeriodStats }> = ({ period }) => {
 };
 
 const BiberonTypeBreakdown: React.FC<Props> = ({ tasks }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const biberonTasks = tasks.filter(t => t.id === 0);
 
   const periods = [7, 30, 90].map(days => computePeriod(biberonTasks, days));
@@ -151,7 +159,7 @@ const BiberonTypeBreakdown: React.FC<Props> = ({ tasks }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     gap: STATS_CONFIG.SPACING.MEDIUM,
   },
@@ -171,7 +179,7 @@ const styles = StyleSheet.create({
   },
   cardTotal: {
     fontSize: 13,
-    color: '#7A8889',
+    color: theme.textSecondary,
   },
   typesList: {
     gap: 10,
@@ -192,15 +200,15 @@ const styles = StyleSheet.create({
   typeLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2D3748',
+    color: theme.text,
   },
   typeCount: {
     fontSize: 13,
-    color: '#4A5568',
+    color: theme.textSecondary,
     marginTop: 1,
   },
   typePct: {
-    color: '#7A8889',
+    color: theme.textSecondary,
     fontWeight: '400',
   },
   typeRight: {
@@ -209,16 +217,16 @@ const styles = StyleSheet.create({
   typeStat: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#2D3748',
+    color: theme.text,
   },
   typeStatSub: {
     fontSize: 11,
-    color: '#7A8889',
+    color: theme.textSecondary,
     marginTop: 1,
   },
   empty: {
     fontSize: 13,
-    color: '#7A8889',
+    color: theme.textSecondary,
     textAlign: 'center',
     paddingVertical: 8,
   },
