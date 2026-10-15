@@ -617,7 +617,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                 {isDateLocked ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: theme.disabled, borderRadius: 8, padding: 10 }}>
                     <Ionicons name="lock-closed" size={14} color="white" />
-                    <Text style={{ color: theme.card }}>
+                    <Text style={{ color: theme.onPrimary }}>
                       {t('task.startedAt')} {moment(bfStartTime).format('DD MMM · HH:mm')}
                     </Text>
                   </View>
@@ -706,7 +706,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
             <TouchableOpacity onPress={updateBabyTasks} disabled={loading}>
               <View style={[styles.button, loading && styles.buttonDisabled]}>
                 {loading ? (
-                  <ActivityIndicator color={theme.onPrimary} />
+                  <ActivityIndicator color={theme.onDisabled} />
                 ) : (
                   <Text style={styles.buttonText}>{t('button.validate')}</Text>
                 )}
@@ -793,7 +793,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    color: theme.card,
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -835,7 +835,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     color: theme.accent,
   },
   medChipTextSelected: {
-    color: theme.card,
+    color: theme.onPrimary,
   },
   medClearBtn: {
     position: 'absolute',
@@ -850,7 +850,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   medClearText: {
     fontSize: 12,
-    color: theme.card,
+    color: theme.onPrimary,
     fontWeight: '700',
   },
   locationChip: {
@@ -894,9 +894,9 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chipCheckText: { color: theme.card, fontSize: 8, fontWeight: '700' },
+  chipCheckText: { color: theme.onPrimary, fontSize: 8, fontWeight: '700' },
   chipLabel: { fontSize: 13, fontWeight: '600', color: theme.text },
-  chipLabelSelected: { color: theme.card },
+  chipLabelSelected: { color: theme.onPrimary },
   milkCard: {
     width: 90,
     aspectRatio: 1,
@@ -923,10 +923,10 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  milkCheckText: { color: theme.card, fontSize: 10, fontWeight: '700' },
+  milkCheckText: { color: theme.onPrimary, fontSize: 10, fontWeight: '700' },
   milkEmoji: { fontSize: 26 },
   milkLabel: { fontSize: 11, fontWeight: '600', color: theme.text },
-  milkLabelSelected: { color: theme.card },
+  milkLabelSelected: { color: theme.onPrimary },
   sleepLocationButton: {
     paddingVertical: 8,
     paddingHorizontal: 8,

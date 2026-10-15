@@ -80,7 +80,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   title:     { fontSize: 14, fontWeight: '600', color: theme.text, marginBottom: 12, textAlign: 'center' },
   btns:      { flexDirection: 'row', gap: 10, width: '100%' },
   yesBtn:    { flex: 1, backgroundColor: theme.primary, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
-  yesTxt:    { color: theme.card, fontWeight: '700', fontSize: 13 },
+  yesTxt:    { color: theme.onPrimary, fontWeight: '700', fontSize: 13 },
   ideaBtn:   { flex: 1, backgroundColor: theme.soft, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   ideaTxt:   { color: theme.textSecondary, fontWeight: '600', fontSize: 13 },
   thanks:    { fontSize: 16, fontWeight: '700', color: theme.success },

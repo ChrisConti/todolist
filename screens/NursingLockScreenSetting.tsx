@@ -24,7 +24,7 @@ const NursingLockScreenSetting = () => {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#FDF1E7' }} contentContainerStyle={styles.container}>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={styles.container}>
       {/* Illustration : reproduction de la Live Activity sur un écran verrouillé */}
       <View style={styles.lockScreenMock}>
         <Text style={styles.mockClock}>21:47</Text>

@@ -227,9 +227,9 @@ const SleepAdvancedTab: React.FC<Props> = ({ tasks, babyBirthDate, userId }) => 
             {/* Semi-transparent veil + CTA */}
             <View style={[StyleSheet.absoluteFillObject, styles.previewVeil]}>
               <View style={styles.previewCta}>
-                <Ionicons name="calendar-outline" size={18} color={theme.category[4]} />
+                <Ionicons name="calendar-outline" size={18} color={theme.categoryAccent[4]} />
                 <Text style={styles.previewCtaTxt}>{t('sleepAdvanced.seeGraph')}</Text>
-                <Ionicons name="chevron-forward" size={15} color={theme.category[4]} />
+                <Ionicons name="chevron-forward" size={15} color={theme.categoryAccent[4]} />
               </View>
             </View>
           </TouchableOpacity>
@@ -272,7 +272,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   periodBtn:       { flex: 1, paddingVertical: 8, borderRadius: 7, alignItems: 'center' },
   periodBtnActive: { backgroundColor: theme.category[4] },
   periodTxt:       { fontSize: 13, fontWeight: '600', color: theme.textSecondary },
-  periodTxtActive: { color: theme.card },
+  periodTxtActive: { color: theme.onPrimary },
   section:         { marginBottom: 16, backgroundColor: theme.card, borderRadius: 14, padding: 16 },
   sectionTitle:    { fontSize: 16, fontWeight: '700', color: theme.text, marginBottom: 12 },
   empty:           { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 40 },
@@ -286,7 +286,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   previewGrid:     { padding: 16, alignItems: 'center' },
   previewVeil:     {
-    backgroundColor: 'rgba(255,255,255,0.68)',
+    backgroundColor: theme.overlayVeil,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -306,7 +306,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-  previewCtaTxt:   { fontSize: 14, fontWeight: '700', color: theme.category[4] },
+  previewCtaTxt:   { fontSize: 14, fontWeight: '700', color: theme.categoryAccent[4] },
   // Fullscreen modal
   modalFull:       { flex: 1, backgroundColor: theme.card },
   modalCloseBtn:   { position: 'absolute', top: 48, right: 16, zIndex: 10 },
@@ -317,7 +317,7 @@ const makeHStyles = (theme: Theme) => StyleSheet.create({
   weekLabel: { fontSize: 9, color: theme.textMuted, textAlign: 'center' },
   dayLabel:  { fontSize: 11, color: theme.textMuted, textAlign: 'center' },
   cell:      { borderRadius: 5, justifyContent: 'center', alignItems: 'center' },
-  cellText:  { fontSize: 9, fontWeight: '700', color: theme.card },
+  cellText:  { fontSize: 9, fontWeight: '700', color: theme.onPrimary },
   legend:    { flexDirection: 'row', alignItems: 'center' },
   dot:       { width: 10, height: 10, borderRadius: 2 },
   legendTxt: { fontSize: 11, color: theme.textMuted, marginLeft: 4 },

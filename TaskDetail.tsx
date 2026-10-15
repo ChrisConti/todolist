@@ -150,7 +150,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     width: 300,
   },
   buttonText: {
-    color: theme.card,
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },

@@ -284,7 +284,7 @@ const makeS = (theme: Theme) => StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: theme.category[0],
+    color: theme.categoryAccent[0],
     marginBottom: 16,
   },
   segRow: {
@@ -297,7 +297,7 @@ const makeS = (theme: Theme) => StyleSheet.create({
   segBtn: { flex: 1, paddingVertical: 8, borderRadius: 7, alignItems: 'center' },
   segBtnActive: { backgroundColor: theme.category[0] },
   segText: { fontSize: 13, fontWeight: '600', color: theme.textSecondary },
-  segTextActive: { color: theme.card },
+  segTextActive: { color: theme.onPrimary },
 
   // ── Vertical chart (7j) ────────────────────────────────────────────────────
   yAxisLabel: { fontSize: 10, color: theme.textMuted, marginBottom: 2, marginLeft: 2 },
@@ -316,7 +316,7 @@ const makeS = (theme: Theme) => StyleSheet.create({
     height: CHART_H_VERT + 28,
   },
   vBarValue: {
-    fontSize: 9, fontWeight: '700', color: theme.category[0],
+    fontSize: 9, fontWeight: '700', color: theme.categoryAccent[0],
     marginBottom: 2, width: '100%', textAlign: 'center',
   },
   vBar: { width: '80%', borderRadius: 4, minHeight: 2 },
@@ -384,6 +384,6 @@ const makeS = (theme: Theme) => StyleSheet.create({
     paddingVertical: 10, alignItems: 'center', gap: 4,
   },
   summaryLabel: { fontSize: 10, color: theme.textMuted, fontWeight: '500' },
-  summaryValue: { fontSize: 14, fontWeight: '800', color: theme.category[0] },
+  summaryValue: { fontSize: 14, fontWeight: '800', color: theme.categoryAccent[0] },
   periodNote: { marginTop: 10, fontSize: 10, color: theme.textMuted, textAlign: 'center' },
 });

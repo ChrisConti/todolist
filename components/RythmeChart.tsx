@@ -203,7 +203,7 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
           </View>
           <View style={s.metricBox}>
             <Text style={s.metricLabel}>{t('rythme.longest')}</Text>
-            <Text style={[s.metricValue, { color: theme.category[2] }]}>{fmtDuration(g.max)}</Text>
+            <Text style={[s.metricValue, { color: theme.categoryAccent[2] }]}>{fmtDuration(g.max)}</Text>
           </View>
           <TouchableOpacity style={s.metricBox} onPress={() => setShowTip(v => !v)}>
             <View style={s.metricLabelRow}>
@@ -253,13 +253,13 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
         <View style={s.activeIntervalRow}>
           <View style={[s.aiChip, { backgroundColor: theme.soft }]}>
             <Text style={s.aiChipLabel}>{t('rythme.dayInterval')}</Text>
-            <Text style={[s.aiChipValue, { color: theme.category[0] }]}>
+            <Text style={[s.aiChipValue, { color: theme.categoryAccent[0] }]}>
               {aw.activeAvg ? fmtDuration(aw.activeAvg) : '—'}
             </Text>
           </View>
           <View style={[s.aiChip, { backgroundColor: theme.soft }]}>
             <Text style={s.aiChipLabel}>{t('rythme.nightInterval')}</Text>
-            <Text style={[s.aiChipValue, { color: theme.category[4] }]}>
+            <Text style={[s.aiChipValue, { color: theme.categoryAccent[4] }]}>
               {aw.nightAvg ? fmtDuration(aw.nightAvg) : '—'}
             </Text>
           </View>
@@ -301,7 +301,7 @@ export const RythmeChart: React.FC<Props> = ({ tasks }) => {
                   <View style={s.slotDivider} />
                   <View style={s.slotMetricItem}>
                     <Text style={s.slotMetricLabel}>{t('rythme.long')}</Text>
-                    <Text style={[s.slotMetricValue, { color: theme.category[2] }]}>{fmtDuration(slot.max!)}</Text>
+                    <Text style={[s.slotMetricValue, { color: theme.categoryAccent[2] }]}>{fmtDuration(slot.max!)}</Text>
                   </View>
                   <View style={s.slotDivider} />
                   <View style={s.slotMetricItem}>
@@ -333,7 +333,7 @@ const makeS = (theme: Theme) => StyleSheet.create({
     marginBottom: 16,
   },
   cardTitle: {
-    fontSize: 16, fontWeight: '700', color: theme.category[0], marginBottom: 4,
+    fontSize: 16, fontWeight: '700', color: theme.categoryAccent[0], marginBottom: 4,
   },
   subtitle: {
     fontSize: 12, color: theme.textMuted, marginBottom: 16,
@@ -366,7 +366,7 @@ const makeS = (theme: Theme) => StyleSheet.create({
     fontSize: 9, color: theme.textMuted, fontWeight: '500', textAlign: 'center',
   },
   metricValue: {
-    fontSize: 15, fontWeight: '800', color: theme.category[0], textAlign: 'center',
+    fontSize: 15, fontWeight: '800', color: theme.categoryAccent[0], textAlign: 'center',
   },
   metricSub: {
     fontSize: 8, fontWeight: '600', textAlign: 'center',
@@ -387,7 +387,7 @@ const makeS = (theme: Theme) => StyleSheet.create({
     marginTop: 10, alignSelf: 'flex-end',
   },
   tooltipCloseText: {
-    fontSize: 12, color: theme.category[0], fontWeight: '700',
+    fontSize: 12, color: theme.categoryAccent[0], fontWeight: '700',
   },
 
   // Section 2 — active window
@@ -399,7 +399,7 @@ const makeS = (theme: Theme) => StyleSheet.create({
     paddingVertical: 12, alignItems: 'center',
   },
   awLabel: { fontSize: 10, color: theme.textMuted },
-  awValue: { fontSize: 20, fontWeight: '800', color: theme.category[0], marginTop: 2 },
+  awValue: { fontSize: 20, fontWeight: '800', color: theme.categoryAccent[0], marginTop: 2 },
   awArrow: { fontSize: 18, color: theme.textMuted },
   activeIntervalRow: {
     flexDirection: 'row', gap: 8,
@@ -429,7 +429,7 @@ const makeS = (theme: Theme) => StyleSheet.create({
     paddingHorizontal: 7, paddingVertical: 2,
   },
   slotCount: {
-    fontSize: 11, fontWeight: '700', color: theme.category[0],
+    fontSize: 11, fontWeight: '700', color: theme.categoryAccent[0],
   },
   slotEmpty: {
     fontSize: 11, color: theme.textMuted, fontStyle: 'italic',
@@ -444,7 +444,7 @@ const makeS = (theme: Theme) => StyleSheet.create({
     fontSize: 9, color: theme.textMuted, fontWeight: '500',
   },
   slotMetricValue: {
-    fontSize: 13, fontWeight: '800', color: theme.category[0], textAlign: 'center',
+    fontSize: 13, fontWeight: '800', color: theme.categoryAccent[0], textAlign: 'center',
   },
   slotMetricSub: {
     fontSize: 8, fontWeight: '600', textAlign: 'center',

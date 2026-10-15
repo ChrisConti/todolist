@@ -270,7 +270,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     color: theme.text,
   },
   chipTextSelected: {
-    color: theme.card,
+    color: theme.onPrimary,
   },
   quantityLabel: {
     fontSize: 13,
@@ -292,7 +292,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     opacity: 0.4,
   },
   saveButtonText: {
-    color: theme.card,
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: '700',
   },

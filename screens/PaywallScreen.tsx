@@ -377,7 +377,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, height: 16,
     backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 9,
   },
-  ctaText: { color: theme.onGold, fontSize: 16, fontWeight: '800' },
+  ctaText: { color: theme.goldText, fontSize: 16, fontWeight: '800' },
 
   footer: { alignItems: 'center', gap: 6 },
   restoreLink: { fontSize: 13, color: theme.textMuted, textDecorationLine: 'underline' },

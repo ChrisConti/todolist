@@ -274,7 +274,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     color: theme.textSecondary,
   },
   tabTextActive: {
-    color: theme.card,
+    color: theme.onPrimary,
   },
   statsTable: {
     backgroundColor: STATS_CONFIG.COLORS.WHITE,

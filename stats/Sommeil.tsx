@@ -238,7 +238,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   mainTabBtn:       { flex: 1, paddingVertical: 9, borderRadius: 7, alignItems: 'center' },
   mainTabBtnActive: { backgroundColor: theme.category[4] },
   mainTabTxt:       { fontSize: 14, fontWeight: '600', color: theme.textSecondary },
-  mainTabTxtActive: { color: theme.card },
+  mainTabTxtActive: { color: theme.onPrimary },
   section: {
     marginBottom: STATS_CONFIG.SPACING.LARGE,
   },
@@ -274,7 +274,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     color: theme.textSecondary,
   },
   viewModeTextActive: {
-    color: theme.card,
+    color: theme.onPrimary,
   },
   statsRow: {
     flexDirection: 'row',
@@ -368,7 +368,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, height: 15,
     backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 8,
   },
-  lockedCtaText: { flex: 1, fontSize: 15, fontWeight: '700', color: theme.onGold },
+  lockedCtaText: { flex: 1, fontSize: 15, fontWeight: '700', color: theme.goldText },
 });
 
 export default Sommeil;

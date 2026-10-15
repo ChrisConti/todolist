@@ -104,7 +104,7 @@ const Stepper: React.FC<StepperProps> = ({ label, value, unit, chips, onChange, 
           style={[styles.stepperBtn, value === 0 && styles.stepperBtnDisabled]}
           accessibilityLabel={`${label} −${step}`}
         >
-          <Ionicons name="remove" size={22} color={theme.onPrimary} />
+          <Ionicons name="remove" size={22} color={value === 0 ? theme.onDisabled : theme.onPrimary} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => bump(step)}
@@ -113,7 +113,7 @@ const Stepper: React.FC<StepperProps> = ({ label, value, unit, chips, onChange, 
           style={[styles.stepperBtn, value >= max && styles.stepperBtnDisabled]}
           accessibilityLabel={`${label} +${step}`}
         >
-          <Ionicons name="add" size={22} color={theme.onPrimary} />
+          <Ionicons name="add" size={22} color={value >= max ? theme.onDisabled : theme.onPrimary} />
         </TouchableOpacity>
       </View>
       <View style={styles.chipRow}>
@@ -478,10 +478,10 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
             <Text style={styles.timerValue}>{formatTime(timer1)}</Text>
             <View style={styles.timerButtons}>
               <TouchableOpacity onPress={() => startTimer(setTimer1, setIsRunning1, interval1, 1)} disabled={isRunning1} style={[styles.timerBtn, isRunning1 && styles.timerBtnDisabled]}>
-                <Ionicons name="play" size={24} color={isRunning1 ? theme.disabled : theme.onPrimary} />
+                <Ionicons name="play" size={24} color={isRunning1 ? theme.onDisabled : theme.onPrimary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => pauseTimer(setIsRunning1, interval1, 1)} disabled={!isRunning1} style={[styles.timerBtn, !isRunning1 && styles.timerBtnDisabled]}>
-                <Ionicons name="pause" size={24} color={!isRunning1 ? theme.disabled : theme.onPrimary} />
+                <Ionicons name="pause" size={24} color={!isRunning1 ? theme.onDisabled : theme.onPrimary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => stopTimer(setTimer1, setIsRunning1, interval1, 1)} style={styles.timerBtn}>
                 <Ionicons name="close-circle" size={24} color={theme.onPrimary} />
@@ -494,10 +494,10 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
             <Text style={styles.timerValue}>{formatTime(timer2)}</Text>
             <View style={styles.timerButtons}>
               <TouchableOpacity onPress={() => startTimer(setTimer2, setIsRunning2, interval2, 2)} disabled={isRunning2} style={[styles.timerBtn, isRunning2 && styles.timerBtnDisabled]}>
-                <Ionicons name="play" size={24} color={isRunning2 ? theme.disabled : theme.onPrimary} />
+                <Ionicons name="play" size={24} color={isRunning2 ? theme.onDisabled : theme.onPrimary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => pauseTimer(setIsRunning2, interval2, 2)} disabled={!isRunning2} style={[styles.timerBtn, !isRunning2 && styles.timerBtnDisabled]}>
-                <Ionicons name="pause" size={24} color={!isRunning2 ? theme.disabled : theme.onPrimary} />
+                <Ionicons name="pause" size={24} color={!isRunning2 ? theme.onDisabled : theme.onPrimary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => stopTimer(setTimer2, setIsRunning2, interval2, 2)} style={styles.timerBtn}>
                 <Ionicons name="close-circle" size={24} color={theme.onPrimary} />

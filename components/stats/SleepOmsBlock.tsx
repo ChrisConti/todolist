@@ -188,7 +188,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   modalText:           { fontSize: 14, color: theme.textSecondary, lineHeight: 20, marginBottom: 14 },
   modalLink:           { fontSize: 14, color: theme.accent, fontWeight: '600', marginBottom: 16 },
   modalCloseBtn:       { backgroundColor: theme.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center', marginTop: 14 },
-  modalCloseTxt:       { color: theme.card, fontWeight: '700', fontSize: 14 },
+  modalCloseTxt:       { color: theme.onPrimary, fontWeight: '700', fontSize: 14 },
   table:               { borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: theme.border, marginBottom: 14 },
   tableRow:            { flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 8, borderBottomWidth: 1, borderBottomColor: theme.border },
   tableHeaderRow:      { backgroundColor: theme.border },
@@ -197,7 +197,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   tableColVal:         { flex: 1.2, textAlign: 'center' },
   tableHeaderTxt:      { fontSize: 11, fontWeight: '700', color: theme.textSecondary },
   tableCellTxt:        { fontSize: 11, color: theme.textSecondary },
-  tableCellCurrentTxt: { fontWeight: '700', color: theme.category[4] },
+  tableCellCurrentTxt: { fontWeight: '700', color: theme.categoryAccent[4] },
 });
 
 export default SleepOmsBlock;

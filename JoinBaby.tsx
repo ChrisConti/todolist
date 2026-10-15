@@ -441,7 +441,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: theme.card,
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },

@@ -331,7 +331,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
     backgroundColor: theme.primary, borderRadius: 10, paddingVertical: 11,
   },
-  balanceCtaTxt: { color: theme.card, fontSize: 14.5, fontWeight: '700' },
+  balanceCtaTxt: { color: theme.onPrimary, fontSize: 14.5, fontWeight: '700' },
   section: {
     marginBottom: STATS_CONFIG.SPACING.LARGE,
   },
@@ -367,7 +367,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     color: theme.textSecondary,
   },
   viewModeTextActive: {
-    color: theme.card,
+    color: theme.onPrimary,
   },
   selectorContainer: {
     flexDirection: 'row',
@@ -395,7 +395,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     color: theme.textSecondary,
   },
   selectorTextActive: {
-    color: theme.card,
+    color: theme.onPrimary,
   },
   statsRow: {
     flexDirection: 'row',

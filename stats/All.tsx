@@ -338,7 +338,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     paddingHorizontal: 12,
     marginHorizontal: H_PAD,
     marginBottom: GAP,
-    shadowColor: theme.text,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 6,
@@ -384,7 +384,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     flex: 1,
     borderRadius: 14,
     overflow: 'hidden',
-    shadowColor: theme.text,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
@@ -433,7 +433,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     flex: 1,
     fontSize: 12,
     fontWeight: '700',
-    color: theme.card,
+    color: theme.onPrimary,
     textAlign: 'right',
   },
   premiumBadge: {
@@ -442,14 +442,14 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 2,
   },
-  premiumBadgeTxt: { fontSize: 10, color: theme.card, fontWeight: '700' },
+  premiumBadgeTxt: { fontSize: 10, color: theme.onPrimary, fontWeight: '700' },
 
   /* largeur fixée pour tenir xxhxx (ex: 4h53) sans jamais s'adapter */
   dataVal2: {
     width: 52,
     fontSize: 12,
     fontWeight: '700',
-    color: theme.card,
+    color: theme.onPrimary,
     textAlign: 'right',
   },
 
@@ -464,7 +464,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   exportTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: theme.card,
+    color: theme.onPrimary,
   },
   exportBadge: {
     backgroundColor: 'rgba(255,255,255,0.25)',
@@ -475,7 +475,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   exportBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: theme.card,
+    color: theme.onPrimary,
     letterSpacing: 1,
   },
 });

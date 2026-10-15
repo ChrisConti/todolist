@@ -139,7 +139,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     marginBottom: 12,
   },
   primaryButtonText: {
-    color: theme.card,
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: '700',
   },

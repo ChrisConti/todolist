@@ -170,7 +170,7 @@ const ExportTasks = ({ navigation }) => {
             disabled={loading || !babyData}
           >
             {loading ? (
-              <ActivityIndicator color={theme.onPrimary} />
+              <ActivityIndicator color={theme.onDisabled} />
             ) : (
               <>
                 <MaterialCommunityIcons name="file-export" size={20} color={theme.onPrimary} />
@@ -306,7 +306,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 10,
   },
   premiumButtonSub: {
-    color: theme.onGold,
+    color: theme.goldText,
     fontSize: 12,
     fontWeight: '400',
     marginTop: 2,

@@ -184,7 +184,7 @@ export const CompareDayTimeline: React.FC<CompareProps> = ({ todayTasks, yesterd
     <View>
       {/* Headers */}
       <View style={s.cmpHeaders}>
-        <Text style={[s.cmpHeader, { color: theme.category[0] }]}>{t('days.today')}</Text>
+        <Text style={[s.cmpHeader, { color: theme.categoryAccent[0] }]}>{t('days.today')}</Text>
         <Text style={[s.cmpHeader, { color: theme.textMuted }]}>{t('days.yesterday')}</Text>
       </View>
 

@@ -119,7 +119,7 @@ const PeriodCard: React.FC<{ period: PeriodStats }> = ({ period }) => {
             stats={artificial}
             total={total.count}
             days={days}
-            color={theme.category[2]}
+            color={theme.categoryAccent[2]}
           />
           <TypeRow
             icon="🤱"

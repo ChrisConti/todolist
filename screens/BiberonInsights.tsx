@@ -367,7 +367,7 @@ export default function BiberonInsights({ navigation }: any) {
         {BIBERON_FEATS.map(({ icon, key }) => (
           <View key={key} style={styles.featRow}>
             <View style={styles.featIconWrap}>
-              <MaterialCommunityIcons name={icon as any} size={16} color={theme.category[0]} />
+              <MaterialCommunityIcons name={icon as any} size={16} color={theme.categoryAccent[0]} />
             </View>
             <Text style={styles.featText}>{t(key)}</Text>
           </View>
@@ -436,7 +436,7 @@ export default function BiberonInsights({ navigation }: any) {
       </View>
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={theme.category[0]} />
+        <ActivityIndicator style={{ marginTop: 40 }} color={theme.categoryAccent[0]} />
       ) : topTab === 'global' ? (
         renderGlobalTab()
       ) : !isPremium ? (
@@ -535,7 +535,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   topTabBtnActive: { backgroundColor: theme.category[0] },
   topTabText: { fontSize: 14, fontWeight: '600', color: theme.textSecondary },
-  topTabTextActive: { color: theme.card },
+  topTabTextActive: { color: theme.onPrimary },
 
   // Main tabs (Détail / Tendance / Rythme)
   mainTabRow: {
@@ -552,7 +552,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   mainTabBtnActive: { backgroundColor: theme.card },
   mainTabText: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.7)' },
-  mainTabTextActive: { color: theme.category[0] },
+  mainTabTextActive: { color: theme.categoryAccent[0] },
 
   // Day sub-tabs (Aujourd'hui / Hier / Comparatif)
   dayTabRow: {
@@ -569,19 +569,19 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   dayTabBtnActive: { backgroundColor: theme.category[0] },
   dayTabText: { fontSize: 12, fontWeight: '600', color: theme.textSecondary },
-  dayTabTextActive: { color: theme.card },
+  dayTabTextActive: { color: theme.onPrimary },
 
   content: { padding: 16, paddingBottom: 40 },
 
   // Cards
   card: { backgroundColor: theme.card, borderRadius: 16, padding: 16, marginBottom: 16 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: theme.category[0], marginBottom: 16 },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: theme.categoryAccent[0], marginBottom: 16 },
   totalsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   totalBadge: {
     flex: 1, backgroundColor: theme.background, borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
   },
-  totalBadgeValue: { fontSize: 28, fontWeight: '800', color: theme.category[0] },
+  totalBadgeValue: { fontSize: 28, fontWeight: '800', color: theme.categoryAccent[0] },
   totalBadgeLabel: { fontSize: 13, color: theme.textSecondary, marginTop: 2 },
   emptyText: { textAlign: 'center', color: theme.textMuted, fontSize: 14, paddingVertical: 16 },
 
@@ -600,7 +600,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   // Compare
   compareHeaderRow: { borderBottomWidth: 1, borderBottomColor: theme.separator, paddingBottom: 8, marginBottom: 4 },
   compareHeaderText: { fontSize: 12, color: theme.textMuted, fontWeight: '600' },
-  compareSection: { fontSize: 13, fontWeight: '700', color: theme.category[0], marginTop: 14, marginBottom: 4 },
+  compareSection: { fontSize: 13, fontWeight: '700', color: theme.categoryAccent[0], marginTop: 14, marginBottom: 4 },
   compareRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 8,
     borderBottomWidth: 1, borderBottomColor: theme.soft,
@@ -625,7 +625,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   globalModeBtnActive: { backgroundColor: theme.category[0] },
   globalModeTxt: { fontSize: 13, fontWeight: '600', color: theme.textSecondary },
-  globalModeTxtActive: { color: theme.card },
+  globalModeTxtActive: { color: theme.onPrimary },
   statsRow: { flexDirection: 'row', justifyContent: 'space-around' },
   statsColumn: { gap: 8 },
   statLabel: { fontSize: 14, color: theme.textSecondary },
@@ -656,7 +656,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, height: 15,
     backgroundColor: 'rgba(255,220,80,0.35)', borderRadius: 8,
   },
-  lockedCtaText: { flex: 1, fontSize: 15, fontWeight: '700', color: theme.onGold },
+  lockedCtaText: { flex: 1, fontSize: 15, fontWeight: '700', color: theme.goldText },
 
   // Premium lock icon
   premiumIconLock: {
@@ -681,6 +681,6 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     width: 30, backgroundColor: theme.category[0], borderRadius: 4,
     alignItems: 'center', justifyContent: 'center',
   },
-  globalBarVal: { color: theme.card, fontSize: 11, fontWeight: '700' },
+  globalBarVal: { color: theme.onPrimary, fontSize: 11, fontWeight: '700' },
   globalChartLabel: { fontSize: 11, color: theme.textSecondary, marginTop: 4 },
 });
