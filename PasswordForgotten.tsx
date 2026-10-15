@@ -95,7 +95,7 @@ const PasswordForgotten = ({ navigation }) => {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#F6F0EB" />
+            <ActivityIndicator color={theme.onPrimary} />
           ) : (
             <Text style={styles.buttonText}>{t('settings.sendEmail')}</Text>
           )}

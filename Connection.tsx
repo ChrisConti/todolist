@@ -157,7 +157,7 @@ const ConnectionScreen = ({ navigation }) => {
                 onPress={handleAppleSignIn}
                 disabled={loading}
               >
-                <Ionicons name="logo-apple" size={26} color="#000000" />
+                <Ionicons name="logo-apple" size={26} color={theme.text} />
               </TouchableOpacity>
             )}
           </View>

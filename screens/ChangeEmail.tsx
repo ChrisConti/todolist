@@ -112,7 +112,7 @@ const ChangeEmail = ({ route, navigation }) => {
           ref={inputRef}
           style={[styles.input, isReadOnly && styles.inputReadOnly]}
           placeholder={t('email')}
-          placeholderTextColor="#9BA3A4"
+          placeholderTextColor={theme.textMuted}
           keyboardType="email-address"
           autoComplete="email"
           autoCapitalize="none"
@@ -126,7 +126,7 @@ const ChangeEmail = ({ route, navigation }) => {
           <TextInput
             style={styles.input}
             placeholder={t('password')}
-            placeholderTextColor="#9BA3A4"
+            placeholderTextColor={theme.textMuted}
             secureTextEntry
             autoCorrect={false}
             autoCapitalize="none"

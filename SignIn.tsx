@@ -270,7 +270,7 @@ const validateEmail = (value: string): string => {
                 <Switch
                   value={emailOptIn}
                   onValueChange={setEmailOptIn}
-                  thumbColor={emailOptIn ? '#C75B4A' : theme.textMuted}
+                  thumbColor={emailOptIn ? theme.primary : theme.textMuted}
                   trackColor={{ false: theme.separator, true: theme.switchOn }}
                   disabled={loading}
                 />
@@ -289,7 +289,7 @@ const validateEmail = (value: string): string => {
                 disabled={loading}
               >
                 {loading ? (
-                  <ActivityIndicator color="#F6F0EB" />
+                  <ActivityIndicator color={theme.onPrimary} />
                 ) : (
                   <Text style={styles.buttonText}>{t('button.submit')}</Text>
                 )}

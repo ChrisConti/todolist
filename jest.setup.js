@@ -32,9 +32,13 @@ jest.mock('expo-localization', () => ({
 }));
 
 // Mock Expo Vector Icons
+// Les quatre familles réellement utilisées dans l'app. MaterialCommunityIcons
+// manquait, d'où un « Element type is invalid » dès qu'un test montait un
+// composant qui l'emploie.
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
   MaterialIcons: 'MaterialIcons',
+  MaterialCommunityIcons: 'MaterialCommunityIcons',
   FontAwesome: 'FontAwesome',
 }));
 

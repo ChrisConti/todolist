@@ -52,7 +52,7 @@ const EmailOptIn = () => {
           <Switch
             value={emailOptIn}
             onValueChange={handleToggle}
-            thumbColor={emailOptIn ? '#C75B4A' : theme.textMuted}
+            thumbColor={emailOptIn ? theme.primary : theme.textMuted}
             trackColor={{ false: theme.separator, true: theme.switchOn }}
             disabled={saving}
           />

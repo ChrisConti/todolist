@@ -73,7 +73,7 @@ const ChangeName = ({ route, navigation }) => {
           ref={inputRef}
           style={styles.input}
           placeholder={t('name')}
-          placeholderTextColor="#9BA3A4"
+          placeholderTextColor={theme.textMuted}
           keyboardType="default"
           autoCapitalize="words"
           clearButtonMode="always"
