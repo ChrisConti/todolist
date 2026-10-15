@@ -30,9 +30,11 @@ export interface Task {
   boobRight?: number;
   /** Nature de l'acte d'allaitement. Absent sur l'historique ⇒ tétée directe. */
   nursingType?: 'direct' | 'pumping';
-  /** Quantité tirée en ml (tire-lait uniquement). */
+  /** Quantité tirée par sein, en ml (tire-lait uniquement). */
+  pumpedLeftMl?: number;
+  pumpedRightMl?: number;
+  /** Total tiré, dénormalisé : somme des deux seins. */
   pumpedMl?: number;
-  pumpedSide?: 'left' | 'right' | 'both';
   /** Durée du tirage en minutes, facultative. */
   pumpedDurationMin?: number;
   user: string;

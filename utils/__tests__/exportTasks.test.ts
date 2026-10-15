@@ -29,7 +29,6 @@ jest.mock('i18next', () => ({
       'export.taskTypes.temperature':  'Temperature',
       'export.taskTypes.breastfeeding':'Breastfeeding',
       'export.taskTypes.pumping':      'Pumping',
-      'breastfeeding.bothBreasts':     'Both',
       'export.diaperType.solid':       'Hard',
       'export.diaperType.soft':        'Soft',
       'export.diaperType.liquid':      'Liquid',
@@ -128,11 +127,22 @@ describe('generateCSV — task rows', () => {
     expect(csv).toContain('3 min');
   });
 
-  it('pumping — exported in ml with its side, not as a zero-minute feed', () => {
-    const tasks = [{ id: 5, date: '2025-01-10 10:00:00', nursingType: 'pumping', pumpedMl: 120, pumpedSide: 'both', boobLeft: 0, boobRight: 0 }];
+  it('pumping — total in ml, per-breast detail in the breast columns', () => {
+    const tasks = [{ id: 5, date: '2025-01-10 10:00:00', nursingType: 'pumping', pumpedMl: 120, pumpedLeftMl: 70, pumpedRightMl: 50, boobLeft: 0, boobRight: 0 }];
     const csv = generateCSV({ ...BASE_OPTS, tasks });
     expect(csv).toContain('120 ml');
+    expect(csv).toContain('70 ml');
+    expect(csv).toContain('50 ml');
     expect(csv).toContain('Pumping');
+  });
+
+  it('pumping — a single-breast session leaves the other column empty', () => {
+    const tasks = [{ id: 5, date: '2025-01-10 10:00:00', nursingType: 'pumping', pumpedMl: 80, pumpedLeftMl: 80, pumpedRightMl: 0 }];
+    const csv = generateCSV({ ...BASE_OPTS, tasks });
+    const row = csv.split('\n').find((l) => l.includes('Pumping')) ?? '';
+    expect(row).toContain('80 ml');
+    // Deux colonnes de sein : la gauche porte 80 ml, la droite reste vide.
+    expect(row.split(',').filter((c) => c.includes('ml')).length).toBe(2);
   });
 
   it('pumping — a direct feed keeps its per-breast durations', () => {

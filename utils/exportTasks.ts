@@ -155,9 +155,13 @@ export const generateCSV = (options: ExportOptions & { maxTasks?: number }): str
       quantity = task.label ? `${task.label} ${t('celsius')}` : '';
     } else if (isPumping) {
       // PUMPING (Tire-lait) — mesuré en ml, les colonnes de durée par sein restent vides
-      const side = (task as any).pumpedSide;
-      const sideLabel = side === 'left' ? t('breast.left') : side === 'right' ? t('breast.right') : t('breastfeeding.bothBreasts');
-      quantity = `${(task as any).pumpedMl || 0} ${t('ml')} (${sideLabel})`;
+      const left = Number((task as any).pumpedLeftMl) || 0;
+      const right = Number((task as any).pumpedRightMl) || 0;
+      quantity = `${(task as any).pumpedMl || 0} ${t('ml')}`;
+      // Les colonnes par sein portent des durées pour une tétée ; pour un tirage
+      // elles portent le détail en ml, l'unité étant rappelée dans chaque cellule.
+      if (left > 0) leftBoob = `${left} ${t('ml')}`;
+      if (right > 0) rightBoob = `${right} ${t('ml')}`;
     } else if (task.id === 5) {
       // BREASTFEEDING (Allaitement)
       leftBoob = task.boobLeft ? formatDuration(task.boobLeft, language) : '';

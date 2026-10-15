@@ -897,7 +897,7 @@ export const usePumpingStats = (tasks: Task[]) => {
       totalMl: 0,
       avgMl: 0,
       avgPerDay: 0,
-      bySide: { left: 0, right: 0, both: 0 },
+      bySide: { left: 0, right: 0 },
       last7: { pumpedMl: 0, maternalMl: 0, balance: 0 },
       last30: { pumpedMl: 0, maternalMl: 0, balance: 0 },
       chartData: { labels: [] as string[], datasets: [{ data: [] as number[] }] },
@@ -911,10 +911,12 @@ export const usePumpingStats = (tasks: Task[]) => {
     const ml = (t: any) => Number(t.pumpedMl) || 0;
     const totalMl = pumping.reduce((sum, t) => sum + ml(t), 0);
 
-    const bySide = { left: 0, right: 0, both: 0 };
+    // Quantité par sein : la saisie enregistre les deux séparément, « les deux »
+    // n'existe plus comme catégorie.
+    const bySide = { left: 0, right: 0 };
     pumping.forEach(t => {
-      const side = (t as any).pumpedSide;
-      if (side === 'left' || side === 'right' || side === 'both') bySide[side] += ml(t);
+      bySide.left += Number((t as any).pumpedLeftMl) || 0;
+      bySide.right += Number((t as any).pumpedRightMl) || 0;
     });
 
     const startOfDay = (d: Date) => { const c = new Date(d); c.setHours(0, 0, 0, 0); return c; };

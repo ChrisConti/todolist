@@ -14,7 +14,6 @@ import {
 } from '../utils/nursingActivityBridge';
 
 export type NursingType = 'direct' | 'pumping';
-export type PumpedSide = 'left' | 'right' | 'both';
 
 export interface BreastfeedingValues {
   timer1: number;
@@ -25,9 +24,11 @@ export interface BreastfeedingValues {
   timerStartTime?: number; // Unix ms — wall-clock time when the first timer was originally started
   /** Nature de l'acte. Absent sur tout l'historique ⇒ 'direct', aucune migration nécessaire. */
   nursingType: NursingType;
-  /** Quantité tirée, en ml. Une tétée se mesure en minutes, un tire-lait en millilitres. */
+  /** Quantité tirée par sein, en ml. Une mère obtient rarement autant des deux côtés. */
+  pumpedLeftMl: number;
+  pumpedRightMl: number;
+  /** Total tiré : somme des deux seins, pour les stats et l'export. */
   pumpedMl: number;
-  pumpedSide: PumpedSide;
   /** Durée du tirage, en minutes. 0 = non renseignée (le champ est facultatif). */
   pumpedDurationMin: number;
 }
@@ -50,8 +51,8 @@ interface Props {
   initialManualLeft?: number;
   initialManualRight?: number;
   initialNursingType?: NursingType;
-  initialPumpedMl?: number;
-  initialPumpedSide?: PumpedSide;
+  initialPumpedLeftMl?: number;
+  initialPumpedRightMl?: number;
   initialPumpedDurationMin?: number;
   storageKeySuffix?: string;
   onSessionChange?: (info: BreastfeedingSessionInfo) => void;
@@ -62,7 +63,7 @@ interface Props {
 const FORM_WIDTH = 280;
 
 const MIN_CHIPS = [5, 10, 15, 20];      // durées de tétée les plus fréquentes
-const ML_CHIPS = [60, 90, 120, 150, 180]; // alignées sur celles des biberons
+const ML_SIDE_CHIPS = [60, 90, 120]; // par sein : trois puces tiennent en demi-largeur
 const MAX_MIN = 120;
 const MAX_ML = 500;
 const LONG_PRESS_STEP = 5; // l'appui long avance par 5 : 0 → 20 en quatre appuis au lieu de vingt
@@ -138,8 +139,8 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
   initialManualLeft = 0,
   initialManualRight = 0,
   initialNursingType = 'direct',
-  initialPumpedMl = 0,
-  initialPumpedSide = 'both',
+  initialPumpedLeftMl = 0,
+  initialPumpedRightMl = 0,
   initialPumpedDurationMin = 0,
   storageKeySuffix = 'createtask',
   onSessionChange,
@@ -156,8 +157,8 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
   const [manualLeft, setManualLeft] = useState(initialManualLeft);
   const [manualRight, setManualRight] = useState(initialManualRight);
   const [nursingType, setNursingType] = useState<NursingType>(initialNursingType);
-  const [pumpedMl, setPumpedMl] = useState(initialPumpedMl);
-  const [pumpedSide, setPumpedSide] = useState<PumpedSide>(initialPumpedSide);
+  const [pumpedLeftMl, setPumpedLeftMl] = useState(initialPumpedLeftMl);
+  const [pumpedRightMl, setPumpedRightMl] = useState(initialPumpedRightMl);
   const [pumpedDurationMin, setPumpedDurationMin] = useState(initialPumpedDurationMin);
   const originalStartTime1 = useRef<number | null>(null);
   const originalStartTime2 = useRef<number | null>(null);
@@ -220,7 +221,9 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
       const timerStartTime = starts.length > 0 ? Math.min(...starts) : undefined;
       return {
         timer1, timer2, mode, manualLeft, manualRight, timerStartTime,
-        nursingType, pumpedMl, pumpedSide, pumpedDurationMin,
+        nursingType, pumpedLeftMl, pumpedRightMl,
+        pumpedMl: pumpedLeftMl + pumpedRightMl,
+        pumpedDurationMin,
       };
     },
     clearTimers: async () => {
@@ -406,29 +409,34 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
 
       {nursingType === 'pumping' ? (
         <View style={styles.pumpingForm}>
-          <Stepper
-            label={t('breastfeeding.pumpedQuantity')}
-            value={pumpedMl}
-            unit={t('ml')}
-            chips={ML_CHIPS}
-            onChange={setPumpedMl}
-            max={MAX_ML}
-            step={10}
-            theme={theme}
-          />
-          <View style={styles.sideRow}>
-            {(['left', 'right', 'both'] as PumpedSide[]).map(side => (
-              <TouchableOpacity
-                key={side}
-                onPress={() => setPumpedSide(side)}
-                style={[styles.sideButton, pumpedSide === side && styles.sideButtonSelected]}
-              >
-                <Text style={[styles.sideText, pumpedSide === side && styles.sideTextSelected]}>
-                  {t(side === 'left' ? 'breast.left' : side === 'right' ? 'breast.right' : 'breastfeeding.bothBreasts')}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          {/* Même disposition que la saisie manuelle d'une tétée : une colonne par
+              sein. Une mère obtient rarement autant des deux côtés, et le total se
+              déduit, alors qu'un sélecteur « les deux » perdait cette information. */}
+          <View style={styles.manualRow}>
+            <Stepper
+              label={t('breast.left')}
+              value={pumpedLeftMl}
+              unit={t('ml')}
+              chips={ML_SIDE_CHIPS}
+              onChange={setPumpedLeftMl}
+              max={MAX_ML}
+              step={10}
+              theme={theme}
+            />
+            <Stepper
+              label={t('breast.right')}
+              value={pumpedRightMl}
+              unit={t('ml')}
+              chips={ML_SIDE_CHIPS}
+              onChange={setPumpedRightMl}
+              max={MAX_ML}
+              step={10}
+              theme={theme}
+            />
           </View>
+          <Text style={styles.pumpedTotal}>
+            {t('breastfeeding.pumpTotal')} · {pumpedLeftMl + pumpedRightMl} {t('ml')}
+          </Text>
           <Stepper
             label={t('breastfeeding.pumpedDuration')}
             value={pumpedDurationMin}
@@ -545,6 +553,10 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, gap: 10,
   },
   pumpingForm: { width: FORM_WIDTH },
+  pumpedTotal: {
+    textAlign: 'center', fontSize: 13.5, fontWeight: '600',
+    color: theme.textSecondary, marginTop: 4, marginBottom: 8,
+  },
 
   // Sélecteur de nature d'acte — même gabarit que le choix de saisie, teinte plus douce
   // pour que la hiérarchie entre les deux rangées reste lisible.
@@ -580,14 +592,6 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   chipText: { fontSize: 11.5, fontWeight: '600', color: theme.textSecondary },
   chipTextSelected: { color: theme.onPrimary },
 
-  sideRow: { flexDirection: 'row', gap: 8, marginTop: 18, marginBottom: 4 },
-  sideButton: {
-    flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 8,
-    backgroundColor: theme.soft, borderWidth: 1, borderColor: theme.border,
-  },
-  sideButtonSelected: { backgroundColor: theme.primary, borderColor: theme.accent },
-  sideText: { fontSize: 13, fontWeight: '600', color: theme.textSecondary },
-  sideTextSelected: { color: theme.onPrimary },
 });
 
 export default BreastfeedingSection;

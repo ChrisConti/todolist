@@ -108,8 +108,9 @@ const UpdateTask = ({ route, navigation }) => {
               // doit effacer nursingType, sinon la valeur précédente persiste.
               ...(selectedImage === 5 && bfValues ? {
                 nursingType: bfValues.nursingType,
+                pumpedLeftMl: bfValues.nursingType === 'pumping' ? bfValues.pumpedLeftMl : null,
+                pumpedRightMl: bfValues.nursingType === 'pumping' ? bfValues.pumpedRightMl : null,
                 pumpedMl: bfValues.nursingType === 'pumping' ? bfValues.pumpedMl : null,
-                pumpedSide: bfValues.nursingType === 'pumping' ? bfValues.pumpedSide : null,
                 pumpedDurationMin: bfValues.nursingType === 'pumping' && bfValues.pumpedDurationMin > 0 ? bfValues.pumpedDurationMin : null,
               } : {}),
               milkType: selectedImage === 0 ? milkType : null,
@@ -399,8 +400,8 @@ const UpdateTask = ({ route, navigation }) => {
             initialManualLeft={task.breastfeedingMode === 'manual' ? Math.floor((task.boobLeft || 0) / 60) : 0}
             initialManualRight={task.breastfeedingMode === 'manual' ? Math.floor((task.boobRight || 0) / 60) : 0}
             initialNursingType={task.nursingType || 'direct'}
-            initialPumpedMl={task.pumpedMl || 0}
-            initialPumpedSide={task.pumpedSide || 'both'}
+            initialPumpedLeftMl={task.pumpedLeftMl || 0}
+            initialPumpedRightMl={task.pumpedRightMl || 0}
             initialPumpedDurationMin={task.pumpedDurationMin || 0}
             storageKeySuffix={`updatetask_${task.uid}`}
           />

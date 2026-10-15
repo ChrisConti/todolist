@@ -174,8 +174,11 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         breastfeedingMode: selectedImage === 5 ? (bfValues?.mode ?? 'timer') : null,
         ...(selectedImage === 5 && bfValues?.nursingType === 'pumping' && {
           nursingType: 'pumping',
+          pumpedLeftMl: bfValues.pumpedLeftMl,
+          pumpedRightMl: bfValues.pumpedRightMl,
+          // Total dénormalisé : les stats, la carte et l'export n'ont pas à
+          // recalculer la somme à chaque lecture.
           pumpedMl: bfValues.pumpedMl,
-          pumpedSide: bfValues.pumpedSide,
           ...(bfValues.pumpedDurationMin > 0 && { pumpedDurationMin: bfValues.pumpedDurationMin }),
         }),
         milkType: selectedImage === 0 ? milkType : null,
