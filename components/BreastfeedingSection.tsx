@@ -1,8 +1,10 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import Analytics from '../services/analytics';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 import {
   syncNursingActivity,
   endNursingActivity,
@@ -71,6 +73,7 @@ interface StepperProps {
   max: number;
   step?: number;
   compact?: boolean;
+  theme: Theme;
 }
 
 /**
@@ -80,7 +83,8 @@ interface StepperProps {
  * React Native applique la rotation au rendu mais pas à la zone de toucher, et le
  * composant natif sous-jacent ne se laisse pas transformer.
  */
-const Stepper: React.FC<StepperProps> = ({ label, value, unit, chips, onChange, max, step = 1, compact }) => {
+const Stepper: React.FC<StepperProps> = ({ label, value, unit, chips, onChange, max, step = 1, compact, theme }) => {
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const bump = (delta: number) => onChange(Math.min(max, Math.max(0, value + delta)));
   return (
     <View style={styles.stepperColumn}>
@@ -96,7 +100,7 @@ const Stepper: React.FC<StepperProps> = ({ label, value, unit, chips, onChange, 
           style={[styles.stepperBtn, value === 0 && styles.stepperBtnDisabled]}
           accessibilityLabel={`${label} −${step}`}
         >
-          <Ionicons name="remove" size={22} color="#F6F0EB" />
+          <Ionicons name="remove" size={22} color={theme.onPrimary} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => bump(step)}
@@ -105,7 +109,7 @@ const Stepper: React.FC<StepperProps> = ({ label, value, unit, chips, onChange, 
           style={[styles.stepperBtn, value >= max && styles.stepperBtnDisabled]}
           accessibilityLabel={`${label} +${step}`}
         >
-          <Ionicons name="add" size={22} color="#F6F0EB" />
+          <Ionicons name="add" size={22} color={theme.onPrimary} />
         </TouchableOpacity>
       </View>
       <View style={styles.chipRow}>
@@ -138,6 +142,8 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
   onSessionChange,
   liveActivity = false,
 }, ref) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [timer1, setTimer1] = useState(initialTimer1);
   const [timer2, setTimer2] = useState(initialTimer2);
   const [isRunning1, setIsRunning1] = useState(false);
@@ -405,6 +411,7 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
             onChange={setPumpedMl}
             max={MAX_ML}
             step={10}
+            theme={theme}
           />
           <View style={styles.sideRow}>
             {(['left', 'right', 'both'] as PumpedSide[]).map(side => (
@@ -427,6 +434,7 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
             onChange={setPumpedDurationMin}
             max={MAX_MIN}
             compact
+            theme={theme}
           />
         </View>
       ) : (
@@ -459,13 +467,13 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
             <Text style={styles.timerValue}>{formatTime(timer1)}</Text>
             <View style={styles.timerButtons}>
               <TouchableOpacity onPress={() => startTimer(setTimer1, setIsRunning1, interval1, 1)} disabled={isRunning1} style={[styles.timerBtn, isRunning1 && styles.timerBtnDisabled]}>
-                <Ionicons name="play" size={24} color={isRunning1 ? '#D8ABA0' : '#F6F0EB'} />
+                <Ionicons name="play" size={24} color={isRunning1 ? theme.disabled : theme.onPrimary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => pauseTimer(setIsRunning1, interval1, 1)} disabled={!isRunning1} style={[styles.timerBtn, !isRunning1 && styles.timerBtnDisabled]}>
-                <Ionicons name="pause" size={24} color={!isRunning1 ? '#D8ABA0' : '#F6F0EB'} />
+                <Ionicons name="pause" size={24} color={!isRunning1 ? theme.disabled : theme.onPrimary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => stopTimer(setTimer1, setIsRunning1, interval1, 1)} style={styles.timerBtn}>
-                <Ionicons name="close-circle" size={24} color="#F6F0EB" />
+                <Ionicons name="close-circle" size={24} color={theme.onPrimary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -475,13 +483,13 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
             <Text style={styles.timerValue}>{formatTime(timer2)}</Text>
             <View style={styles.timerButtons}>
               <TouchableOpacity onPress={() => startTimer(setTimer2, setIsRunning2, interval2, 2)} disabled={isRunning2} style={[styles.timerBtn, isRunning2 && styles.timerBtnDisabled]}>
-                <Ionicons name="play" size={24} color={isRunning2 ? '#D8ABA0' : '#F6F0EB'} />
+                <Ionicons name="play" size={24} color={isRunning2 ? theme.disabled : theme.onPrimary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => pauseTimer(setIsRunning2, interval2, 2)} disabled={!isRunning2} style={[styles.timerBtn, !isRunning2 && styles.timerBtnDisabled]}>
-                <Ionicons name="pause" size={24} color={!isRunning2 ? '#D8ABA0' : '#F6F0EB'} />
+                <Ionicons name="pause" size={24} color={!isRunning2 ? theme.disabled : theme.onPrimary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => stopTimer(setTimer2, setIsRunning2, interval2, 2)} style={styles.timerBtn}>
-                <Ionicons name="close-circle" size={24} color="#F6F0EB" />
+                <Ionicons name="close-circle" size={24} color={theme.onPrimary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -495,6 +503,7 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
             chips={MIN_CHIPS}
             onChange={setManualLeft}
             max={MAX_MIN}
+            theme={theme}
           />
           <Stepper
             label={t('breast.right')}
@@ -503,6 +512,7 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
             chips={MIN_CHIPS}
             onChange={setManualRight}
             max={MAX_MIN}
+            theme={theme}
           />
         </View>
       )}
@@ -512,59 +522,59 @@ const BreastfeedingSection = forwardRef<BreastfeedingRef, Props>(({
   );
 });
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   modeRow: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20, gap: 10 },
-  modeButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1.5, borderColor: '#C75B4A' },
-  modeButtonSelected: { backgroundColor: '#C75B4A' },
-  modeText: { fontSize: 14, fontWeight: '600', color: '#C75B4A' },
-  modeTextSelected: { color: '#F6F0EB' },
-  timerContainer: { alignItems: 'center', backgroundColor: '#FFF', borderRadius: 12, padding: 16, marginBottom: 12 },
-  timerLabel: { fontSize: 16, fontWeight: '600', color: '#7A8889', marginBottom: 10 },
-  timerValue: { fontSize: 28, fontWeight: 'bold', color: '#C75B4A', marginBottom: 10 },
+  modeButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1.5, borderColor: theme.accent },
+  modeButtonSelected: { backgroundColor: theme.primary },
+  modeText: { fontSize: 14, fontWeight: '600', color: theme.accent },
+  modeTextSelected: { color: theme.onPrimary },
+  timerContainer: { alignItems: 'center', backgroundColor: theme.card, borderRadius: 12, padding: 16, marginBottom: 12 },
+  timerLabel: { fontSize: 16, fontWeight: '600', color: theme.textSecondary, marginBottom: 10 },
+  timerValue: { fontSize: 28, fontWeight: 'bold', color: theme.accent, marginBottom: 10 },
   timerButtons: { flexDirection: 'row', gap: 12 },
-  timerBtn: { backgroundColor: '#C75B4A', borderRadius: 8, padding: 10 },
-  timerBtnDisabled: { backgroundColor: '#E8D5C4' },
+  timerBtn: { backgroundColor: theme.primary, borderRadius: 8, padding: 10 },
+  timerBtnDisabled: { backgroundColor: theme.disabled },
   manualRow: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, gap: 10 },
 
   // Sélecteur de nature d'acte — même gabarit que le choix de saisie, teinte plus douce
   // pour que la hiérarchie entre les deux rangées reste lisible.
   typeButton: {
     flex: 1, alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12,
-    borderRadius: 8, borderWidth: 1.5, borderColor: '#E3D5CB', backgroundColor: '#F6F0EB',
+    borderRadius: 8, borderWidth: 1.5, borderColor: theme.border, backgroundColor: theme.soft,
   },
-  typeButtonSelected: { backgroundColor: '#C75B4A', borderColor: '#C75B4A' },
-  typeText: { fontSize: 14, fontWeight: '600', color: '#8A6A5E' },
-  typeTextSelected: { color: '#F6F0EB' },
+  typeButtonSelected: { backgroundColor: theme.primary, borderColor: theme.accent },
+  typeText: { fontSize: 14, fontWeight: '600', color: theme.textSecondary },
+  typeTextSelected: { color: theme.onPrimary },
 
   stepperColumn: { flex: 1, alignItems: 'center', gap: 8 },
-  stepperLabel: { fontSize: 15, fontWeight: '600', color: '#7A8889' },
-  stepperValue: { fontSize: 28, fontWeight: 'bold', color: '#C75B4A' },
+  stepperLabel: { fontSize: 15, fontWeight: '600', color: theme.textSecondary },
+  stepperValue: { fontSize: 28, fontWeight: 'bold', color: theme.accent },
   stepperValueCompact: { fontSize: 22 },
   stepperUnit: { fontSize: 14, fontWeight: '600' },
   stepperButtons: { flexDirection: 'row', gap: 12 },
   stepperBtn: {
-    backgroundColor: '#C75B4A', borderRadius: 20, width: 40, height: 40,
+    backgroundColor: theme.primary, borderRadius: 20, width: 40, height: 40,
     alignItems: 'center', justifyContent: 'center',
   },
-  stepperBtnDisabled: { backgroundColor: '#E8D5C4' },
+  stepperBtnDisabled: { backgroundColor: theme.disabled },
 
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 5 },
   chip: {
-    paddingVertical: 5, paddingHorizontal: 11, borderRadius: 14,
-    backgroundColor: '#F6F0EB', borderWidth: 1, borderColor: '#E3D5CB',
+    paddingVertical: 5, paddingHorizontal: 8, borderRadius: 14, minWidth: 34, alignItems: 'center',
+    backgroundColor: theme.soft, borderWidth: 1, borderColor: theme.border,
   },
-  chipSelected: { backgroundColor: '#C75B4A', borderColor: '#C75B4A' },
-  chipText: { fontSize: 13, fontWeight: '600', color: '#8A6A5E' },
-  chipTextSelected: { color: '#F6F0EB' },
+  chipSelected: { backgroundColor: theme.primary, borderColor: theme.accent },
+  chipText: { fontSize: 12, fontWeight: '600', color: theme.textSecondary },
+  chipTextSelected: { color: theme.onPrimary },
 
   sideRow: { flexDirection: 'row', gap: 8, marginTop: 18, marginBottom: 4 },
   sideButton: {
     flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 8,
-    backgroundColor: '#F6F0EB', borderWidth: 1, borderColor: '#E3D5CB',
+    backgroundColor: theme.soft, borderWidth: 1, borderColor: theme.border,
   },
-  sideButtonSelected: { backgroundColor: '#C75B4A', borderColor: '#C75B4A' },
-  sideText: { fontSize: 13, fontWeight: '600', color: '#8A6A5E' },
-  sideTextSelected: { color: '#F6F0EB' },
+  sideButtonSelected: { backgroundColor: theme.primary, borderColor: theme.accent },
+  sideText: { fontSize: 13, fontWeight: '600', color: theme.textSecondary },
+  sideTextSelected: { color: theme.onPrimary },
 });
 
 export default BreastfeedingSection;
