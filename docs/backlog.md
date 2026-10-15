@@ -1,11 +1,12 @@
-# Backlog — après la 1.3.5
+# Backlog
 
-Noté le 17/09/2026. Trois sujets écartés de la 1.3.5 pour ne pas retarder la soumission
-(prix à 4,99 € + metadata ASO).
+Ouvert le 17/09/2026.
 
 ---
 
-## 1. Bug — saisie manuelle impossible en allaitement
+## 1. ~~Bug — saisie manuelle impossible en allaitement~~ ✅ livré
+
+> Corrigé sur `feat/allaitement-manuel-et-tire-lait` (commit `a9ef830`), en attente de livraison.
 
 **Sévérité : élevée.** La catégorie allaitement est un usage central et le 2ᵉ mot-clé en trafic.
 Signalé par un utilisateur le 17/09, capture à l'appui : en mode Manuel, aucun contrôle ne
@@ -35,7 +36,9 @@ explique que le bug soit passé inaperçu.
 
 ---
 
-## 2. Tire-lait
+## 2. ~~Tire-lait~~ ✅ livré
+
+> Livré sur `feat/allaitement-manuel-et-tire-lait` : mode, stats et bilan premium.
 
 Demande utilisateurs récurrente. Spec détaillée : [`spec-categories.md`](spec-categories.md),
 section « Étape 2 ».
@@ -76,3 +79,50 @@ ensuite à acquérir.
 **À faire dans tous les cas** : tracker le lien (event d'impression + event de clic avec une
 `source`), comme fait dans l'app Contractions avec `TribuBabyPromo`. Sans le couple
 impression/clic, aucun taux n'est calculable.
+
+---
+
+## 4. Bug — le bouton Valider chevauche le champ commentaire
+
+**Sévérité : moyenne.** Visible en saisie d'allaitement, mode chrono : le bouton
+« Valider » passe par-dessus le champ de commentaire et le masque partiellement.
+
+**Cause** — `screens/CreateTask.tsx:693`, le pied de page est en position absolue :
+
+```js
+<View style={{ position: 'absolute', bottom: 10, left: 0, right: 0, ... }}>
+```
+
+Il flotte donc au-dessus du `ScrollView` au lieu de le suivre. Tant que le contenu
+tient dans la hauteur de l'écran, rien ne se voit ; dès qu'il déborde — le mode chrono
+empile deux grandes cartes — le bouton recouvre la fin du formulaire.
+
+**Antérieur au mode sombre**, et présent aussi en clair. Découvert en testant le thème,
+pas causé par lui.
+
+**Deux options**
+- *Courte* : ajouter un `paddingBottom` au `contentContainerStyle` du `ScrollView`,
+  égal à la hauteur du pied. Le contenu peut alors défiler derrière sans être masqué.
+- *Plus propre* : sortir le bouton du recouvrement — un pied de page en flux normal
+  sous le `ScrollView`, dans un conteneur `flex: 1`. Change la structure de l'écran.
+
+`UpdateTask.tsx` partage la même structure et mérite la même vérification.
+
+---
+
+## 5. Lenteur à l'ouverture de l'écran de saisie
+
+**Sévérité : à évaluer.** Signalé le 15/10 : l'écran met un temps perceptible à
+s'ouvrir après le tap sur le bouton d'ajout.
+
+`CreateTask.tsx` fait 945 lignes, déclare une trentaine d'états, et monte les six
+formulaires de catégories en même temps — plus la section allaitement, qui relit
+`AsyncStorage` pour restaurer ses chronos.
+
+**Pourquoi ça compte** : la review growth a établi que **86 % des premières tâches
+arrivent dans l'heure** suivant la création du bébé. Tout se joue dans les premières
+secondes d'usage, donc la latence de cet écran a un coût réel sur l'activation.
+
+**Pistes** — ne monter que le formulaire de la catégorie sélectionnée au lieu des six,
+et différer l'initialisation des chronos. À mesurer avant d'optimiser : la cause exacte
+n'est pas établie.
