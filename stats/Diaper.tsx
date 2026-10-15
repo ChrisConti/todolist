@@ -250,7 +250,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: STATS_CONFIG.COLORS.WHITE,
+    backgroundColor: theme.card,
     borderRadius: 8,
     padding: 4,
     marginBottom: STATS_CONFIG.SPACING.LARGE,
@@ -277,7 +277,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     color: theme.onPrimary,
   },
   statsTable: {
-    backgroundColor: STATS_CONFIG.COLORS.WHITE,
+    backgroundColor: theme.card,
     borderRadius: 8,
     padding: STATS_CONFIG.SPACING.MEDIUM,
   },
@@ -289,19 +289,19 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   statsHeader: {
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
     fontWeight: 'bold',
-    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
+    color: theme.textSecondary,
     flex: 1,
     textAlign: 'center',
   },
   statsLabel: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
     flex: 1,
   },
   statsValue: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
     fontWeight: '600',
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
     flex: 1,
     textAlign: 'center',
   },

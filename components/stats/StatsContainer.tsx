@@ -32,7 +32,7 @@ const StatsContainer: React.FC<StatsContainerProps> = ({
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={STATS_CONFIG.COLORS.DIAPER} />
+        <ActivityIndicator size="large" color={theme.category[1]} />
         <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </View>
     );
@@ -76,11 +76,11 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   loadingText: {
     marginTop: STATS_CONFIG.SPACING.MEDIUM,
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
+    color: theme.textSecondary,
   },
   errorText: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    color: STATS_CONFIG.COLORS.ERROR,
+    color: theme.danger,
     textAlign: 'center',
   },
   emptyTitle: {
@@ -92,7 +92,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   emptySubtitle: {
     fontSize: 14,
-    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
+    color: theme.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 16,

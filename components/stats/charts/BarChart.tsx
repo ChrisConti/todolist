@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { STATS_CONFIG } from '../../../constants/statsConfig';
+import { useTheme } from '../../../Context/ThemeContext';
+import type { Theme } from '../../../constants/theme';
 
 interface BarChartData {
   label: string;
@@ -24,6 +26,8 @@ const BarChart: React.FC<BarChartProps> = ({
   showValues = true,
   orientation = 'horizontal',
 }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { width: screenWidth } = useWindowDimensions();
   const maxValue = Math.max(...data.map(d => d.value), 1);
 
@@ -69,7 +73,7 @@ const BarChart: React.FC<BarChartProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   chartContainer: {
     flexDirection: 'column',
     justifyContent: 'space-around',
@@ -77,7 +81,7 @@ const styles = StyleSheet.create({
     minHeight: 220,
     marginVertical: STATS_CONFIG.SPACING.MEDIUM,
     borderRadius: 16,
-    backgroundColor: STATS_CONFIG.COLORS.BACKGROUND,
+    backgroundColor: theme.background,
   },
   chartRow: {
     flexDirection: 'row',
@@ -89,7 +93,7 @@ const styles = StyleSheet.create({
     width: 50,
     marginRight: STATS_CONFIG.SPACING.MEDIUM,
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
   barContainer: {
     flexDirection: 'row',
@@ -112,7 +116,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 15,
   },
   barText: {
-    color: STATS_CONFIG.COLORS.WHITE,
+    color: theme.onPrimary,
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
     fontWeight: 'bold',
     paddingHorizontal: STATS_CONFIG.SPACING.SMALL,

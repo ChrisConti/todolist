@@ -37,11 +37,11 @@ const Thermo: React.FC<ThermoProps> = ({ navigation, tasks }) => {
         {/* Rows */}
         {temperatureData.map((row: any, index: number) => {
           let backgroundColor = 'transparent';
-          let textColor = STATS_CONFIG.COLORS.TEXT_PRIMARY;
+          let textColor = theme.text;
 
           if (row.isMax) {
             backgroundColor = theme.dangerSoft;
-            textColor = STATS_CONFIG.COLORS.DIAPER;
+            textColor = theme.category[1];
           } else if (row.isMin) {
             backgroundColor = theme.successSoft;
             textColor = theme.success;
@@ -141,22 +141,22 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   sectionSubtitle: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
     fontWeight: '600',
-    color: STATS_CONFIG.COLORS.BIBERON,
+    color: theme.categoryAccent[0],
     marginBottom: 8,
   },
   statLabel: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
+    color: theme.textSecondary,
     marginBottom: 4,
   },
   statValue: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
     fontWeight: '500',
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
     marginBottom: 4,
   },
   tableContainer: {
-    backgroundColor: STATS_CONFIG.COLORS.BACKGROUND,
+    backgroundColor: theme.background,
     borderRadius: 16,
     padding: STATS_CONFIG.SPACING.MEDIUM,
     marginVertical: STATS_CONFIG.SPACING.MEDIUM,
@@ -164,14 +164,14 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   tableHeader: {
     flexDirection: 'row',
     borderBottomWidth: 2,
-    borderBottomColor: STATS_CONFIG.COLORS.DIAPER,
+    borderBottomColor: theme.category[1],
     paddingBottom: STATS_CONFIG.SPACING.MEDIUM,
     marginBottom: STATS_CONFIG.SPACING.SMALL,
   },
   tableHeaderText: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
     fontWeight: 'bold',
-    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
+    color: theme.textSecondary,
     textAlign: 'center',
   },
   tableRow: {
@@ -189,7 +189,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   noDataText: {
     textAlign: 'center',
-    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
+    color: theme.textSecondary,
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
     marginTop: STATS_CONFIG.SPACING.LARGE,
   },

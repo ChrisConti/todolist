@@ -33,3 +33,38 @@ describe('resolveTheme', () => {
     });
   });
 });
+
+/**
+ * Le droit au sombre ne doit jamais survivre à une réponse négative du serveur.
+ *
+ * ThemeContext applique un premium « optimiste » pendant l'hydratation, pour
+ * éviter un flash clair à un premium qui était en sombre au lancement
+ * précédent. Une première version ne le révoquait que si la session avait vu
+ * passer un isPremium à true : un premium remboursé, ou un document Users pas
+ * encore synchronisé, gardait donc le sombre indéfiniment.
+ *
+ * On reproduit ici la règle de révocation telle que le contexte l'applique.
+ */
+describe('révocation du premium optimiste', () => {
+  /** Reproduit l'effet de ThemeContext : la réponse fait foi dans les deux sens. */
+  const settle = (optimistic: boolean, isPremium: boolean, loading: boolean) =>
+    loading ? optimistic : isPremium;
+
+  it('garde l\'optimisme tant que le serveur n\'a pas répondu', () => {
+    expect(settle(true, false, true)).toBe(true);
+  });
+
+  it('révoque dès que le serveur répond non, même sans oui préalable', () => {
+    // Le cas du remboursement, et celui du document pas encore synchronisé.
+    expect(settle(true, false, false)).toBe(false);
+  });
+
+  it('confirme quand le serveur répond oui', () => {
+    expect(settle(false, true, false)).toBe(true);
+  });
+
+  it('une fois révoqué, le sombre n\'est plus résolvable', () => {
+    const canUseDarkMode = settle(true, false, false);
+    expect(resolveTheme('dark', 'dark', canUseDarkMode)).toBe('light');
+  });
+});

@@ -108,6 +108,34 @@ describe('branchement du thème', () => {
     expect(faults).toEqual([]);
   });
 
+  it('aucun jeton de surface ne sert de couleur de texte', () => {
+    // card et background changent de clair à foncé selon le thème : en texte,
+    // ils disparaissent dans l'un des deux. 41 sites étaient concernés.
+    const faults: string[] = [];
+    for (const { rel, src } of FILES) {
+      src.split('\n').forEach((line, i) => {
+        if (/\bcolor:\s*theme\.(card|background|soft|border|separator|disabled)\b/.test(line)) {
+          faults.push(`${rel}:${i + 1}`);
+        }
+        // Les teintes de `category` sont assombries pour servir de fond ;
+        // `categoryAccent` est leur équivalent lisible en texte.
+        if (/\bcolor:\s*theme\.category\[/.test(line)) faults.push(`${rel}:${i + 1}`);
+      });
+    }
+    expect(faults).toEqual([]);
+  });
+
+  it('aucune référence à la palette parallèle de statsConfig', () => {
+    // STATS_CONFIG.COLORS est figé : il ne suit aucun thème, et ses références
+    // échappaient au contrôle des littéraux hex.
+    const faults: string[] = [];
+    for (const { rel, src } of FILES) {
+      if (rel === 'constants/statsConfig.ts') continue;
+      if (/STATS_CONFIG\.COLORS/.test(src)) faults.push(rel);
+    }
+    expect(faults).toEqual([]);
+  });
+
   it('aucun composant rendu ne garde de couleur en dur', () => {
     // Hors exemptions listées, une teinte figée ne suit pas le thème. Les
     // ombres portées et les valeurs transparentes sont permises.
@@ -116,9 +144,24 @@ describe('branchement du thème', () => {
       if (EXEMPT[rel] || !/StyleSheet\.create|style=\{\{/.test(src)) continue;
       const hits = (src.match(/'#[0-9A-Fa-f]{3,8}'|"#[0-9A-Fa-f]{3,8}"/g) ?? [])
         .filter(c => !/^'#0{3,6}'$/.test(c));
-      // Les illustrations figent délibérément les deux palettes.
-      const illustration = /preview|lockScreenMock|themeDark|themeLight/.test(src);
-      if (hits.length && !illustration) faults.push(`${rel} — ${[...new Set(hits)].join(' ')}`);
+      // Les illustrations figent délibérément les deux palettes. L'exemption
+      // ne vaut que pour les lignes d'une feuille nommée, jamais pour le
+      // fichier entier : une simple clé de traduction y suffisait, ce qui
+      // exemptait les 34 couleurs de Settings.tsx.
+      const illustrated = new Set<number>();
+      let inPreview = false;
+      src.split('\n').forEach((line, i) => {
+        if (/^const preview = |^function \w*Preview\(|lockScreenMock: \{/.test(line)) inPreview = true;
+        else if (inPreview && /^\}\);?$|^\}$/.test(line)) inPreview = false;
+        if (inPreview || /themeDark:|themeLight:|preview\./.test(line)) illustrated.add(i);
+      });
+      const offending = src.split('\n')
+        .map((line, i) => ({ line, i }))
+        .filter(({ line, i }) => !illustrated.has(i) && /'#[0-9A-Fa-f]{3,8}'|"#[0-9A-Fa-f]{3,8}"/.test(line))
+        .filter(({ line }) => !/shadowColor|#000'/.test(line));
+      if (offending.length) {
+        faults.push(`${rel} — ${offending.map(o => `L${o.i + 1}`).join(' ')}`);
+      }
     }
     expect(faults).toEqual([]);
   });

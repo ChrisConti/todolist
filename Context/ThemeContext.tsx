@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Appearance, ColorSchemeName } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Theme, ThemeName, themes, lightTheme } from '../constants/theme';
@@ -39,14 +39,13 @@ const ThemeContext = createContext<ThemeContextType>({
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isPremium } = usePremium();
+  const { isPremium, isLoading: premiumLoading } = usePremium();
 
   const [preference, setPreferenceState] = useState<ThemePreference>('system');
   const [systemScheme, setSystemScheme] = useState<ColorSchemeName>(Appearance.getColorScheme());
   const [isHydrating, setIsHydrating] = useState(true);
   // Vaut le dernier état premium connu tant que Firestore n'a pas répondu.
   const [optimisticPremium, setOptimisticPremium] = useState(false);
-  const hasRealPremium = useRef(false);
 
   // Lecture au démarrage, avant tout rendu coloré.
   useEffect(() => {
@@ -70,16 +69,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     })();
   }, []);
 
-  // Dès que Firestore répond, sa valeur fait foi et remplace l'optimiste.
+  // L'optimisme ne couvre que la fenêtre d'hydratation. Dès que PremiumContext
+  // a tranché, sa valeur fait foi dans LES DEUX SENS.
+  //
+  // La version précédente ne révoquait l'optimisme que si la session avait vu
+  // passer un isPremium à true. Une session qui n'en voyait jamais — premium
+  // remboursé, ou document Users pas encore synchronisé — gardait donc le
+  // sombre indéfiniment pour un non-premium, ce que resolveTheme est censé
+  // interdire.
   useEffect(() => {
-    if (isPremium) {
-      hasRealPremium.current = true;
-      setOptimisticPremium(true);
-    } else if (hasRealPremium.current) {
-      // Premium réellement perdu (déconnexion) : on retombe en clair.
-      setOptimisticPremium(false);
-    }
-  }, [isPremium]);
+    if (premiumLoading) return;
+    setOptimisticPremium(isPremium);
+  }, [isPremium, premiumLoading]);
 
   useEffect(() => {
     const sub = Appearance.addChangeListener(({ colorScheme }) => setSystemScheme(colorScheme));

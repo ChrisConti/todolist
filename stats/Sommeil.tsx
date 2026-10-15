@@ -78,7 +78,7 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks, babyName, babyBirt
                 {!isEmpty && (
                   <View style={[styles.bar, {
                     height: barHeight,
-                    backgroundColor: STATS_CONFIG.COLORS.SLEEP,
+                    backgroundColor: theme.category[3],
                     opacity: isMax ? STATS_CONFIG.BAR_OPACITY_MAX : STATS_CONFIG.BAR_OPACITY_NON_MAX,
                   }]}>
                     {viewMode === 'count' && (
@@ -138,7 +138,7 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks, babyName, babyBirt
             ] as const).map(({ icon, key }) => (
               <View key={key} style={styles.featRow}>
                 <View style={styles.featIconWrap}>
-                  <MaterialCommunityIcons name={icon as any} size={16} color={STATS_CONFIG.COLORS.SLEEP} />
+                  <MaterialCommunityIcons name={icon as any} size={16} color={theme.category[3]} />
                 </View>
                 <Text style={styles.featText}>{t(key)}</Text>
               </View>
@@ -250,7 +250,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   viewModeContainer: {
     flexDirection: 'row',
-    backgroundColor: STATS_CONFIG.COLORS.WHITE,
+    backgroundColor: theme.card,
     borderRadius: 8,
     padding: 4,
     marginBottom: STATS_CONFIG.SPACING.LARGE,
@@ -266,7 +266,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: 'transparent',
   },
   viewModeButtonActive: {
-    backgroundColor: STATS_CONFIG.COLORS.SLEEP,
+    backgroundColor: theme.category[3],
   },
   viewModeText: {
     fontSize: 13,
@@ -285,18 +285,18 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   statLabel: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
   statValue: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
     fontWeight: '600',
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
   chartContainer: {
     height: 220,
     marginVertical: STATS_CONFIG.SPACING.LARGE + 8,
     borderRadius: 16,
-    backgroundColor: STATS_CONFIG.COLORS.BACKGROUND,
+    backgroundColor: theme.background,
     paddingVertical: STATS_CONFIG.SPACING.MEDIUM,
   },
   chartContent: {
@@ -312,7 +312,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   chartLabel: {
     marginTop: STATS_CONFIG.SPACING.SMALL,
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
   bar: {
     width: 35,
@@ -323,12 +323,12 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   barLabelAbove: {
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
     fontWeight: '600',
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
     marginBottom: 4,
     textAlign: 'center',
   },
   barValue: {
-    color: STATS_CONFIG.COLORS.WHITE,
+    color: theme.onPrimary,
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
     fontWeight: 'bold',
   },
@@ -350,7 +350,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   featRow:  { flexDirection: 'row', alignItems: 'center', gap: 12 },
   featIconWrap: {
     width: 32, height: 32, borderRadius: 8,
-    backgroundColor: `${STATS_CONFIG.COLORS.SLEEP}18`,
+    backgroundColor: `${theme.category[3]}18`,
     alignItems: 'center', justifyContent: 'center',
   },
   featText: { fontSize: 14, color: theme.textSecondary, fontWeight: '500', flex: 1 },

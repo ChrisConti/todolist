@@ -1,6 +1,8 @@
-import React, { ReactNode } from 'react';
+import React, { useMemo, ReactNode } from 'react';
 import { Text, StyleSheet } from 'react-native';
 import { STATS_CONFIG } from '../../constants/statsConfig';
+import { useTheme } from '../../Context/ThemeContext';
+import type { Theme } from '../../constants/theme';
 
 interface SectionTitleProps {
   children: ReactNode;
@@ -11,12 +13,14 @@ interface SectionTitleProps {
  * Replaces the duplicated titleParameter style across all stat components
  */
 const SectionTitle: React.FC<SectionTitleProps> = ({ children }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return <Text style={styles.title}>{children}</Text>;
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   title: {
-    color: STATS_CONFIG.COLORS.TEXT_TITLE,
+    color: theme.textSecondary,
     fontSize: STATS_CONFIG.FONT_SIZES.LARGE,
     fontWeight: 'bold',
     marginBottom: STATS_CONFIG.SPACING.SMALL,

@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { STATS_CONFIG } from '../../../constants/statsConfig';
+import { useTheme } from '../../../Context/ThemeContext';
+import type { Theme } from '../../../constants/theme';
 
 interface StackedBarChartProps {
   labels: string[];
@@ -19,6 +21,8 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
   barColors,
   legend,
 }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const flatData = data.flat().filter((v) => typeof v === 'number') as number[];
   const maxValue = flatData.length > 0 ? Math.max(...flatData) : 1;
 
@@ -76,13 +80,13 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   chartContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'flex-end',
     borderRadius: 16,
-    backgroundColor: STATS_CONFIG.COLORS.BACKGROUND,
+    backgroundColor: theme.background,
     paddingVertical: STATS_CONFIG.SPACING.MEDIUM,
     minHeight: 180,
   },
@@ -93,7 +97,7 @@ const styles = StyleSheet.create({
   chartLabel: {
     marginTop: STATS_CONFIG.SPACING.SMALL,
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
   bar: {
     width: 30,
@@ -103,7 +107,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   barText: {
-    color: STATS_CONFIG.COLORS.WHITE,
+    color: theme.onPrimary,
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
     fontWeight: 'bold',
   },
@@ -111,7 +115,7 @@ const styles = StyleSheet.create({
     marginBottom: STATS_CONFIG.SPACING.SMALL,
     fontWeight: 'bold',
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
   legendContainer: {
     flexDirection: 'row',
@@ -133,7 +137,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
 });
 

@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { STATS_CONFIG } from '../../../constants/statsConfig';
+import { useTheme } from '../../../Context/ThemeContext';
+import type { Theme } from '../../../constants/theme';
 
 interface StatCardProps {
   label: string;
@@ -14,6 +16,8 @@ interface StatCardProps {
  * Used for displaying "Today", "Yesterday", "Last 7 days" stats
  */
 const StatCard: React.FC<StatCardProps> = ({ label, value, unit, subValues }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
@@ -35,9 +39,9 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, unit, subValues }) =>
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
-    backgroundColor: STATS_CONFIG.COLORS.WHITE,
+    backgroundColor: theme.card,
     borderRadius: 8,
     padding: STATS_CONFIG.SPACING.MEDIUM,
     marginBottom: STATS_CONFIG.SPACING.MEDIUM,
@@ -49,7 +53,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
+    color: theme.textSecondary,
     marginBottom: STATS_CONFIG.SPACING.SMALL,
   },
   valueContainer: {
@@ -59,11 +63,11 @@ const styles = StyleSheet.create({
   value: {
     fontSize: STATS_CONFIG.FONT_SIZES.TITLE,
     fontWeight: 'bold',
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
   unit: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
+    color: theme.textSecondary,
     marginLeft: STATS_CONFIG.SPACING.SMALL,
   },
   subValuesContainer: {
@@ -76,12 +80,12 @@ const styles = StyleSheet.create({
   },
   subLabel: {
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
-    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
+    color: theme.textSecondary,
   },
   subValue: {
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
     fontWeight: '600',
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
 });
 

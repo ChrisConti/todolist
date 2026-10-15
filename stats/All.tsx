@@ -289,19 +289,19 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
 
         {/* Category grid */}
         <View style={styles.row}>
-          {renderCard(BiberonIcon as any, STATS_CONFIG.COLORS.BIBERON, 'biberon')}
+          {renderCard(BiberonIcon as any, theme.category[0], 'biberon')}
           <View style={styles.rowSpacer} />
-          {renderCard(AllaitementIcon as any, STATS_CONFIG.COLORS.BREASTFEEDING, 'allaitement')}
+          {renderCard(AllaitementIcon as any, theme.category[5], 'allaitement')}
         </View>
         <View style={styles.row}>
           {(todayStats.tireLait.count + yesterdayStats.tireLait.count + last7DaysStats.tireLait.count) > 0 &&
             renderCard(AllaitementIcon as any, theme.pumping, 'tireLait')}
-          {renderCard(DodoIcon as any, STATS_CONFIG.COLORS.SLEEP, 'sommeil')}
+          {renderCard(DodoIcon as any, theme.category[3], 'sommeil')}
           <View style={styles.rowSpacer} />
-          {renderCard(CoucheIcon as any, STATS_CONFIG.COLORS.DIAPER, 'couche')}
+          {renderCard(CoucheIcon as any, theme.category[1], 'couche')}
         </View>
         <View style={styles.row}>
-          {renderCard(ThermoIcon as any, STATS_CONFIG.COLORS.TEMPERATURE, 'temperature')}
+          {renderCard(ThermoIcon as any, theme.category[4], 'temperature')}
           <View style={styles.rowSpacer} />
 
           {/* Export card */}

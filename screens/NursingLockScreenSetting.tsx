@@ -55,7 +55,7 @@ const NursingLockScreenSetting = () => {
         <Switch
           value={enabled}
           onValueChange={handleToggle}
-          thumbColor={enabled ? '#C75B4A' : '#ccc'}
+          thumbColor={enabled ? theme.primary : theme.textMuted}
           trackColor={{ false: theme.separator, true: theme.switchOn }}
         />
       </View>

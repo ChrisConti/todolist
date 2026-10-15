@@ -164,7 +164,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     gap: STATS_CONFIG.SPACING.MEDIUM,
   },
   card: {
-    backgroundColor: STATS_CONFIG.COLORS.WHITE,
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 16,
   },
@@ -174,7 +174,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: STATS_CONFIG.COLORS.BIBERON,
+    color: theme.categoryAccent[0],
     marginBottom: 2,
   },
   cardTotal: {

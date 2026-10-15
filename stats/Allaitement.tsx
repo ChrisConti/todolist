@@ -93,7 +93,7 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
                     styles.bar,
                     {
                       height: (allaitementChartData.boobLeft[index] / maxValue) * chartHeight || 1,
-                      backgroundColor: STATS_CONFIG.COLORS.BREASTFEEDING_LEFT,
+                      backgroundColor: theme.category[5],
                       width: barWidth,
                     },
                   ]}
@@ -107,7 +107,7 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
                     styles.bar,
                     {
                       height: (allaitementChartData.boobRight[index] / maxValue) * chartHeight || 1,
-                      backgroundColor: STATS_CONFIG.COLORS.SLEEP,
+                      backgroundColor: theme.category[3],
                       width: barWidth,
                     },
                   ]}
@@ -295,11 +295,11 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
         {/* Legend */}
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: STATS_CONFIG.COLORS.BREASTFEEDING_LEFT }]} />
+            <View style={[styles.legendColor, { backgroundColor: theme.category[5] }]} />
             <Text style={styles.legendText}>{t('breast.left')}</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: STATS_CONFIG.COLORS.SLEEP }]} />
+            <View style={[styles.legendColor, { backgroundColor: theme.category[3] }]} />
             <Text style={styles.legendText}>{t('breast.right')}</Text>
           </View>
         </View>
@@ -343,7 +343,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   viewModeContainer: {
     flexDirection: 'row',
-    backgroundColor: STATS_CONFIG.COLORS.WHITE,
+    backgroundColor: theme.card,
     borderRadius: 8,
     padding: 4,
     marginBottom: STATS_CONFIG.SPACING.LARGE,
@@ -359,7 +359,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: 'transparent',
   },
   viewModeButtonActive: {
-    backgroundColor: STATS_CONFIG.COLORS.BREASTFEEDING_LEFT,
+    backgroundColor: theme.category[5],
   },
   viewModeText: {
     fontSize: 13,
@@ -371,7 +371,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   selectorContainer: {
     flexDirection: 'row',
-    backgroundColor: STATS_CONFIG.COLORS.WHITE,
+    backgroundColor: theme.card,
     borderRadius: 8,
     padding: 4,
     marginBottom: STATS_CONFIG.SPACING.MEDIUM,
@@ -387,7 +387,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: 'transparent',
   },
   selectorButtonActive: {
-    backgroundColor: STATS_CONFIG.COLORS.BREASTFEEDING_LEFT,
+    backgroundColor: theme.category[5],
   },
   selectorText: {
     fontSize: 13,
@@ -406,19 +406,19 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   statLabel: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
   statValue: {
     fontSize: STATS_CONFIG.FONT_SIZES.MEDIUM,
     fontWeight: '600',
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
   chartContainer: {
     flexDirection: 'row',
     height: 180,
     marginVertical: STATS_CONFIG.SPACING.LARGE,
     borderRadius: 16,
-    backgroundColor: STATS_CONFIG.COLORS.BACKGROUND,
+    backgroundColor: theme.background,
     alignItems: 'flex-end',
     paddingBottom: 30,
   },
@@ -430,7 +430,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   yAxisLabel: {
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
-    color: STATS_CONFIG.COLORS.TEXT_SECONDARY,
+    color: theme.textSecondary,
   },
   chartContent: {
     flexDirection: 'row',
@@ -454,14 +454,14 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
   },
   barValue: {
-    color: STATS_CONFIG.COLORS.WHITE,
+    color: theme.onPrimary,
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL - 2,
     fontWeight: 'bold',
   },
   chartLabel: {
     marginTop: STATS_CONFIG.SPACING.SMALL,
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
   legendContainer: {
     flexDirection: 'row',
@@ -480,7 +480,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   legendText: {
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
-    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
+    color: theme.text,
   },
 });
 
