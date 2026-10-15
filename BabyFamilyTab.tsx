@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Clipboard, ToastAndroid, Platform, Modal, Share } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Copy from './assets/copy.svg';
@@ -6,6 +6,8 @@ import { FontAwesome } from '@expo/vector-icons';
 import analytics from './services/analytics';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from './config';
+import { useTheme } from './Context/ThemeContext';
+import type { Theme } from './constants/theme';
 
 const ROLES = ['maman', 'papa', 'mamie', 'papy', 'nounou', 'tata', 'tonton', 'autre'] as const;
 
@@ -41,6 +43,8 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
   onLeaveBaby,
   onRoleUpdated,
 }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const [showToast, setShowToast] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
@@ -111,7 +115,7 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
               activeOpacity={canEditRole(user.userId) ? 0.7 : 1}
             >
               <View style={styles.userInfo}>
-                <FontAwesome name="user-circle" size={24} color="#C75B4A" />
+                <FontAwesome name="user-circle" size={24} color={theme.accent} />
                 <View style={styles.userDetails}>
                   <View style={styles.userNameRow}>
                     <Text style={styles.userName}>{user.username}</Text>
@@ -128,7 +132,7 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
                       {getRoleLabel(user.userId)}
                     </Text>
                     {canEditRole(user.userId) && (
-                      <FontAwesome name="pencil" size={11} color="#C0B0A8" style={{ marginLeft: 6 }} />
+                      <FontAwesome name="pencil" size={11} color={theme.textMuted} style={{ marginLeft: 6 }} />
                     )}
                   </View>
                 </View>
@@ -146,7 +150,7 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
           </View>
           <TouchableOpacity style={styles.copyCodeButton} onPress={shareCode}>
             <Text style={styles.copyCodeText}>{t('baby.shareCode')}</Text>
-            <FontAwesome name="share-alt" size={18} color="#FFF" />
+            <FontAwesome name="share-alt" size={18} color={theme.onPrimary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.copySecondaryButton} onPress={() => copyToClipboard(babyID)}>
             <Text style={styles.copySecondaryText}>{t('baby.copyCode')}</Text>
@@ -211,17 +215,17 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FDF1E7' },
+const makeStyles = (theme: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
   scrollView: { flex: 1 },
   contentContainer: { padding: 20, paddingBottom: 100 },
   section: { marginBottom: 30 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 15 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: theme.text, marginBottom: 15 },
   userCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
@@ -234,88 +238,88 @@ const styles = StyleSheet.create({
   userInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   userDetails: { marginLeft: 12, flex: 1 },
   userNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  userName: { fontSize: 16, fontWeight: '600', color: '#333' },
+  userName: { fontSize: 16, fontWeight: '600', color: theme.text },
   adminBadge: {
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
     borderWidth: 1,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 1,
   },
-  adminBadgeText: { fontSize: 10, color: '#C75B4A', fontWeight: '600' },
-  userEmail: { fontSize: 14, color: '#7A8889', marginTop: 2 },
+  adminBadgeText: { fontSize: 10, color: theme.accent, fontWeight: '600' },
+  userEmail: { fontSize: 14, color: theme.textSecondary, marginTop: 2 },
   roleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 4,
   },
-  userRole: { fontSize: 13, color: '#C75B4A', fontWeight: '600' },
-  userRoleEmpty: { color: '#B0B8B9', fontWeight: '500' },
-  shareDescription: { fontSize: 14, color: '#7A8889', marginBottom: 15, lineHeight: 20 },
+  userRole: { fontSize: 13, color: theme.accent, fontWeight: '600' },
+  userRoleEmpty: { color: theme.textMuted, fontWeight: '500' },
+  shareDescription: { fontSize: 14, color: theme.textSecondary, marginBottom: 15, lineHeight: 20 },
   copyCodeButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 10,
     paddingVertical: 15,
     marginTop: 12,
     marginBottom: 8,
   },
-  copyCodeText: { color: '#FFF', fontSize: 16, fontWeight: '600', marginRight: 10 },
+  copyCodeText: { color: theme.onPrimary, fontSize: 16, fontWeight: '600', marginRight: 10 },
   copySecondaryButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     borderRadius: 10,
     paddingVertical: 10,
     marginBottom: 4,
   },
-  copySecondaryText: { color: '#C75B4A', fontSize: 14, fontWeight: '500', marginRight: 8 },
+  copySecondaryText: { color: theme.accent, fontSize: 14, fontWeight: '500', marginRight: 8 },
   codeContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     padding: 15,
     borderRadius: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  codeLabel: { fontSize: 14, fontWeight: '600', color: '#7A8889' },
-  codeValue: { fontSize: 14, color: '#333', fontFamily: 'monospace' },
+  codeLabel: { fontSize: 14, fontWeight: '600', color: theme.textSecondary },
+  codeValue: { fontSize: 14, color: theme.text, fontFamily: 'monospace' },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     padding: 20,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
     alignItems: 'center',
   },
   leaveButton: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 40,
     width: '100%',
     alignItems: 'center',
   },
-  leaveButtonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  leaveButtonText: { color: theme.onPrimary, fontSize: 16, fontWeight: 'bold' },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
     paddingBottom: 40,
   },
-  modalTitle: { fontSize: 17, fontWeight: 'bold', color: '#333', marginBottom: 20, textAlign: 'center' },
+  modalTitle: { fontSize: 17, fontWeight: 'bold', color: theme.text, marginBottom: 20, textAlign: 'center' },
   rolesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -325,13 +329,13 @@ const styles = StyleSheet.create({
     width: '22%',
     aspectRatio: 1,
     borderRadius: 14,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
     position: 'relative',
   },
-  roleCardSelected: { backgroundColor: '#C75B4A' },
+  roleCardSelected: { backgroundColor: theme.primary },
   roleCheck: {
     position: 'absolute',
     top: 5,
@@ -343,13 +347,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  roleCheckText: { color: '#FFF', fontSize: 10, fontWeight: '700' },
+  roleCheckText: { color: theme.onPrimary, fontSize: 10, fontWeight: '700' },
   roleEmoji: { fontSize: 26 },
-  roleLabel: { fontSize: 11, fontWeight: '600', color: '#555', textAlign: 'center' },
-  roleLabelSelected: { color: '#FFF' },
+  roleLabel: { fontSize: 11, fontWeight: '600', color: theme.textSecondary, textAlign: 'center' },
+  roleLabelSelected: { color: theme.onPrimary },
   customToast: { position: 'absolute', bottom: 100, left: 0, right: 0, alignItems: 'center', zIndex: 9999 },
   customToastContent: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: theme.success,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
@@ -359,7 +363,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  customToastText: { color: '#FFF', fontSize: 14, fontWeight: '600' },
+  customToastText: { color: theme.onPrimary, fontSize: 14, fontWeight: '600' },
 });
 
 export default BabyFamilyTab;

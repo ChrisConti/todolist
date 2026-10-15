@@ -1,4 +1,4 @@
-import React, { useContext, useState, useCallback } from 'react';
+import React, { useMemo, useContext, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,8 +12,12 @@ import analytics from './services/analytics';
 import Stork from './assets/parachute2.svg';
 import BabyProfileTab from './BabyProfileTab';
 import BabyFamilyTab from './BabyFamilyTab';
+import { useTheme } from './Context/ThemeContext';
+import type { Theme } from './constants/theme';
 
 const BabyTab = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { user, babyID, setBabyID, userInfo } = useContext(AuthentificationUserContext);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -175,7 +179,7 @@ const BabyTab = ({ navigation }) => {
   if (loading && !babyData) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#C75B4A" />
+        <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }
@@ -224,7 +228,7 @@ const BabyTab = ({ navigation }) => {
   if (!babyData) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#C75B4A" />
+        <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }
@@ -277,13 +281,13 @@ const BabyTab = ({ navigation }) => {
 
 export default BabyTab;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   header: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     paddingBottom: 14,
     paddingHorizontal: 16,
     alignItems: 'center',
@@ -291,20 +295,20 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#FDF1E7',
+    color: theme.onPrimary,
     fontFamily: 'Pacifico',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E8D5C4',
+    borderBottomColor: theme.border,
   },
   tab: {
     flex: 1,
@@ -314,15 +318,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#C75B4A',
+    borderBottomColor: theme.accent,
   },
   tabText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7A8889',
+    color: theme.textSecondary,
   },
   activeTabText: {
-    color: '#C75B4A',
+    color: theme.accent,
   },
   scrollView: {
     flex: 1,
@@ -339,13 +343,13 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 18,
-    color: '#7A8889',
+    color: theme.textSecondary,
     textAlign: 'center',
     marginTop: 20,
     marginBottom: 30,
   },
   primaryButton: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 30,
@@ -354,7 +358,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   primaryButtonText: {
-    color: '#fff',
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -362,14 +366,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     paddingVertical: 12,
     paddingHorizontal: 30,
     alignItems: 'center',
     width: 250,
   },
   secondaryButtonText: {
-    color: '#C75B4A',
+    color: theme.accent,
     fontSize: 16,
     fontWeight: 'bold',
   },

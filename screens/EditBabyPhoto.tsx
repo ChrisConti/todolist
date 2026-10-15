@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useMemo, useState, useContext, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator, Linking, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome } from '@expo/vector-icons';
@@ -10,6 +10,8 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage
 import { storage, db } from '../config';
 import Boy from '../assets/garcon.svg';
 import Girl from '../assets/fille.svg';
+import { useTheme } from '../Context/ThemeContext';
+import type { Theme } from '../constants/theme';
 
 interface EditBabyPhotoProps {
   route: any;
@@ -17,6 +19,8 @@ interface EditBabyPhotoProps {
 }
 
 const EditBabyPhoto: React.FC<EditBabyPhotoProps> = ({ route, navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { babyID } = useContext(AuthentificationUserContext);
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -233,12 +237,12 @@ const EditBabyPhoto: React.FC<EditBabyPhotoProps> = ({ route, navigation }) => {
 
       <View style={styles.actionsContainer}>
         <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
-          <FontAwesome name="image" size={24} color="#FFF" />
+          <FontAwesome name="image" size={24} color={theme.onPrimary} />
           <Text style={styles.actionText}>{t('baby.selectPhoto')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
-          <FontAwesome name="camera" size={24} color="#FFF" />
+          <FontAwesome name="camera" size={24} color={theme.onPrimary} />
           <Text style={styles.actionText}>{t('baby.takePhoto')}</Text>
         </TouchableOpacity>
 
@@ -247,7 +251,7 @@ const EditBabyPhoto: React.FC<EditBabyPhotoProps> = ({ route, navigation }) => {
             style={[styles.actionButton, styles.removeButton]}
             onPress={removePhoto}
           >
-            <FontAwesome name="trash" size={24} color="#FFF" />
+            <FontAwesome name="trash" size={24} color={theme.onPrimary} />
             <Text style={styles.actionText}>{t('baby.removePhoto')}</Text>
           </TouchableOpacity>
         )}
@@ -259,7 +263,7 @@ const EditBabyPhoto: React.FC<EditBabyPhotoProps> = ({ route, navigation }) => {
         disabled={loading}
       >
         {loading ? (
-          <ActivityIndicator color="#FFF" />
+          <ActivityIndicator color={theme.onPrimary} />
         ) : (
           <Text style={styles.saveButtonText}>{t('button.validate')}</Text>
         )}
@@ -268,10 +272,10 @@ const EditBabyPhoto: React.FC<EditBabyPhotoProps> = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
     padding: 20,
     justifyContent: 'space-between',
   },
@@ -286,7 +290,7 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 100,
     borderWidth: 3,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
   },
   actionsContainer: {
     gap: 15,
@@ -295,22 +299,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius: 10,
     gap: 10,
   },
   removeButton: {
-    backgroundColor: '#D32F2F',
+    backgroundColor: theme.danger,
   },
   actionText: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 10,
     paddingVertical: 15,
     alignItems: 'center',
@@ -320,7 +324,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonText: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontSize: 18,
     fontWeight: 'bold',
   },

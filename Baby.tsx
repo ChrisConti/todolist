@@ -2,7 +2,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import React, { useContext, useEffect, useState, useRef } from 'react';
+import React, { useMemo, useContext, useEffect, useState, useRef } from 'react';
 import { db } from './config';
 import { addDoc, collection, serverTimestamp, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { userRef } from './config';
@@ -16,6 +16,8 @@ import { validateBabyName, validateBirthdate, formatBirthdateInput } from './uti
 import { COLLECTIONS, KEYBOARD_CONFIG } from './utils/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { parseReviewPromptState } from './utils/reviewPromptLogic';
+import { useTheme } from './Context/ThemeContext';
+import type { Theme } from './constants/theme';
 
 const ROLES = ['maman', 'papa', 'mamie', 'papy', 'nounou', 'tata', 'tonton', 'autre'] as const;
 const AGE_RANGES = ['under25', 'r25to30', 'r30to35', 'r35to40', 'over40'] as const;
@@ -32,6 +34,8 @@ const ROLE_EMOJIS: Record<string, string> = {
 };
 
 const Baby = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [name, setName] = useState('');
   const [selectedType, setSelectedType] = useState(0);
   const [birthdate, setBirthdate] = useState('');
@@ -145,7 +149,7 @@ const Baby = ({ navigation }) => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#FDF1E7' }}
+      style={{ flex: 1, backgroundColor: theme.background }}
       behavior={KEYBOARD_CONFIG.BEHAVIOR}
       keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
     >
@@ -181,7 +185,7 @@ const Baby = ({ navigation }) => {
           ref={nameInputRef}
           style={styles.input}
           placeholder={t('placeholder.firstName')}
-          placeholderTextColor="#BBA899"
+          placeholderTextColor={theme.textMuted}
           autoCapitalize="words"
           value={name}
           onChangeText={setName}
@@ -196,7 +200,7 @@ const Baby = ({ navigation }) => {
           onChangeText={(t) => setBirthdate(formatBirthdateInput(t))}
           keyboardType="numeric"
           placeholder={t('placeholder.birthdate')}
-          placeholderTextColor="#BBA899"
+          placeholderTextColor={theme.textMuted}
           maxLength={10}
           editable={!loading}
         />
@@ -271,7 +275,7 @@ const Baby = ({ navigation }) => {
           disabled={loading}
         >
           {loading
-            ? <ActivityIndicator color="#FFF" />
+            ? <ActivityIndicator color={theme.onPrimary} />
             : <Text style={styles.ctaText}>{t('button.validate')}</Text>
           }
         </TouchableOpacity>
@@ -280,7 +284,7 @@ const Baby = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   scroll: {
     padding: 20,
     paddingBottom: 40,
@@ -290,7 +294,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#222',
+    color: theme.text,
     marginBottom: 10,
   },
 
@@ -308,13 +312,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderWidth: 2.5,
     borderColor: 'transparent',
     position: 'relative',
   },
   sexCardSelected: {
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
   },
   sexCheck: {
     position: 'absolute',
@@ -323,19 +327,19 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sexCheckText: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontSize: 11,
     fontWeight: '700',
   },
   sexLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#222',
+    color: theme.text,
   },
 
   /* ── Inputs ── */
@@ -343,16 +347,16 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 52,
     borderRadius: 10,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: '#222',
+    color: theme.text,
   },
 
   /* ── Divider ── */
   divider: {
     height: 1,
-    backgroundColor: '#E0CFC0',
+    backgroundColor: theme.border,
     marginVertical: 28,
   },
 
@@ -367,23 +371,23 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   questionMark: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontSize: 22,
     fontWeight: '800',
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#111',
+    color: theme.text,
   },
   sectionSubtitle: {
     fontSize: 13,
-    color: '#999',
+    color: theme.textMuted,
     marginTop: 2,
   },
 
@@ -398,14 +402,14 @@ const styles = StyleSheet.create({
     width: '22%',
     aspectRatio: 1,
     borderRadius: 14,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
     position: 'relative',
   },
   roleCardSelected: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
   },
   roleCheck: {
     position: 'absolute',
@@ -419,7 +423,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   roleCheckText: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontSize: 10,
     fontWeight: '700',
   },
@@ -429,17 +433,17 @@ const styles = StyleSheet.create({
   roleLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#555',
+    color: theme.textSecondary,
     textAlign: 'center',
   },
   roleLabelSelected: {
-    color: '#FFF',
+    color: theme.onPrimary,
   },
 
   /* ── Tranche d'âge ── */
   ageRow: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderRadius: 14,
     padding: 3,
   },
@@ -451,21 +455,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ageChipSelected: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
   },
   ageChipText: {
     fontSize: 13,
-    color: '#888',
+    color: theme.textMuted,
     fontWeight: '500',
   },
   ageChipTextSelected: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontWeight: '600',
   },
 
   /* ── Erreur ── */
   error: {
-    color: '#C75B4A',
+    color: theme.accent,
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
@@ -475,7 +479,7 @@ const styles = StyleSheet.create({
   /* ── CTA ── */
   cta: {
     marginTop: 28,
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 12,
     height: 54,
     alignItems: 'center',
@@ -485,7 +489,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   ctaText: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontSize: 17,
     fontWeight: '700',
     letterSpacing: 0.3,

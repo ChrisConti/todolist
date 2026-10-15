@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import analytics from './services/analytics';
-import React, { useContext, useEffect, useState, useCallback } from 'react';
+import React, { useMemo, useContext, useEffect, useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { babiesRef, db, userRef, storage } from './config';
@@ -10,8 +10,12 @@ import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
 import BabyProfileTab from './BabyProfileTab';
 import BabyFamilyTab from './BabyFamilyTab';
+import { useTheme } from './Context/ThemeContext';
+import type { Theme } from './constants/theme';
 
 const BabyState = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const { user, babyID, setBabyID } = useContext(AuthentificationUserContext);
   const [activeTab, setActiveTab] = useState<'profile' | 'family'>('profile');
@@ -207,22 +211,22 @@ const BabyState = ({ navigation }) => {
 
 export default BabyState;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E8D5C4',
+    borderBottomColor: theme.border,
   },
   tab: {
     flex: 1,
@@ -232,14 +236,14 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#C75B4A',
+    borderBottomColor: theme.accent,
   },
   tabText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7A8889',
+    color: theme.textSecondary,
   },
   activeTabText: {
-    color: '#C75B4A',
+    color: theme.accent,
   },
 });

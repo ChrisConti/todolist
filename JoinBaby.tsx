@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView, ActivityIndicator } from 'react-native';
-import React, { useContext, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useContext, useState, useEffect, useRef } from 'react';
 import { doc, getDocsFromServer, query, updateDoc, where, arrayUnion, getDocs, serverTimestamp } from 'firebase/firestore';
 import { babiesRef, db, userRef } from './config';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import analytics from './services/analytics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KEYBOARD_CONFIG } from './utils/constants';
+import { useTheme } from './Context/ThemeContext';
+import type { Theme } from './constants/theme';
 
 const ROLES = ['maman', 'papa', 'mamie', 'papy', 'nounou', 'tata', 'tonton', 'autre'] as const;
 const AGE_RANGES = ['under25', 'r25to30', 'r30to35', 'r35to40', 'over40'] as const;
@@ -17,6 +19,8 @@ const ROLE_EMOJIS: Record<string, string> = {
 };
 
 const JoinBaby = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const { user, setBabyID, userInfo, setUserInfo } = useContext(AuthentificationUserContext);
   const [step, setStep] = useState<'code' | 'profile'>('code');
@@ -231,7 +235,7 @@ const JoinBaby = ({ navigation }) => {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#F6F0EB" />
+              <ActivityIndicator color={theme.onPrimary} />
             ) : (
               <Text style={styles.buttonText}>{t('baby.continueProfile')}</Text>
             )}
@@ -272,7 +276,7 @@ const JoinBaby = ({ navigation }) => {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#F6F0EB" />
+              <ActivityIndicator color={theme.onPrimary} />
             ) : (
               <Text style={styles.buttonText}>{t('validate')}</Text>
             )}
@@ -285,25 +289,25 @@ const JoinBaby = ({ navigation }) => {
 
 export default JoinBaby;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   profileContent: {
     padding: 20,
     paddingBottom: 20,
   },
   confirmationBanner: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
     alignItems: 'center',
   },
   confirmationText: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontSize: 17,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -318,29 +322,29 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   questionMark: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontSize: 22,
     fontWeight: '800',
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#111',
+    color: theme.text,
   },
   sectionSubtitle: {
     fontSize: 13,
-    color: '#999',
+    color: theme.textMuted,
     marginTop: 2,
   },
   label: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#222',
+    color: theme.text,
     marginBottom: 10,
   },
   rolesGrid: {
@@ -353,14 +357,14 @@ const styles = StyleSheet.create({
     width: '22%',
     aspectRatio: 1,
     borderRadius: 14,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
     position: 'relative',
   },
   roleCardSelected: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
   },
   roleCheck: {
     position: 'absolute',
@@ -374,7 +378,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   roleCheckText: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontSize: 10,
     fontWeight: '700',
   },
@@ -384,15 +388,15 @@ const styles = StyleSheet.create({
   roleLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#555',
+    color: theme.textSecondary,
     textAlign: 'center',
   },
   roleLabelSelected: {
-    color: '#FFF',
+    color: theme.onPrimary,
   },
   ageRow: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderRadius: 14,
     padding: 3,
   },
@@ -404,15 +408,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ageChipSelected: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
   },
   ageChipText: {
     fontSize: 13,
-    color: '#888',
+    color: theme.textMuted,
     fontWeight: '500',
   },
   ageChipTextSelected: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontWeight: '600',
   },
   errorContainer: {
@@ -420,12 +424,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   errorText: {
-    color: '#C75B4A',
+    color: theme.accent,
     fontSize: 14,
     fontWeight: 'bold',
   },
   button: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -437,7 +441,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: 'white',
+    color: theme.card,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -445,13 +449,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
     borderBottomWidth: 1,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 20,
   },
   footer: {
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
     paddingVertical: 10,
     paddingHorizontal: 20,
     paddingBottom: Platform.select({ ios: 20, android: 10 }),

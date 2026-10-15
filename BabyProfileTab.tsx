@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { calculateAge } from './utils/validation';
 import Boy from './assets/garcon.svg';
 import Girl from './assets/fille.svg';
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTheme } from './Context/ThemeContext';
+import type { Theme } from './constants/theme';
 
 interface BabyProfileTabProps {
   babyData: {
@@ -19,6 +21,8 @@ interface BabyProfileTabProps {
 }
 
 const BabyProfileTab: React.FC<BabyProfileTabProps> = ({ babyData, onEdit }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const [imageError, setImageError] = React.useState(false);
 
@@ -55,7 +59,7 @@ const BabyProfileTab: React.FC<BabyProfileTabProps> = ({ babyData, onEdit }) => 
       {/* Header avec bouton éditer */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.editButton} onPress={onEdit}>
-          <FontAwesome name="edit" size={20} color="#C75B4A" />
+          <FontAwesome name="edit" size={20} color={theme.accent} />
           <Text style={styles.editButtonText}>{t('baby.edit')}</Text>
         </TouchableOpacity>
       </View>
@@ -72,7 +76,7 @@ const BabyProfileTab: React.FC<BabyProfileTabProps> = ({ babyData, onEdit }) => 
       <View style={styles.infoCardsContainer}>
         {/* Carte Âge */}
         <View style={styles.infoCard}>
-          <MaterialCommunityIcons name="cake-variant" size={24} color="#C75B4A" style={styles.cardIcon} />
+          <MaterialCommunityIcons name="cake-variant" size={24} color={theme.accent} style={styles.cardIcon} />
           <Text style={styles.cardLabel}>{t('baby.age')}</Text>
           <Text style={styles.cardValue}>{calculateAge(babyData.birthDate, t)}</Text>
         </View>
@@ -82,7 +86,7 @@ const BabyProfileTab: React.FC<BabyProfileTabProps> = ({ babyData, onEdit }) => 
           <FontAwesome 
             name={babyData.type === 'Boy' ? 'mars' : 'venus'} 
             size={24} 
-            color="#C75B4A" 
+            color={theme.accent} 
             style={styles.cardIcon} 
           />
           <Text style={styles.cardLabel}>{t('baby.sex')}</Text>
@@ -94,7 +98,7 @@ const BabyProfileTab: React.FC<BabyProfileTabProps> = ({ babyData, onEdit }) => 
         {/* Carte Poids (si renseigné) */}
         {babyData.weight && (
           <View style={styles.infoCard}>
-            <MaterialCommunityIcons name="scale-bathroom" size={24} color="#C75B4A" style={styles.cardIcon} />
+            <MaterialCommunityIcons name="scale-bathroom" size={24} color={theme.accent} style={styles.cardIcon} />
             <Text style={styles.cardLabel}>{t('baby.weight')}</Text>
             <Text style={styles.cardValue}>{babyData.weight} {t('baby.kg')}</Text>
           </View>
@@ -103,7 +107,7 @@ const BabyProfileTab: React.FC<BabyProfileTabProps> = ({ babyData, onEdit }) => 
         {/* Carte Taille (si renseignée) */}
         {babyData.height && (
           <View style={styles.infoCard}>
-            <MaterialCommunityIcons name="tape-measure" size={24} color="#C75B4A" style={styles.cardIcon} />
+            <MaterialCommunityIcons name="tape-measure" size={24} color={theme.accent} style={styles.cardIcon} />
             <Text style={styles.cardLabel}>{t('baby.height')}</Text>
             <Text style={styles.cardValue}>{babyData.height} {t('baby.cm')}</Text>
           </View>
@@ -113,10 +117,10 @@ const BabyProfileTab: React.FC<BabyProfileTabProps> = ({ babyData, onEdit }) => 
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   contentContainer: {
     padding: 20,
@@ -128,16 +132,16 @@ const styles = StyleSheet.create({
   editButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
   },
   editButtonText: {
     marginLeft: 8,
-    color: '#C75B4A',
+    color: theme.accent,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -150,22 +154,22 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 75,
     borderWidth: 4,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
   },
   svgContainer: {
     width: 150,
     height: 150,
     borderRadius: 75,
     borderWidth: 4,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
   },
   babyName: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 30,
   },
@@ -176,7 +180,7 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     width: '48%',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     borderRadius: 12,
     padding: 20,
     marginBottom: 15,
@@ -192,13 +196,13 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 14,
-    color: '#7A8889',
+    color: theme.textSecondary,
     marginBottom: 5,
   },
   cardValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: theme.text,
     textAlign: 'center',
   },
 });

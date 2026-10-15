@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useContext, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -33,8 +33,12 @@ import analytics from './services/analytics';
 import Boy from './assets/garcon.svg';
 import Girl from './assets/fille.svg';
 import { KEYBOARD_CONFIG } from './utils/constants';
+import { useTheme } from './Context/ThemeContext';
+import type { Theme } from './constants/theme';
 
 const EditBaby = ({ navigation, route }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const { user, babyID: contextBabyID } = useContext(AuthentificationUserContext);
   const { babyData: initialBabyData } = route.params;
@@ -349,16 +353,16 @@ const EditBaby = ({ navigation, route }) => {
           />
           <View style={styles.photoActions}>
             <TouchableOpacity style={styles.photoActionButton} onPress={pickImage}>
-              <FontAwesome name="image" size={20} color="#FFF" />
+              <FontAwesome name="image" size={20} color={theme.onPrimary} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.photoActionButton} onPress={takePhoto}>
-              <FontAwesome name="camera" size={20} color="#FFF" />
+              <FontAwesome name="camera" size={20} color={theme.onPrimary} />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.photoActionButton, styles.removeButton]}
               onPress={removePhoto}
             >
-              <FontAwesome name="trash" size={20} color="#FFF" />
+              <FontAwesome name="trash" size={20} color={theme.onPrimary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -377,10 +381,10 @@ const EditBaby = ({ navigation, route }) => {
         </View>
         <View style={styles.photoActions}>
           <TouchableOpacity style={styles.photoActionButton} onPress={pickImage}>
-            <FontAwesome name="image" size={20} color="#FFF" />
+            <FontAwesome name="image" size={20} color={theme.onPrimary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.photoActionButton} onPress={takePhoto}>
-            <FontAwesome name="camera" size={20} color="#FFF" />
+            <FontAwesome name="camera" size={20} color={theme.onPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -482,7 +486,7 @@ const EditBaby = ({ navigation, route }) => {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#FFF" />
+            <ActivityIndicator color={theme.onPrimary} />
           ) : (
             <Text style={styles.saveButtonText}>{t('button.validate')}</Text>
           )}
@@ -493,10 +497,10 @@ const EditBaby = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
   },
   scrollView: {
     flex: 1,
@@ -508,7 +512,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: theme.text,
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -521,7 +525,7 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 75,
     borderWidth: 4,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     marginBottom: 15,
   },
   svgContainer: {
@@ -529,10 +533,10 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 75,
     borderWidth: 4,
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     marginBottom: 15,
   },
   photoActions: {
@@ -546,7 +550,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderRadius: 8,
@@ -554,22 +558,22 @@ const styles = StyleSheet.create({
     height: 50,
   },
   removeButton: {
-    backgroundColor: '#D32F2F',
+    backgroundColor: theme.danger,
   },
   photoActionText: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontSize: 14,
     fontWeight: '600',
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: theme.text,
     marginBottom: 8,
     marginTop: 15,
   },
   required: {
-    color: '#D32F2F',
+    color: theme.danger,
   },
   typeSelector: {
     flexDirection: 'row',
@@ -586,11 +590,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2.5,
     borderColor: 'transparent',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     position: 'relative',
   },
   typeOptionSelected: {
-    borderColor: '#C75B4A',
+    borderColor: theme.accent,
   },
   sexCheck: {
     position: 'absolute',
@@ -599,30 +603,30 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sexCheckText: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontSize: 11,
     fontWeight: '700',
   },
   typeText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: theme.text,
   },
   input: {
     width: '100%',
     height: 50,
     borderRadius: 8,
     paddingHorizontal: 15,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.card,
     fontSize: 16,
   },
   errorText: {
-    color: '#D32F2F',
+    color: theme.danger,
     fontSize: 14,
     marginTop: 10,
     textAlign: 'center',
@@ -630,18 +634,18 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     padding: 20,
-    backgroundColor: '#FDF1E7',
+    backgroundColor: theme.background,
     justifyContent: 'center',
   },
   saveButton: {
-    backgroundColor: '#C75B4A',
+    backgroundColor: theme.primary,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
     width: 250,
   },
   saveButtonText: {
-    color: '#FFF',
+    color: theme.onPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
