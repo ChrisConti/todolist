@@ -190,7 +190,7 @@ const FirstTaskBiberon = ({ navigation, route }: any) => {
           disabled={selectedMinutes === null || loading}
         >
           {loading
-            ? <ActivityIndicator color={theme.card} />
+            ? <ActivityIndicator color={theme.onPrimary} />
             : <Text style={styles.saveButtonText}>{t('firstTask.save')}</Text>}
         </TouchableOpacity>
         <TouchableOpacity style={styles.skipButton} onPress={handleSkip} disabled={loading}>

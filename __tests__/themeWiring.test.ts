@@ -28,6 +28,36 @@ function sourceFiles(dir: string, out: string[] = []): string[] {
 
 const FILES = sourceFiles(ROOT).map(f => ({ rel: path.relative(ROOT, f), src: fs.readFileSync(f, 'utf8') }));
 
+/**
+ * Lignes appartenant à une illustration, où les couleurs sont le sujet et non
+ * de l'habillage : les aperçus du paywall et la maquette d'écran verrouillé.
+ *
+ * La fenêtre se referme à la fin du bloc ouvert, pas à la fin du fichier. Une
+ * version antérieure s'ouvrait sur `lockScreenMock: {` et courait jusqu'au
+ * `});` final de la feuille, exemptant ainsi tous les styles suivants.
+ */
+function illustratedLines(src: string): Set<number> {
+  const out = new Set<number>();
+  const lines = src.split('\n');
+  let depth = 0;
+  let open = false;
+  lines.forEach((line, i) => {
+    const MOCK_KEYS = /^\s+(lockScreenMock|mockClock|activityCard|mascotGroup|mascot|mascotEmoji|startedLabel|startedTime|chronoCol|chronoLabel|chrono): \{/;
+    if (MOCK_KEYS.test(line)) { out.add(i); for (let j = i + 1; j < lines.length && !/^\s+\w+: \{|^\}\)/.test(lines[j]); j++) out.add(j); }
+    if (!open && /^const preview = |^function \w*Preview\(/.test(line)) {
+      open = true;
+      depth = 0;
+    }
+    if (open) {
+      out.add(i);
+      depth += (line.match(/\{/g) ?? []).length - (line.match(/\}/g) ?? []).length;
+      if (depth <= 0 && /\}/.test(line)) open = false;
+    }
+    if (/preview\./.test(line)) out.add(i);
+  });
+  return out;
+}
+
 /** Fichiers volontairement non thématiques, avec la raison. */
 const EXEMPT: Record<string, string> = {
   'components/ErrorBoundary.tsx': 'composant classe monté hors du ThemeProvider',
@@ -43,14 +73,31 @@ const EXEMPT: Record<string, string> = {
 };
 
 describe('branchement du thème', () => {
-  it('aucune constante au niveau module ne lit theme', () => {
-    // theme n'existe pas hors d'un composant : une telle constante lève un
+  it('aucune feuille de styles au niveau module ne lit theme', () => {
+    // theme n'existe pas hors d'un composant : une telle lecture lève un
     // ReferenceError au premier import, avant tout rendu.
+    //
+    // Le signal fiable est une StyleSheet.create qui ne reçoit pas theme en
+    // paramètre, et dont le corps le lit quand même. Une version antérieure
+    // tentait de suivre les accolades pour détecter « la portée module » : le
+    // JSX la perdait et elle signalait des centaines de lignes saines — un
+    // garde-fou bruyant finit désactivé, donc ne protège rien.
     const faults: string[] = [];
     for (const { rel, src } of FILES) {
-      src.split('\n').forEach((line, i) => {
-        if (/^(const|let|var)\s+[A-Za-z_$][\w$]*\s*(:[^=]*)?=.*\btheme\./.test(line)) {
-          faults.push(`${rel}:${i + 1}  ${line.trim().slice(0, 70)}`);
+      const lines = src.split('\n');
+      lines.forEach((line, i) => {
+        if (!/StyleSheet\.create\(\{/.test(line)) return;
+        if (/\(\s*theme\s*:/.test(line)) return; // fabrique : portée légitime
+        // Corps de la feuille, jusqu'à son `});` en colonne 0.
+        for (let j = i + 1; j < lines.length; j++) {
+          if (/^\}\)/.test(lines[j])) break;
+          if (/\btheme\.\w/.test(lines[j])) faults.push(`${rel}:${j + 1}  ${lines[j].trim().slice(0, 56)}`);
+        }
+      });
+      // Et la forme mono-ligne, hors de toute feuille.
+      lines.forEach((line, i) => {
+        if (/^(const|let|var)\s+[A-Za-z_$][\w$]*\s*(:[^=]*)?=[^=].*\btheme\.\w/.test(line)) {
+          faults.push(`${rel}:${i + 1}  ${line.trim().slice(0, 56)}`);
         }
       });
     }
@@ -108,18 +155,54 @@ describe('branchement du thème', () => {
     expect(faults).toEqual([]);
   });
 
-  it('aucun jeton de surface ne sert de couleur de texte', () => {
-    // card et background changent de clair à foncé selon le thème : en texte,
-    // ils disparaissent dans l'un des deux. 41 sites étaient concernés.
+  it('aucun jeton de surface ne sert de couleur de contenu', () => {
+    // Les puits de couleur prennent trois formes, et la version précédente
+    // n'en voyait qu'une : la propriété `color:` d'une feuille. Les props JSX
+    // (color=, placeholderTextColor=, tintColor=) et les affectations à une
+    // variable (textColor = …) passaient, alors que ce sont exactement les
+    // formes qui ont produit les défauts de ce chantier.
+    //
+    // card, background et soft changent de clair à foncé selon le thème : en
+    // contenu, ils disparaissent dans l'un des deux. Les teintes de `category`
+    // sont assombries pour servir de FOND ; `categoryAccent` est leur
+    // équivalent lisible en contenu.
+    const SURFACE = String.raw`theme\.(card|background|soft|border|separator|disabled|category\[)`;
+    const SINKS = [
+      // color: X  ·  textColor = X  ·  color={X}  ·  placeholderTextColor={X}
+      new RegExp(String.raw`\b\w*[cC]olor\s*[:=]\s*\{?\s*` + SURFACE),
+      new RegExp(String.raw`\b(tintColor|fill|stroke)\s*[:=]\s*\{?\s*` + SURFACE),
+    ];
     const faults: string[] = [];
     for (const { rel, src } of FILES) {
       src.split('\n').forEach((line, i) => {
-        if (/\bcolor:\s*theme\.(card|background|soft|border|separator|disabled)\b/.test(line)) {
-          faults.push(`${rel}:${i + 1}`);
-        }
-        // Les teintes de `category` sont assombries pour servir de fond ;
-        // `categoryAccent` est leur équivalent lisible en texte.
-        if (/\bcolor:\s*theme\.category\[/.test(line)) faults.push(`${rel}:${i + 1}`);
+        // backgroundColor et les bordures sont des surfaces : c'est leur rôle.
+        const stripped = line.replace(/\b(background|border\w*|shadow|overlay)Color\s*[:=][^,;]*/g, '');
+        if (SINKS.some(r => r.test(stripped))) faults.push(`${rel}:${i + 1}`);
+      });
+    }
+    expect(faults).toEqual([]);
+  });
+
+  it('aucune couleur nommée opaque dans un composant rendu', () => {
+    // 'white' échappait au contrôle des littéraux hex, qui ne cherchait que des
+    // #RRGGBB. Un `color: 'white'` sur une surface claire est le même défaut
+    // qu'un `color: '#FFF'`.
+    //
+    // Les rgba ne sont PAS contrôlés, volontairement : un blanc translucide
+    // posé sur une surface de catégorie est indépendant du thème par
+    // construction, exactement comme onCategory, et aucune expression
+    // régulière ne distingue ce cas d'un blanc translucide sur une surface
+    // thématique. Prétendre le couvrir serait du théâtre.
+    const NAMED = /\b\w*[cC]olor\s*[:=]\s*\{?\s*['"](white|black|grey|gray|silver|ivory|snow)['"]/;
+    const RGBA_SINK = /(?!)/;
+    const faults: string[] = [];
+    for (const { rel, src } of FILES) {
+      if (EXEMPT[rel]) continue;
+      const illustrated = illustratedLines(src);
+      src.split('\n').forEach((line, i) => {
+        if (illustrated.has(i)) return;
+        const stripped = line.replace(/\b(background|border\w*|shadow|overlay)Color\s*[:=][^,;]*/g, '');
+        if (NAMED.test(stripped) || RGBA_SINK.test(stripped)) faults.push(`${rel}:${i + 1}`);
       });
     }
     expect(faults).toEqual([]);
@@ -130,7 +213,7 @@ describe('branchement du thème', () => {
     // échappaient au contrôle des littéraux hex.
     const faults: string[] = [];
     for (const { rel, src } of FILES) {
-      if (rel === 'constants/statsConfig.ts') continue;
+      if (rel === 'constants/statsConfig.ts' || EXEMPT[rel]) continue;
       if (/STATS_CONFIG\.COLORS/.test(src)) faults.push(rel);
     }
     expect(faults).toEqual([]);

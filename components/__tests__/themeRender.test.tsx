@@ -29,25 +29,58 @@ import IllustrationGround from '../IllustrationGround';
 
 const SLEEP_GROUP = { label: 'L', nightMinutes: 480, napMinutes: 120, daysCount: 1 };
 
-/** Chaque entrée : un nom, et une fonction qui rend le composant. */
-const CASES: [string, () => React.ReactElement][] = [
-  ['SleepStackedChart',  () => <SleepStackedChart groups={[SLEEP_GROUP as any]} />],
-  ['SleepStackedChart vide', () => <SleepStackedChart groups={[]} />],
-  ['SleepOmsBlock',      () => <SleepOmsBlock avgTotalMin={840} avgNightMin={600} avgNapMin={240} babyBirthDate="2025-01-01" />],
-  ['SleepFeedbackWidget', () => <SleepFeedbackWidget userId="u1" />],
-  ['StatsContainer',     () => <StatsContainer><></></StatsContainer>],
-  ['RythmeChart',        () => <RythmeChart tasks={[]} />],
-  ['TendanceChart',      () => <TendanceChart tasks={[]} />],
-  ['SingleDayTimeline',  () => <SingleDayTimeline tasks={[]} />],
-  ['CompareDayTimeline', () => <CompareDayTimeline todayTasks={[]} yesterdayTasks={[]} />],
-  ['ItemParameter',      () => <ItemParameter title="x" icon="account" iconFamily="MaterialCommunityIcons" />],
-  ['IllustrationGround', () => <IllustrationGround><></></IllustrationGround>],
+/**
+ * Des données NON VIDES, sinon le montage ne prouve rien.
+ *
+ * Une première version passait des tableaux vides : SingleDayTimeline,
+ * CompareDayTimeline et RythmeChart sortent alors sur un `return null` avant
+ * d'avoir touché un seul jeton, et le test concluait « se monte sans planter »
+ * en n'ayant rendu que `null`. CompareDayTimeline est précisément le composant
+ * dont une correction de couleur était censée être couverte ici.
+ */
+const bottle = (h: number, uid: string) => ({
+  uid, id: 0, label: '120', milkType: 'maternal',
+  date: `2026-10-15 ${String(h).padStart(2, '0')}:00:00`,
+});
+const BOTTLES = [bottle(8, 'a'), bottle(12, 'b'), bottle(16, 'c'), bottle(20, 'd')];
+
+/**
+ * Chaque entrée : un nom, une fonction de rendu, et si le composant rend `null`
+ * par conception.
+ *
+ * Un composant verrouillé construit quand même ses styles — son `useMemo`
+ * s'exécute avant la sortie précoce — donc le montage prouve que le thème est
+ * branché et que les jetons existent. Il ne prouve pas les couleurs de son JSX.
+ * La distinction est explicite pour qu'on ne la confonde pas avec une
+ * couverture réelle.
+ */
+const CASES: { name: string; mount: () => React.ReactElement; gated?: boolean }[] = [
+  { name: 'SleepStackedChart', mount: () => <SleepStackedChart groups={[SLEEP_GROUP as any]} /> },
+  { name: 'SleepStackedChart vide', mount: () => <SleepStackedChart groups={[]} /> },
+  { name: 'SleepOmsBlock', mount: () => <SleepOmsBlock avgTotalMin={840} avgNightMin={600} avgNapMin={240} babyBirthDate="2025-01-01" period={7} daysWithData={7} /> },
+  // Ne s'affiche qu'à la 3ᵉ visite, lue dans AsyncStorage : rend null ici.
+  { name: 'SleepFeedbackWidget', mount: () => <SleepFeedbackWidget userId="u1" />, gated: true },
+  // hasData={false} atteint la branche vide, celle qui rend IllustrationGround.
+  { name: 'StatsContainer vide', mount: () => <StatsContainer hasData={false}><></></StatsContainer> },
+  { name: 'StatsContainer chargement', mount: () => <StatsContainer loading><></></StatsContainer> },
+  { name: 'RythmeChart', mount: () => <RythmeChart tasks={BOTTLES as any} /> },
+  { name: 'TendanceChart', mount: () => <TendanceChart tasks={BOTTLES as any} /> },
+  { name: 'SingleDayTimeline', mount: () => <SingleDayTimeline tasks={BOTTLES as any} /> },
+  { name: 'CompareDayTimeline', mount: () => <CompareDayTimeline todayTasks={BOTTLES as any} yesterdayTasks={BOTTLES as any} /> },
+  { name: 'ItemParameter', mount: () => <ItemParameter title="x" icon="account" iconFamily="MaterialCommunityIcons" backgroundColor={undefined} iconColor={undefined} textColor={undefined} /> },
+  { name: 'IllustrationGround', mount: () => <IllustrationGround><></></IllustrationGround> },
 ];
 
 describe.each([['clair', lightTheme], ['sombre', darkTheme]])('thème %s', (_name, theme) => {
   beforeEach(() => { mockTheme = theme; });
 
-  it.each(CASES)('%s se monte sans planter', (_label, mount) => {
-    expect(() => render(mount())).not.toThrow();
+  // Un seul paramètre : avec plusieurs, Jest prend le dernier pour un callback
+  // `done` et chaque cas expire au bout de cinq secondes.
+  it.each(CASES)('$name se monte et rend quelque chose', ({ mount, gated }) => {
+    let tree: ReturnType<typeof render> | undefined;
+    expect(() => { tree = render(mount()); }).not.toThrow();
+    // Sans cette assertion, un composant qui sort sur `return null` passerait
+    // le test sans qu'aucune de ses couleurs ait été évaluée.
+    if (!gated) expect(tree!.toJSON()).not.toBeNull();
   });
 });

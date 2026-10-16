@@ -616,14 +616,14 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
                 </Text>
                 {isDateLocked ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: theme.disabled, borderRadius: 8, padding: 10 }}>
-                    <Ionicons name="lock-closed" size={14} color="white" />
-                    <Text style={{ color: theme.onPrimary }}>
+                    <Ionicons name="lock-closed" size={14} color={theme.onDisabled} />
+                    <Text style={{ color: theme.onDisabled }}>
                       {t('task.startedAt')} {moment(bfStartTime).format('DD MMM · HH:mm')}
                     </Text>
                   </View>
                 ) : (
                   <TouchableOpacity onPress={() => {isDateTimePickerVisible ? setIsDateTimePickerVisible(false) : setIsDateTimePickerVisible(true)}} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: theme.primary, borderRadius: 8, padding: 10, width: 120 }}>
-                    <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
+                    <Text style={{ color: theme.onPrimary }}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
                   </TouchableOpacity>
                 )}
 
@@ -706,7 +706,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
             <TouchableOpacity onPress={updateBabyTasks} disabled={loading}>
               <View style={[styles.button, loading && styles.buttonDisabled]}>
                 {loading ? (
-                  <ActivityIndicator color={theme.onDisabled} />
+                  <ActivityIndicator color={theme.text} />
                 ) : (
                   <Text style={styles.buttonText}>{t('button.validate')}</Text>
                 )}

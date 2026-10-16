@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   fixedBar: {
     width: '100%',
-    backgroundColor: theme.background,
+    backgroundColor: STATS_CONFIG.COLORS.BACKGROUND,
     borderRadius: 10,
     paddingVertical: 14,
     paddingHorizontal: 4,
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   barTotal: {
     fontSize: 11,
     fontWeight: '700',
-    color: theme.text,
+    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
     textAlign: 'center',
     marginBottom: 2,
   },
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
   fixedDayLabel: {
     marginTop: 8,
     fontSize: STATS_CONFIG.FONT_SIZES.SMALL,
-    color: theme.text,
+    color: STATS_CONFIG.COLORS.TEXT_PRIMARY,
     fontWeight: '600',
   },
   timelineWrapper: {

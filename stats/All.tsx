@@ -315,7 +315,7 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
                 <Text style={styles.premiumBadgeTxt}>★</Text>
               </View>
             )}
-            <MaterialCommunityIcons name="arrow-down-circle" size={38} color={theme.card} />
+            <MaterialCommunityIcons name="arrow-down-circle" size={38} color={theme.onPrimary} />
             <Text style={styles.exportTitle} allowFontScaling={false}>{t('stats.overview.export')}</Text>
             <View style={styles.exportBadge}>
               <Text style={styles.exportBadgeText} allowFontScaling={false}>CSV</Text>

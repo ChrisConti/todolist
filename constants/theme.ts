@@ -96,6 +96,8 @@ export interface Theme {
    * l'autre.
    */
   goldText: string;
+  /** Contenu posé sur une surface réellement dorée : pastilles premium. */
+  onGold: string;
 
   /** Barre de statut : clair sur fond foncé, et inversement. */
   statusBar: 'light-content' | 'dark-content';
@@ -145,6 +147,7 @@ export const lightTheme: Theme = {
   napColor: '#A89FD8',
   export: '#4A7FC1',
   goldText: '#3B1F00',
+  onGold: '#3B1F00',
 
   statusBar: 'light-content',
 };
@@ -196,6 +199,7 @@ export const darkTheme: Theme = {
   napColor: '#6A61A8',
   export: '#39608F',
   goldText: '#E8A93C',
+  onGold: '#2A1C07',
 
   statusBar: 'light-content',
 };

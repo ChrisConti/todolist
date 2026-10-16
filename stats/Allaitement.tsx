@@ -239,7 +239,7 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
                     }}
                     activeOpacity={0.9}
                   >
-                    <MaterialCommunityIcons name="star" size={15} color={theme.card} />
+                    <MaterialCommunityIcons name="star" size={15} color={theme.onGold} />
                     <Text style={styles.balanceCtaTxt}>{t('premium.cta_short')}</Text>
                   </TouchableOpacity>
                 </View>

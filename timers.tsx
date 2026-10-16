@@ -68,7 +68,7 @@ const TwoTimers = ({ babyID, taskID }) => {
             <Ionicons name="pause" size={24} color={!isRunning1 ? theme.accent : theme.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => stopTimer(setTimer1, setIsRunning1, interval1)}>
-            <Ionicons name="stop" size={24} color="black" />
+            <Ionicons name="stop" size={24} color={theme.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -82,7 +82,7 @@ const TwoTimers = ({ babyID, taskID }) => {
             <Ionicons name="pause" size={24} color={!isRunning2 ? theme.accent : theme.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => stopTimer(setTimer2, setIsRunning2, interval2)}>
-            <Ionicons name="stop" size={24} color="black" />
+            <Ionicons name="stop" size={24} color={theme.text} />
           </TouchableOpacity>
         </View>
       </View>

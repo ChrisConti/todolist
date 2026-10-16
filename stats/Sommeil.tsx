@@ -125,7 +125,7 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks, babyName, babyBirt
         <ScrollView contentContainerStyle={styles.lockedWrap}>
           <View style={styles.lockedIcon}>
             <View style={styles.lockedIconShine} />
-            <MaterialCommunityIcons name="star" size={32} color={theme.card} />
+            <MaterialCommunityIcons name="star" size={32} color={theme.onGold} />
           </View>
           <Text style={styles.lockedTitle}>{t('premium.advancedSommeil.title')}</Text>
           <Text style={styles.lockedSub}>{t('premium.upsellTitle')}</Text>
@@ -138,7 +138,7 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks, babyName, babyBirt
             ] as const).map(({ icon, key }) => (
               <View key={key} style={styles.featRow}>
                 <View style={styles.featIconWrap}>
-                  <MaterialCommunityIcons name={icon as any} size={16} color={theme.category[3]} />
+                  <MaterialCommunityIcons name={icon as any} size={16} color={theme.categoryAccent[3]} />
                 </View>
                 <Text style={styles.featText}>{t(key)}</Text>
               </View>
@@ -151,7 +151,7 @@ const Sommeil: React.FC<SommeilProps> = ({ navigation, tasks, babyName, babyBirt
           >
             <View style={styles.lockedCtaIcon}>
               <View style={styles.lockedCtaIconShine} />
-              <MaterialCommunityIcons name="star" size={16} color={theme.card} />
+              <MaterialCommunityIcons name="star" size={16} color={theme.onGold} />
             </View>
             <Text style={styles.lockedCtaText}>{t('premium.unlockCta')}</Text>
             <MaterialCommunityIcons name="chevron-right" size={18} color={theme.gold} />

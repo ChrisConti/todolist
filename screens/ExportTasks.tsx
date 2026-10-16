@@ -170,7 +170,7 @@ const ExportTasks = ({ navigation }) => {
             disabled={loading || !babyData}
           >
             {loading ? (
-              <ActivityIndicator color={theme.onDisabled} />
+              <ActivityIndicator color={theme.text} />
             ) : (
               <>
                 <MaterialCommunityIcons name="file-export" size={20} color={theme.onPrimary} />

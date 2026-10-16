@@ -33,7 +33,7 @@ const StatsContainer: React.FC<StatsContainerProps> = ({
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={theme.category[1]} />
+        <ActivityIndicator size="large" color={theme.accent} />
         <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </View>
     );

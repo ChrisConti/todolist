@@ -548,7 +548,7 @@ const UpdateTask = ({ route, navigation }) => {
               onPress={() => setIsDateTimePickerVisible(true)}
               style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: theme.primary, borderRadius: 8, padding: 10, width: 120 }}
             >
-              <Text style={{color:"white"}}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
+              <Text style={{ color: theme.onPrimary }}>{moment(selectedDate).format('DD MMM · HH:mm')}</Text>
             </TouchableOpacity>
             <DateTimePicker
               isVisible={isDateTimePickerVisible}
@@ -622,7 +622,7 @@ const UpdateTask = ({ route, navigation }) => {
           <TouchableOpacity onPress={updateBabyTasks} disabled={loading}>
             <View style={[styles.button, loading && styles.buttonDisabled]}>
               {loading ? (
-                <ActivityIndicator color={theme.onDisabled} />
+                <ActivityIndicator color={theme.text} />
               ) : (
                 <Text style={styles.buttonText}>{t('button.validate')}</Text>
               )}
@@ -631,7 +631,7 @@ const UpdateTask = ({ route, navigation }) => {
           <TouchableOpacity onPress={removeTaskFromBabyTasks} disabled={loading}>
             <View style={[styles.button, loading && styles.buttonDisabled]}>
               {loading ? (
-                <ActivityIndicator color={theme.onDisabled} />
+                <ActivityIndicator color={theme.text} />
               ) : (
                 <Text style={styles.buttonText}>{t('button.delete')}</Text>
               )}

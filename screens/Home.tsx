@@ -410,7 +410,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   floatingButton: { backgroundColor: theme.primary, width: 70, height: 70, borderRadius: 50, alignItems: 'center', justifyContent: 'center' },
   floatingButtonText: { color: theme.onPrimary, fontWeight: 'bold', fontSize: 35 },
   button: { backgroundColor: theme.primary, borderRadius: 8, paddingVertical: 12, paddingHorizontal: 30, alignItems: 'center', marginBottom: 15, width: 250 },
-  buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  buttonText: { color: theme.onPrimary, fontSize: 16, fontWeight: 'bold' },
   secondaryButton: {
     backgroundColor: 'transparent',
     borderWidth: 2,

@@ -21,7 +21,7 @@ export default function CategoryDetail({ navigation, route }: any) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
   const { categoryId } = route.params as { categoryId: number };
-  const color = theme.category[categoryId] ?? theme.category[1];
+  const headerSurface = theme.category[categoryId] ?? theme.category[1];
 
   const CATEGORY_TITLES: Record<number, string> = {
     0: t('stats.category.bottle'),
@@ -79,7 +79,7 @@ export default function CategoryDetail({ navigation, route }: any) {
   }, [babyID, user, categoryId]);
 
   const renderContent = () => {
-    if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={color} />;
+    if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme.categoryAccent[categoryId] ?? theme.categoryAccent[1]} />;
     switch (categoryId) {
       case 0: navigation.replace('BiberonInsights'); return null;
       case 1: return <DiaperComponent tasks={tasks} navigation={navigation} />;
@@ -92,7 +92,7 @@ export default function CategoryDetail({ navigation, route }: any) {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { backgroundColor: color, paddingTop: insets.top }]}>
+      <View style={[styles.header, { backgroundColor: headerSurface, paddingTop: insets.top }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={26} color={theme.onPrimary} />
         </TouchableOpacity>

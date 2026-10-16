@@ -46,18 +46,18 @@ const Card = ({ task, navigation, editable }) => {
   };
 
   const handleCategory = (id) => {
-    if (id == 0) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>{t('ml')}</Text>;
+    if (id == 0) return <Text style={{ color: theme.onCategory, fontSize: 15, marginLeft: -6 }}>{t('ml')}</Text>;
     if (id == 3) {
       const totalMins = parseInt(String(task.label));
       if (!isNaN(totalMins) && totalMins >= 60) return null;
-      return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>{t('min')}</Text>;
+      return <Text style={{ color: theme.onCategory, fontSize: 15, marginLeft: -6 }}>{t('min')}</Text>;
     }
     if (id == 4) {
       const hasTemp = task.label && task.label !== '0';
       const hasDuration = task.temperatureDuration;
       if (hasTemp && hasDuration) return null;
-      if (hasTemp) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>°</Text>;
-      if (hasDuration) return <Text style={{ color: 'white', fontSize: 15, marginLeft: -6 }}>s</Text>;
+      if (hasTemp) return <Text style={{ color: theme.onCategory, fontSize: 15, marginLeft: -6 }}>°</Text>;
+      if (hasDuration) return <Text style={{ color: theme.onCategory, fontSize: 15, marginLeft: -6 }}>s</Text>;
       return null;
     }
   };

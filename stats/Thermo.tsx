@@ -41,7 +41,7 @@ const Thermo: React.FC<ThermoProps> = ({ navigation, tasks }) => {
 
           if (row.isMax) {
             backgroundColor = theme.dangerSoft;
-            textColor = theme.category[1];
+            textColor = theme.categoryAccent[1];
           } else if (row.isMin) {
             backgroundColor = theme.successSoft;
             textColor = theme.success;

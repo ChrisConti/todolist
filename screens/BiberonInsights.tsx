@@ -358,7 +358,7 @@ export default function BiberonInsights({ navigation }: any) {
     <ScrollView contentContainerStyle={[styles.content, { alignItems: 'center', paddingTop: 32 }]}>
       <View style={styles.premiumIconLock}>
         <View style={styles.premiumIconLockShine} />
-        <MaterialCommunityIcons name="star" size={32} color={theme.card} />
+        <MaterialCommunityIcons name="star" size={32} color={theme.onGold} />
       </View>
       <Text style={styles.lockedTitle}>{t('premium.advancedBiberon.title')}</Text>
       <Text style={styles.lockedSub}>{t('premium.upsellTitle')}</Text>
@@ -381,7 +381,7 @@ export default function BiberonInsights({ navigation }: any) {
       >
         <View style={styles.lockedCtaIcon}>
           <View style={styles.lockedCtaIconShine} />
-          <MaterialCommunityIcons name="star" size={16} color={theme.card} />
+          <MaterialCommunityIcons name="star" size={16} color={theme.onGold} />
         </View>
         <Text style={styles.lockedCtaText}>{t('premium.unlockCta')}</Text>
         <MaterialCommunityIcons name="chevron-right" size={18} color={theme.gold} />
