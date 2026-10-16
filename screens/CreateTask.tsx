@@ -171,7 +171,10 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         // à 0 pour ne pas gonfler le temps de tétée dans les stats.
         boobLeft: bfValues && bfValues.nursingType !== 'pumping' ? (bfValues.mode === 'manual' ? bfValues.manualLeft * 60 : bfValues.timer1) : 0,
         boobRight: bfValues && bfValues.nursingType !== 'pumping' ? (bfValues.mode === 'manual' ? bfValues.manualRight * 60 : bfValues.timer2) : 0,
-        breastfeedingMode: selectedImage === 5 ? (bfValues?.mode ?? 'timer') : null,
+        breastfeedingMode:
+          selectedImage === 5 && bfValues?.nursingType !== 'pumping'
+            ? (bfValues?.mode ?? 'timer')
+            : null,
         ...(selectedImage === 5 && bfValues?.nursingType === 'pumping' && {
           nursingType: 'pumping',
           pumpedLeftMl: bfValues.pumpedLeftMl,

@@ -290,7 +290,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: theme.background,
   },
   header: {
-    backgroundColor: theme.primary,
+    backgroundColor: theme.headerBackground,
     paddingBottom: 14,
     paddingHorizontal: 16,
     alignItems: 'center',

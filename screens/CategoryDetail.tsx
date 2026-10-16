@@ -35,6 +35,7 @@ export default function CategoryDetail({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const { user, babyID } = useContext(AuthentificationUserContext) as any;
   const [tasks, setTasks] = useState<any[]>([]);
+  const [bottleTasks, setBottleTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [babyName, setBabyName] = useState<string | undefined>();
   const [babyBirthDate, setBabyBirthDate] = useState<string | undefined>();
@@ -68,6 +69,15 @@ export default function CategoryDetail({ navigation, route }: any) {
             t.id === categoryId && new Date(t.date) >= ninetyDaysAgo
           );
           setTasks(filtered);
+          // Le bilan production/consommation de l'allaitement a besoin des
+          // biberons de lait maternel, que ce filtre par catégorie écarte.
+          setBottleTasks(
+            categoryId === 5
+              ? (babyData.tasks || []).filter((t: any) =>
+                  t.id === 0 && t.milkType === 'maternal' && new Date(t.date) >= ninetyDaysAgo
+                )
+              : []
+          );
           setBabyName(babyData.name ?? undefined);
           setBabyBirthDate(babyData.birthDate ?? undefined);
         }
@@ -85,7 +95,7 @@ export default function CategoryDetail({ navigation, route }: any) {
       case 1: return <DiaperComponent tasks={tasks} navigation={navigation} />;
       case 3: return <SommeilComponent tasks={tasks} navigation={navigation} babyName={babyName} babyBirthDate={babyBirthDate} userId={user?.uid} />;
       case 4: return <ThermoComponent tasks={tasks} navigation={navigation} />;
-      case 5: return <AllaitementComponent tasks={tasks} navigation={navigation} />;
+      case 5: return <AllaitementComponent tasks={tasks} bottleTasks={bottleTasks} navigation={navigation} />;
       default: return null;
     }
   };

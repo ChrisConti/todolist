@@ -46,9 +46,15 @@ describe('resolveTheme', () => {
  * On reproduit ici la règle de révocation telle que le contexte l'applique.
  */
 describe('révocation du premium optimiste', () => {
-  /** Reproduit l'effet de ThemeContext : la réponse fait foi dans les deux sens. */
-  const settle = (optimistic: boolean, isPremium: boolean, loading: boolean) =>
-    loading ? optimistic : isPremium;
+  /**
+   * Reproduit l'effet de ThemeContext. `hydrating` compte autant que `loading` :
+   * pour un utilisateur déconnecté, PremiumContext répond `false` de façon
+   * synchrone au montage, donc avant que la lecture AsyncStorage ne restaure la
+   * préférence. Sans attendre la fin de l'hydratation, ce « non » était écrasé
+   * par le cache et plus rien ne le redéclenchait.
+   */
+  const settle = (optimistic: boolean, isPremium: boolean, loading: boolean, hydrating = false) =>
+    loading || hydrating ? optimistic : isPremium;
 
   it('garde l\'optimisme tant que le serveur n\'a pas répondu', () => {
     expect(settle(true, false, true)).toBe(true);
@@ -95,5 +101,27 @@ describe('surcharge du schéma natif', () => {
     // reprend la main — l'app passe en sombre.
     expect(nativeSchemeOverride('system', true, 'dark')).toBeNull();
     expect(resolveTheme('system', 'dark', true)).toBe('dark');
+  });
+});
+
+describe('chemins de révocation que la relecture a trouvés', () => {
+  const settle = (optimistic: boolean, isPremium: boolean, loading: boolean, hydrating = false) =>
+    loading || hydrating ? optimistic : isPremium;
+
+  it('un « non » arrivé pendant l\'hydratation est rejoué après', () => {
+    // Montage : réponse synchrone `false` alors que l'hydratation court encore.
+    expect(settle(false, false, false, true)).toBe(false);
+    // Le cache restaure « sombre » : l'optimisme repasse à true.
+    const afterCache = true;
+    // Fin de l'hydratation : l'effet se rejoue et le « non » reprend la main.
+    expect(settle(afterCache, false, false, false)).toBe(false);
+    expect(resolveTheme('dark', 'dark', false)).toBe('light');
+  });
+
+  it('un listener en échec ne doit pas laisser loading bloqué', () => {
+    // Le callback d'erreur de PremiumContext force isPremium false et
+    // isLoading false : sans lui, l'état restait (true, true) pour toujours.
+    const onListenerError = { isPremium: false, isLoading: false };
+    expect(settle(true, onListenerError.isPremium, onListenerError.isLoading)).toBe(false);
   });
 });

@@ -103,7 +103,10 @@ const UpdateTask = ({ route, navigation }) => {
               ...(selectedImage === 1 && diaperContent !== null && { diaperContent }),
               boobLeft: bfValues && bfValues.nursingType !== 'pumping' ? (bfValues.mode === 'manual' ? bfValues.manualLeft * 60 : bfValues.timer1) : (bfValues?.nursingType === 'pumping' ? 0 : (task.boobLeft || 0)),
               boobRight: bfValues && bfValues.nursingType !== 'pumping' ? (bfValues.mode === 'manual' ? bfValues.manualRight * 60 : bfValues.timer2) : (bfValues?.nursingType === 'pumping' ? 0 : (task.boobRight || 0)),
-              breastfeedingMode: selectedImage === 5 ? (bfValues?.mode ?? task.breastfeedingMode ?? 'timer') : null,
+              breastfeedingMode:
+                selectedImage === 5 && bfValues?.nursingType !== 'pumping'
+                  ? (bfValues?.mode ?? task.breastfeedingMode ?? 'timer')
+                  : null,
               // 'direct' explicite à l'édition : une tâche repassée de tirage à tétée
               // doit effacer nursingType, sinon la valeur précédente persiste.
               ...(selectedImage === 5 && bfValues ? {

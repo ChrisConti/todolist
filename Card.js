@@ -114,6 +114,10 @@ const Card = ({ task, navigation, editable }) => {
 
   const getBreastfeedingModeIcon = () => {
     if (task.id !== 5) return null;
+    // Un tirage n'a pas de mode chrono/manuel. Les tâches écrites avant la
+    // correction en portent un : on l'ignore à la lecture plutôt que de
+    // migrer la base.
+    if (task.nursingType === 'pumping') return null;
     if (task.breastfeedingMode === 'timer') return '⏱️';
     if (task.breastfeedingMode === 'manual') return '✏️';
     return null;

@@ -13,7 +13,7 @@ import Analytics from '../services/analytics';
 
 type ViewMode = 'duration' | 'count' | 'pumping';
 
-const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) => {
+const Allaitement = ({ navigation, tasks, bottleTasks = [] }: { navigation: any; tasks: Task[]; bottleTasks?: Task[] }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { t } = useTranslation();
@@ -38,7 +38,7 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
   const { isPremium } = usePremium();
   const durationStats = useAllaitementStats(tasks);
   const countStats = useAllaitementCountStats(tasks);
-  const pumping = usePumpingStats(tasks);
+  const pumping = usePumpingStats(tasks, bottleTasks);
   const { dailyStats, chartData, lastTask, isLoading, error } =
     viewMode === 'duration' ? durationStats : countStats;
 
@@ -129,7 +129,10 @@ const Allaitement = ({ navigation, tasks }: { navigation: any; tasks: Task[] }) 
     <StatsContainer
       loading={isLoading}
       error={error}
-      hasData={!!lastTask}
+      // lastTask vient des hooks de tétée, qui excluent le tirage. Sans
+      // pumping.hasData, une mère qui tire exclusivement voyait « aucune
+      // donnée » — précisément la personne pour qui l'onglet existe.
+      hasData={!!lastTask || pumping.hasData}
       emptyMessage={t('allaitement.noTaskFound')}
     >
       {/* Statistics */}

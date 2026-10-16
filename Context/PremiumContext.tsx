@@ -82,6 +82,14 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateWidgetPremium(active);
       }
       setIsLoading(false);
+    }, (error) => {
+      // Sans ce callback, une erreur du listener — règles Firestore, permission
+      // refusée, premier lancement hors ligne sans cache — laissait isLoading à
+      // true indéfiniment. ThemeContext s'en sert pour révoquer le premium
+      // optimiste : bloqué, il gardait le mode sombre pour un non-premium.
+      console.warn('[Premium] listener Users en échec :', error?.message);
+      setIsPremium(false);
+      setIsLoading(false);
     });
     return unsubscribe;
   }, [user?.uid]);

@@ -13,7 +13,16 @@ const isInLastNDays = (date: string, days: number) => moment(date, 'YYYY-MM-DD H
 // but content is the same
 const createTasksSignature = (tasks: Task[]): string => {
   if (!tasks || tasks.length === 0) return 'empty';
-  return tasks.map(t => `${t.uid}-${t.date}-${t.label || ''}`).join('|');
+  // nursingType et les quantités par sein font partie de la signature : sans
+  // elles, modifier un tirage de 60 à 120 ml, ou convertir une tétée en
+  // tirage, laissait les statistiques sur leurs anciennes valeurs tant que la
+  // date et le libellé ne changeaient pas.
+  return tasks
+    .map(t => {
+      const a = t as any;
+      return `${t.uid}-${t.date}-${t.label || ''}-${a.nursingType || ''}-${a.pumpedLeftMl ?? ''}-${a.pumpedRightMl ?? ''}`;
+    })
+    .join('|');
 };
 
 // Hook pour Biberon
@@ -887,8 +896,11 @@ export const useSommeilAdvancedStats = (tasks: Task[], period: SleepPeriod): Sle
  * Le solde est une tendance, pas un inventaire : il ignore le lait tiré avant
  * l'installation de l'app et les biberons donnés par un tiers sans saisie.
  */
-export const usePumpingStats = (tasks: Task[]) => {
-  const tasksSignature = useMemo(() => createTasksSignature(tasks), [tasks]);
+export const usePumpingStats = (tasks: Task[], bottleTasks: Task[] = []) => {
+  const tasksSignature = useMemo(
+    () => createTasksSignature(tasks) + '|' + createTasksSignature(bottleTasks),
+    [tasks, bottleTasks],
+  );
 
   return useMemo(() => {
     const empty = {
@@ -924,7 +936,10 @@ export const usePumpingStats = (tasks: Task[]) => {
     const dateOf = (t: Task) => new Date(String(t.date).replace(' ', 'T'));
 
     // Lait maternel effectivement bu : biberons de catégorie 0 marqués 'maternal'.
-    const maternalIn = (from: Date) => tasks
+    // Les biberons arrivent par bottleTasks : l'écran de catégorie ne transmet
+    // que les tâches de catégorie 5, donc aucun id 0 n'est dans `tasks` et le
+    // solde valait toujours la production entière.
+    const maternalIn = (from: Date) => bottleTasks
       .filter(t => t.id === 0 && (t as any).milkType === 'maternal' && dateOf(t) >= from)
       .reduce((sum, t) => sum + (Number(t.label) || 0), 0);
     const pumpedIn = (from: Date) => pumping
@@ -951,9 +966,12 @@ export const usePumpingStats = (tasks: Task[]) => {
     }
 
     const sorted = [...pumping].sort((a, b) => dateOf(b).getTime() - dateOf(a).getTime());
-    const spanDays = Math.max(1, Math.ceil(
-      (dateOf(sorted[0]).getTime() - dateOf(sorted[sorted.length - 1]).getTime()) / 86400000
-    ));
+    // Jours calendaires distincts, et non l'intervalle écoulé : deux séances à
+    // 20 h puis 8 h le lendemain couvrent deux jours, pas une demi-journée.
+    // L'ancien calcul divisait 600 ml par 1 et annonçait 600 ml par jour.
+    const spanDays = Math.max(1, new Set(
+      pumping.map(t => dateOf(t).toISOString().slice(0, 10))
+    ).size);
 
     return {
       hasData: true,

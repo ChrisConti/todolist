@@ -94,7 +94,7 @@ export default function Statistics({ navigation }: any) {
 const makeStyles = (theme: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.background },
   header: {
-    backgroundColor: theme.primary,
+    backgroundColor: theme.headerBackground,
     paddingVertical: 14,
     paddingHorizontal: 16,
     alignItems: 'center',

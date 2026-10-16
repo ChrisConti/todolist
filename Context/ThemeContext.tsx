@@ -78,10 +78,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // remboursé, ou document Users pas encore synchronisé — gardait donc le
   // sombre indéfiniment pour un non-premium, ce que resolveTheme est censé
   // interdire.
+  // isHydrating fait partie des dépendances, et pas seulement de la garde : pour
+  // un utilisateur déconnecté, PremiumContext répond `false` de façon synchrone
+  // au montage, donc AVANT que la lecture AsyncStorage ne restaure la
+  // préférence. Sans rejouer l'effet à la fin de l'hydratation, ce « non » était
+  // écrasé par le cache et plus rien ne le redéclenchait — l'app restait en
+  // sombre sur les écrans d'authentification, sans aucun droit premium.
   useEffect(() => {
-    if (premiumLoading) return;
+    if (isHydrating || premiumLoading) return;
     setOptimisticPremium(isPremium);
-  }, [isPremium, premiumLoading]);
+  }, [isPremium, premiumLoading, isHydrating]);
 
   useEffect(() => {
     const sub = Appearance.addChangeListener(({ colorScheme }) => setSystemScheme(colorScheme));

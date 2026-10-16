@@ -300,11 +300,11 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 14,
     paddingHorizontal: 16,
-    backgroundColor: theme.primary,
+    backgroundColor: theme.headerBackground,
   },
   headerTitle: {
     fontSize: 22,
-    color: theme.onPrimary,
+    color: theme.onHeader,
     fontFamily: 'Pacifico',
     textAlign: 'center',
   },
