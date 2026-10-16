@@ -116,14 +116,19 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     AsyncStorage.setItem(LAST_APPLIED_KEY, themeName).catch(() => {});
   }, [themeName, isHydrating]);
 
-  // Barre de navigation Android : elle ne suit ni Appearance ni le StatusBar,
-  // il faut la peindre explicitement, sinon elle reste claire sous une app
-  // sombre. Sans effet sur iOS, qui n'a pas de barre système en bas.
+  // Barre de navigation Android : ses icônes ne suivent ni Appearance ni le
+  // StatusBar, il faut les basculer explicitement, sinon des icônes sombres
+  // restent posées sur une app sombre. Sans effet sur iOS, qui n'a pas de barre
+  // système en bas.
+  //
+  // Son FOND n'est pas peint : le projet est en edge-to-edge
+  // (android/gradle.properties, edgeToEdgeEnabled=true), la barre y est
+  // transparente et laisse voir le fond de l'app — c'est déjà le bon résultat.
+  // setBackgroundColorAsync y est d'ailleurs un no-op qui journalise un
+  // avertissement à chaque bascule.
   useEffect(() => {
     if (Platform.OS !== 'android' || isHydrating) return;
-    const t = themes[themeName];
-    NavigationBar.setBackgroundColorAsync(t.background).catch(() => {});
-    NavigationBar.setButtonStyleAsync(t.dark ? 'light' : 'dark').catch(() => {});
+    NavigationBar.setButtonStyleAsync(themes[themeName].dark ? 'light' : 'dark').catch(() => {});
   }, [themeName, isHydrating]);
 
   const setPreference = (p: ThemePreference) => {

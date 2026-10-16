@@ -29,7 +29,6 @@ jest.mock('expo-store-review', () => ({
 // Module natif : absent de l'environnement de test. Sans ce mock, tout test
 // qui monte le ThemeProvider échouerait au chargement.
 jest.mock('expo-navigation-bar', () => ({
-  setBackgroundColorAsync: jest.fn(() => Promise.resolve()),
   setButtonStyleAsync: jest.fn(() => Promise.resolve()),
 }));
 
