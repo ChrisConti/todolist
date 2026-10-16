@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import SleepingBaby from '../../assets/sleepingBaby.svg';
 import { STATS_CONFIG } from '../../constants/statsConfig';
+import IllustrationGround from '../IllustrationGround';
 
 interface StatsContainerProps {
   children: React.ReactNode;
@@ -49,7 +50,9 @@ const StatsContainer: React.FC<StatsContainerProps> = ({
   if (!hasData) {
     return (
       <View style={styles.centerContainer}>
-        <SleepingBaby height={140} width={140} />
+        <IllustrationGround radius={24} padding={10}>
+          <SleepingBaby height={140} width={140} />
+        </IllustrationGround>
         <View style={{ height: 16 }} />
         <Text style={styles.emptyTitle}>
           {emptyMessage || t('stats.noData')}

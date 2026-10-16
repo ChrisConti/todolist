@@ -1,11 +1,11 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useMemo, useContext, useEffect, useRef, useState } from 'react';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { I18nextProvider } from 'react-i18next';
 import { StyleSheet, View, ActivityIndicator, Platform, StatusBar, Linking } from 'react-native';
 import i18n from './i18n';
 import ErrorBoundary from './components/ErrorBoundary';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -230,10 +230,27 @@ log.debug('Setting up authentication listener...', 'App.tsx');
     }
   };
 
+  const navTheme = useMemo(() => {
+    const base = theme.dark ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        background: theme.background,
+        card: theme.headerBackground,
+        text: theme.onHeader,
+        border: theme.border,
+        primary: theme.accent,
+        notification: theme.danger,
+      },
+    };
+  }, [theme]);
+
   return (
     <SafeAreaProvider>
       <I18nextProvider i18n={i18n}>
         <NavigationContainer
+          theme={navTheme}
           ref={navigationRef}
           onReady={onNavigationReady}
           onStateChange={onNavigationStateChange}

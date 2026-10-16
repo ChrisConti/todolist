@@ -35,6 +35,7 @@ import Girl from './assets/fille.svg';
 import { KEYBOARD_CONFIG } from './utils/constants';
 import { useTheme } from './Context/ThemeContext';
 import type { Theme } from './constants/theme';
+import IllustrationGround from './components/IllustrationGround';
 
 const EditBaby = ({ navigation, route }) => {
   const { theme } = useTheme();
@@ -423,7 +424,9 @@ const EditBaby = ({ navigation, route }) => {
                   <Text style={styles.sexCheckText}>✓</Text>
                 </View>
               )}
-              {i === 0 ? <Boy height={44} width={44} /> : <Girl height={44} width={44} />}
+              <IllustrationGround radius={12} padding={4}>
+                {i === 0 ? <Boy height={44} width={44} /> : <Girl height={44} width={44} />}
+              </IllustrationGround>
               <Text style={styles.typeText}>{i === 0 ? t('baby.boy') : t('baby.girl')}</Text>
             </TouchableOpacity>
           ))}
@@ -536,7 +539,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     borderColor: theme.accent,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.card,
+    backgroundColor: theme.illustrationGround,
     marginBottom: 15,
   },
   photoActions: {

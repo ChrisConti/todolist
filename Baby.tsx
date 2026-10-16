@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { parseReviewPromptState } from './utils/reviewPromptLogic';
 import { useTheme } from './Context/ThemeContext';
 import type { Theme } from './constants/theme';
+import IllustrationGround from './components/IllustrationGround';
 
 const ROLES = ['maman', 'papa', 'mamie', 'papy', 'nounou', 'tata', 'tonton', 'autre'] as const;
 const AGE_RANGES = ['under25', 'r25to30', 'r30to35', 'r35to40', 'over40'] as const;
@@ -173,7 +174,9 @@ const Baby = ({ navigation }) => {
                   <Text style={styles.sexCheckText}>✓</Text>
                 </View>
               )}
-              {i === 0 ? <Boy width={44} height={44} /> : <Girl width={44} height={44} />}
+              <IllustrationGround radius={12} padding={4}>
+                {i === 0 ? <Boy width={44} height={44} /> : <Girl width={44} height={44} />}
+              </IllustrationGround>
               <Text style={styles.sexLabel}>{i === 0 ? t('baby.boy') : t('baby.girl')}</Text>
             </TouchableOpacity>
           ))}

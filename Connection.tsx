@@ -15,6 +15,7 @@ import Analytics from './services/analytics';
 import i18n from './i18n';
 import { useTheme } from './Context/ThemeContext';
 import type { Theme } from './constants/theme';
+import IllustrationGround from './components/IllustrationGround';
 
 const ConnectionScreen = ({ navigation }) => {
   const { theme } = useTheme();
@@ -240,7 +241,9 @@ const ConnectionScreen = ({ navigation }) => {
             </TouchableOpacity>
 
             <View style={styles.logoContainer}>
-              <Logo height={120} width={120} />
+              <IllustrationGround radius={70} padding={10}>
+                <Logo height={120} width={120} />
+              </IllustrationGround>
             </View>
           </View>
       </ScrollView>

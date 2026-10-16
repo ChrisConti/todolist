@@ -17,6 +17,7 @@ import Sante from '../assets/sante-color.svg';
 import Dodo from '../assets/dodo-color.svg';
 import Thermo from '../assets/thermo-color.svg';
 import Allaitement from '../assets/allaitement-color.svg';
+import IllustrationGround from '../components/IllustrationGround';
 
 // Force Metro rebuild - fix ReviewModal bug
 const BabyList = ({ navigation }) => {
@@ -186,7 +187,11 @@ const BabyList = ({ navigation }) => {
         </View>
       ) : !babyExist ? (
         <EmptyState
-          icon={<Stork height={180} width={180} />}
+          icon={
+            <IllustrationGround radius={28} padding={12}>
+              <Stork height={180} width={180} />
+            </IllustrationGround>
+          }
           actions={[
             { label: t('title.addBaby'), onPress: () => {
               const parentNav = navigation.getParent();

@@ -26,6 +26,13 @@ jest.mock('expo-store-review', () => ({
   requestReview: jest.fn(() => Promise.resolve()),
 }));
 
+// Module natif : absent de l'environnement de test. Sans ce mock, tout test
+// qui monte le ThemeProvider échouerait au chargement.
+jest.mock('expo-navigation-bar', () => ({
+  setBackgroundColorAsync: jest.fn(() => Promise.resolve()),
+  setButtonStyleAsync: jest.fn(() => Promise.resolve()),
+}));
+
 jest.mock('expo-localization', () => ({
   locale: 'fr-FR',
   region: 'FR',

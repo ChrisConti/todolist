@@ -12,6 +12,7 @@ import Boy from '../assets/garcon.svg';
 import Girl from '../assets/fille.svg';
 import { useTheme } from '../Context/ThemeContext';
 import type { Theme } from '../constants/theme';
+import IllustrationGround from '../components/IllustrationGround';
 
 interface EditBabyPhotoProps {
   route: any;
@@ -222,10 +223,10 @@ const EditBabyPhoto: React.FC<EditBabyPhotoProps> = ({ route, navigation }) => {
       );
     }
 
-    return babyData?.type === 'Boy' ? (
-      <Boy height={150} width={150} />
-    ) : (
-      <Girl height={150} width={150} />
+    return (
+      <IllustrationGround radius={80} padding={8}>
+        {babyData?.type === 'Boy' ? <Boy height={150} width={150} /> : <Girl height={150} width={150} />}
+      </IllustrationGround>
     );
   };
 

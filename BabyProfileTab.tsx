@@ -164,7 +164,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     borderColor: theme.accent,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.card,
+    backgroundColor: theme.illustrationGround,
   },
   babyName: {
     fontSize: 28,

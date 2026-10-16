@@ -65,6 +65,14 @@ export interface Theme {
   overlay: string;
   /** Voile posé sur un aperçu verrouillé : atténue sans masquer. */
   overlayVeil: string;
+  /**
+   * Fond des illustrations SVG. Leurs traits sont un brun très sombre
+   * (#230D03) qui tombe à 1,0:1 sur une carte sombre — exactement la même
+   * luminance que le fond, donc des visages sans yeux ni cheveux. Ce jeton
+   * reste clair dans les deux thèmes, légèrement atténué en sombre pour ne pas
+   * faire un trou blanc : 14:1 pour les traits.
+   */
+  illustrationGround: string;
 
   /** Indexé par `task.id` : 0 biberon · 1 couche · 2 santé · 3 sommeil · 4 thermo · 5 allaitement. */
   category: readonly [string, string, string, string, string, string];
@@ -127,6 +135,7 @@ export const lightTheme: Theme = {
   separator: '#E0E0E0',
   overlay: 'rgba(0,0,0,0.45)',
   overlayVeil: 'rgba(255,255,255,0.68)',
+  illustrationGround: '#FFFFFF',
 
   category: ['#34777B', '#C75B4A', '#6B8DEA', '#E29656', '#4F469F', '#1AAAAA'],
   // En clair, le texte reprend exactement les teintes de catégorie : aucun
@@ -175,6 +184,7 @@ export const darkTheme: Theme = {
   separator: '#3A2E29',
   overlay: 'rgba(0,0,0,0.65)',
   overlayVeil: 'rgba(23,18,15,0.72)',
+  illustrationGround: '#E8DED6',
 
   // Teinte conservée, luminosité descendue : une catégorie reste reconnaissable
   // sans éblouir lors d'une tétée nocturne.

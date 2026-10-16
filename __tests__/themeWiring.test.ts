@@ -136,6 +136,30 @@ describe('branchement du thème', () => {
     expect(faults).toEqual([]);
   });
 
+  it('toute illustration SVG est posée sur un fond clair', () => {
+    // Les contours de ces dessins sont en #230D03, soit 1,0:1 sur le fond
+    // sombre : la même luminance, donc des visages sans traits. Ils doivent
+    // être enveloppés d'un IllustrationGround, ou posés sur une surface dont
+    // le fond est illustrationGround.
+    const SVG = /<(Boy|Girl|Stork|SleepingBaby|Logo)\s/;
+    const faults: string[] = [];
+    for (const { rel, src } of FILES) {
+      const lines = src.split('\n');
+      // Contrôle par SITE, pas par fichier : un conteneur protégé ailleurs dans
+      // le même fichier ne couvre pas un dessin posé à nu.
+      const grounds = lines
+        .map((l, i) => ({ l, i }))
+        .filter(({ l }) => /IllustrationGround|illustrationGround|svgContainer/.test(l))
+        .map(({ i }) => i);
+      lines.forEach((line, i) => {
+        if (!SVG.test(line)) return;
+        const near = grounds.some(g => Math.abs(g - i) <= 4);
+        if (!near) faults.push(`${rel}:${i + 1}`);
+      });
+    }
+    expect(faults).toEqual([]);
+  });
+
   it('aucun composant rendu ne garde de couleur en dur', () => {
     // Hors exemptions listées, une teinte figée ne suit pas le thème. Les
     // ombres portées et les valeurs transparentes sont permises.

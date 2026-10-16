@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Appearance, ColorSchemeName } from 'react-native';
+import { Appearance, ColorSchemeName, Platform } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Theme, ThemeName, themes, lightTheme } from '../constants/theme';
 import { resolveTheme, ThemePreference } from '../utils/themeResolution';
@@ -102,6 +103,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     if (isHydrating) return;
     AsyncStorage.setItem(LAST_APPLIED_KEY, themeName).catch(() => {});
+  }, [themeName, isHydrating]);
+
+  // Barre de navigation Android : elle ne suit ni Appearance ni le StatusBar,
+  // il faut la peindre explicitement, sinon elle reste claire sous une app
+  // sombre. Sans effet sur iOS, qui n'a pas de barre système en bas.
+  useEffect(() => {
+    if (Platform.OS !== 'android' || isHydrating) return;
+    const t = themes[themeName];
+    NavigationBar.setBackgroundColorAsync(t.background).catch(() => {});
+    NavigationBar.setButtonStyleAsync(t.dark ? 'light' : 'dark').catch(() => {});
   }, [themeName, isHydrating]);
 
   const setPreference = (p: ThemePreference) => {

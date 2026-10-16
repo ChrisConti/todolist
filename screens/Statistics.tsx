@@ -10,6 +10,7 @@ import { babiesRef } from '../config';
 import { useTranslation } from 'react-i18next';
 import Analytics from '../services/analytics';
 import Stork from '../assets/parachute2.svg';
+import IllustrationGround from '../components/IllustrationGround';
 
 export default function Statistics({ navigation }: any) {
   const { theme } = useTheme();
@@ -55,7 +56,9 @@ export default function Statistics({ navigation }: any) {
         {!babyID ? (
           <ScrollView contentContainerStyle={styles.emptyStateContainer}>
             <View style={styles.emptyState}>
-              <Stork height={180} width={180} />
+              <IllustrationGround radius={28} padding={12}>
+                <Stork height={180} width={180} />
+              </IllustrationGround>
               <View style={{ height: 20 }} />
               <Text style={styles.emptyTitle}>{t('stats.noBabyTitle')}</Text>
               <Text style={styles.emptySubtitle}>{t('stats.noBabySubtitle')}</Text>

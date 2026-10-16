@@ -25,6 +25,7 @@ import { RythmeChart } from '../RythmeChart';
 import { TendanceChart } from '../TendanceChart';
 import { SingleDayTimeline, CompareDayTimeline } from '../BiberonTimeline';
 import ItemParameter from '../../ItemParameter';
+import IllustrationGround from '../IllustrationGround';
 
 const SLEEP_GROUP = { label: 'L', nightMinutes: 480, napMinutes: 120, daysCount: 1 };
 
@@ -40,6 +41,7 @@ const CASES: [string, () => React.ReactElement][] = [
   ['SingleDayTimeline',  () => <SingleDayTimeline tasks={[]} />],
   ['CompareDayTimeline', () => <CompareDayTimeline todayTasks={[]} yesterdayTasks={[]} />],
   ['ItemParameter',      () => <ItemParameter title="x" icon="account" iconFamily="MaterialCommunityIcons" />],
+  ['IllustrationGround', () => <IllustrationGround><></></IllustrationGround>],
 ];
 
 describe.each([['clair', lightTheme], ['sombre', darkTheme]])('thème %s', (_name, theme) => {

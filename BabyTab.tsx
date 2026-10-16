@@ -14,6 +14,7 @@ import BabyProfileTab from './BabyProfileTab';
 import BabyFamilyTab from './BabyFamilyTab';
 import { useTheme } from './Context/ThemeContext';
 import type { Theme } from './constants/theme';
+import IllustrationGround from './components/IllustrationGround';
 
 const BabyTab = ({ navigation }) => {
   const { theme } = useTheme();
@@ -193,7 +194,9 @@ const BabyTab = ({ navigation }) => {
 
         <ScrollView contentContainerStyle={styles.emptyStateContainer}>
           <View style={styles.emptyState}>
-            <Stork height={180} width={180} />
+            <IllustrationGround radius={28} padding={12}>
+              <Stork height={180} width={180} />
+            </IllustrationGround>
             <View style={{ height: 30 }} />
 
             <TouchableOpacity
