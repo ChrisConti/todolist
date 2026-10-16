@@ -92,8 +92,13 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const offerings = await Purchases.getOfferings();
       const pkg = offerings.current?.availablePackages[0];
       const price = pkg?.product.priceString;
-      // Ignore bare currency codes (e.g. "USD") returned by StoreKit when territory is misconfigured
-      if (price && price.length > 5) {
+      // StoreKit renvoie parfois un code devise nu ("USD") quand le territoire
+      // est mal configuré. On le reconnaît à l'absence de chiffre, pas à sa
+      // longueur : "$5.99" et "£5.99" font cinq caractères et sont des prix
+      // valides. Avec un seuil de longueur, tous les marchés anglophones
+      // tombaient en « prix indisponible », et depuis que le bouton d'achat
+      // dépend de priceStatus, ils ne pouvaient plus acheter du tout.
+      if (price && /\d/.test(price)) {
         setPriceString(price);
         setPriceStatus('ready');
         return;

@@ -23,3 +23,30 @@ export function resolveTheme(
   if (preference === 'dark') return 'dark';
   return systemScheme === 'dark' ? 'dark' : 'light';
 }
+
+/**
+ * Surcharge à poser sur `Appearance.setColorScheme`, ou `null` pour la lever.
+ *
+ * Cet appel aligne les composants natifs — sélecteurs de date, claviers,
+ * alertes — sur notre décision. Mais c'est une surcharge au niveau de l'app :
+ * une fois posée, `Appearance.getColorScheme()` et son écouteur renvoient la
+ * surcharge, plus la valeur réelle du système.
+ *
+ * En mode « suivre le système », la poser revient donc à se couper de ce qu'on
+ * prétend suivre : un premium au téléphone sombre voyait son app s'ouvrir en
+ * clair le temps que le premium se charge, cette valeur claire devenait le
+ * « système » perçu, et l'app restait claire pour de bon. C'était la
+ * configuration par défaut.
+ *
+ * On ne pose donc la surcharge que lorsqu'on impose un thème. Quand on suit le
+ * système, on la lève : les composants natifs suivent alors le système eux
+ * aussi, ce qui est exactement voulu.
+ */
+export function nativeSchemeOverride(
+  preference: ThemePreference,
+  canUseDarkMode: boolean,
+  resolved: ThemeName,
+): ThemeName | null {
+  const following = preference === 'system' && canUseDarkMode;
+  return following ? null : resolved;
+}

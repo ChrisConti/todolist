@@ -3,7 +3,7 @@ import { Appearance, ColorSchemeName, Platform } from 'react-native';
 import * as NavigationBar from 'expo-navigation-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Theme, ThemeName, themes, lightTheme } from '../constants/theme';
-import { resolveTheme, ThemePreference } from '../utils/themeResolution';
+import { resolveTheme, nativeSchemeOverride, ThemePreference } from '../utils/themeResolution';
 import { usePremium } from './PremiumContext';
 
 export type { ThemePreference };
@@ -95,10 +95,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Aligne les composants natifs (sélecteurs de date, claviers, alertes) sur notre
   // décision plutôt que sur celle du système : sans ça, un non-premium au téléphone
   // sombre aurait une app claire et des pickers sombres.
+  //
+  // Mais c'est une surcharge au niveau de l'app : une fois posée, getColorScheme
+  // renvoie la surcharge, plus le système. En mode « suivre le système » on la
+  // lève donc, sinon on se coupe de ce qu'on prétend suivre — voir
+  // nativeSchemeOverride.
   useEffect(() => {
     if (isHydrating) return;
-    Appearance.setColorScheme(themeName);
-  }, [themeName, isHydrating]);
+    Appearance.setColorScheme(nativeSchemeOverride(preference, canUseDarkMode, themeName));
+  }, [themeName, preference, canUseDarkMode, isHydrating]);
 
   useEffect(() => {
     if (isHydrating) return;

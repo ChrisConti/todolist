@@ -1,4 +1,4 @@
-import { resolveTheme } from '../themeResolution';
+import { resolveTheme, nativeSchemeOverride } from '../themeResolution';
 
 describe('resolveTheme', () => {
   describe('sans premium — le droit prime sur tout', () => {
@@ -66,5 +66,34 @@ describe('révocation du premium optimiste', () => {
   it('une fois révoqué, le sombre n\'est plus résolvable', () => {
     const canUseDarkMode = settle(true, false, false);
     expect(resolveTheme('dark', 'dark', canUseDarkMode)).toBe('light');
+  });
+});
+
+describe('surcharge du schéma natif', () => {
+  it('est levée quand un premium suit le système', () => {
+    // Sinon la surcharge devient le « système » perçu et l'app s'y enferme.
+    expect(nativeSchemeOverride('system', true, 'dark')).toBeNull();
+    expect(nativeSchemeOverride('system', false === false, 'light')).toBeNull();
+  });
+
+  it('est posée quand l\'utilisateur impose un thème', () => {
+    expect(nativeSchemeOverride('dark', true, 'dark')).toBe('dark');
+    expect(nativeSchemeOverride('light', true, 'light')).toBe('light');
+  });
+
+  it('est posée pour un non-premium, dont le thème ne dépend pas du système', () => {
+    // resolveTheme renvoie toujours 'light' sans premium : la surcharge force
+    // les composants natifs à s'y aligner, et la valeur perçue du système
+    // n'influence plus rien.
+    expect(nativeSchemeOverride('system', false, 'light')).toBe('light');
+  });
+
+  it('le scénario qui cassait : premium, téléphone sombre, réglage système', () => {
+    // Avant le chargement du premium, le thème résolu est clair.
+    expect(nativeSchemeOverride('system', false, 'light')).toBe('light');
+    // Une fois le premium confirmé, la surcharge est levée et le téléphone
+    // reprend la main — l'app passe en sombre.
+    expect(nativeSchemeOverride('system', true, 'dark')).toBeNull();
+    expect(resolveTheme('system', 'dark', true)).toBe('dark');
   });
 });
