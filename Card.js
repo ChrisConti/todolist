@@ -139,7 +139,23 @@ const Card = ({ task, navigation, editable }) => {
   const handleCategoryLabel = () => {
     // Un tirage est une tâche de catégorie 5 sans durée par sein : sans ce cas,
     // la carte afficherait une tétée vide au lieu de la quantité tirée.
+    // Même présentation qu'une tétée : un sein par ligne, pas la somme.
     if (task.id == 5 && task.nursingType === 'pumping') {
+      const left = task.pumpedLeftMl || 0;
+      const right = task.pumpedRightMl || 0;
+      if (left && right) {
+        return (
+          <View style={{ flexDirection: 'column' }}>
+            <Text style={{ color: onCat, fontSize: 15, marginRight: 8, alignSelf: 'flex-end' }}>{`${t('L')} ${left} ${t('ml')}`}</Text>
+            <Text style={{ color: onCat, fontSize: 15, marginRight: 8, alignSelf: 'flex-end' }}>{`${t('R')} ${right} ${t('ml')}`}</Text>
+          </View>
+        );
+      } else if (left) {
+        return <Text style={{ color: onCat, fontSize: 25, marginRight: 8, alignSelf: 'flex-end' }}>{`${t('L')} ${left} ${t('ml')}`}</Text>;
+      } else if (right) {
+        return <Text style={{ color: onCat, fontSize: 25, marginRight: 8, alignSelf: 'flex-end' }}>{`${t('R')} ${right} ${t('ml')}`}</Text>;
+      }
+      // Sans détail par sein : le total seul.
       return (
         <Text style={{ color: onCat, fontSize: 22, marginRight: 8, alignSelf: 'flex-end' }}>
           {`${task.pumpedMl || 0} ${t('ml')}`}
