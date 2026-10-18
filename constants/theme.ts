@@ -99,6 +99,30 @@ export interface Theme {
   /** Contenu posé sur une surface réellement dorée : pastilles premium. */
   onGold: string;
 
+  /**
+   * Fonds teintés des pastilles d'icône des Paramètres et du profil. L'icône
+   * garde sa couleur pleine (categoryAccent, accent, gold) : seul le fond porte
+   * la teinte, assez douce pour ne pas concurrencer le texte.
+   */
+  tintViolet: string;
+  tintTeal: string;
+  tintTerracotta: string;
+  tintSage: string;
+  tintGold: string;
+  /**
+   * Icône ou texte posé sur la teinte du même nom : couleur pleine foncée en
+   * clair (≥ 3:1 pour une icône, ≥ 4,5:1 pour un texte), éclaircie en sombre.
+   */
+  onTintTeal: string;
+  onTintTerracotta: string;
+  onTintSage: string;
+  onTintGold: string;
+
+  /** Carte d'appel Premium : surface brun chocolat, texte crème, texte secondaire. */
+  premiumSurface: string;
+  onPremiumSurface: string;
+  premiumSurfaceMuted: string;
+
   /** Barre de statut : clair sur fond foncé, et inversement. */
   statusBar: 'light-content' | 'dark-content';
 }
@@ -148,6 +172,20 @@ export const lightTheme: Theme = {
   export: '#4A7FC1',
   goldText: '#3B1F00',
   onGold: '#3B1F00',
+
+  tintViolet: '#ECEAF7',
+  tintTeal: '#E0F3F3',
+  tintTerracotta: '#FBE7E3',
+  tintSage: '#E3F0F0',
+  tintGold: '#FFF1D6',
+  onTintTeal: '#138C8C',
+  onTintTerracotta: '#A8473A',
+  onTintSage: '#2C6A6E',
+  onTintGold: '#B87400',
+
+  premiumSurface: '#3B1F00',
+  onPremiumSurface: '#FFF4E2',
+  premiumSurfaceMuted: '#F3DFC4',
 
   statusBar: 'light-content',
 };
@@ -200,6 +238,23 @@ export const darkTheme: Theme = {
   export: '#39608F',
   goldText: '#E8A93C',
   onGold: '#2A1C07',
+
+  // Teintes sombres tirées des catégories : la pastille se devine sur card
+  // (#231B17) sans faire de tache claire la nuit.
+  tintViolet: '#2E2A45',
+  tintTeal: '#16302F',
+  tintTerracotta: '#3A2420',
+  tintSage: '#1C2E2F',
+  tintGold: '#3A2C12',
+  onTintTeal: '#1AAAAA',
+  onTintTerracotta: '#E8846C',
+  onTintSage: '#7FB0B3',
+  onTintGold: '#E8A93C',
+
+  // Plus clair que background (#17120F) pour que la carte se détache.
+  premiumSurface: '#3B2814',
+  onPremiumSurface: '#FFF4E2',
+  premiumSurfaceMuted: '#D9C3A6',
 
   statusBar: 'light-content',
 };

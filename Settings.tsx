@@ -1,10 +1,9 @@
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Linking, Platform, Switch } from 'react-native';
-import React, { useMemo, useContext, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Linking, Switch } from 'react-native';
+import React, { useMemo, useContext, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ItemParameter from './ItemParameter.js';
-import { auth } from './config.js';
+import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { db, userRef } from './config.js';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
-import { signOut } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
 import analytics from './services/analytics';
 import { useReviewPrompt } from './Context/ReviewPromptContext';
@@ -14,377 +13,361 @@ import { SUPPORT_EMAIL } from './utils/constants';
 import { useTheme } from './Context/ThemeContext';
 import { isNursingActivitySupported } from './utils/nursingActivityBridge';
 import type { Theme } from './constants/theme';
+import { initialOf } from './utils/initials';
+
+const THEME_OPTIONS = [
+  { value: 'system', labelKey: 'settings.themeSystem' },
+  { value: 'light', labelKey: 'settings.themeLightShort' },
+  { value: 'dark', labelKey: 'settings.themeDarkShort' },
+] as const;
+
+const PREMIUM_PERKS = ['premium.perkStats', 'premium.perkExport', 'premium.perkWidget', 'premium.perkDarkMode'];
 
 const Settings = ({ navigation }) => {
-  const { user, setUser, babyID, setBabyID, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
+  const { user, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
   const { showReviewModalManually } = useReviewPrompt();
   const { isPremium } = usePremium();
   const { theme, preference, setPreference, canUseDarkMode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-
-  const provider = userInfo?.provider || 'email';
+  const [emailOptIn, setEmailOptIn] = useState<boolean>(userInfo?.emailOptIn ?? false);
+  const [savingOptIn, setSavingOptIn] = useState(false);
 
   useEffect(() => {
     analytics.logScreenView('Settings');
   }, []);
 
-  const handleSignOut = () => {
-    analytics.logEvent('sign_out', { provider });
-    signOut(auth)
-      .then(() => {
-        setUser(null);
-        setBabyID(null);
-        setUserInfo(null);
-      })
-      .catch((error) => {
-        Alert.alert(error.message);
-      });
+  // userInfo arrive parfois après le premier rendu : l'interrupteur doit suivre.
+  useEffect(() => {
+    setEmailOptIn(userInfo?.emailOptIn ?? false);
+  }, [userInfo?.emailOptIn]);
+
+  // Reprise de l'ancien écran EmailOptIn : bascule optimiste, retour arrière si l'écriture échoue.
+  const handleEmailOptIn = async (value: boolean) => {
+    analytics.logEvent('email_opt_in_changed', { enabled: value });
+    setEmailOptIn(value);
+    setSavingOptIn(true);
+    try {
+      const snap = await getDocs(query(userRef, where('userId', '==', user.uid)));
+      if (!snap.empty) {
+        await updateDoc(doc(db, 'Users', snap.docs[0].id), { emailOptIn: value });
+        setUserInfo({ ...userInfo, emailOptIn: value });
+      }
+    } catch (error) {
+      console.error('Error updating emailOptIn:', error);
+      setEmailOptIn(!value);
+    } finally {
+      setSavingOptIn(false);
+    }
   };
 
   const handleContactUs = () => {
-    const email = SUPPORT_EMAIL;
     const subject = 'Contact Tribu baby';
     const body = 'Hi there, I would like to...';
-    const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const url = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     Linking.openURL(url).catch((err) => console.error('Failed to open email:', err));
   };
 
   const handleFeedback = () => {
-    const email = SUPPORT_EMAIL;
     const subject = 'Feedback';
     const body = 'Hi, I would like to suggest...';
-    const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const url = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     Linking.openURL(url).catch((err) => console.error('Failed to open email:', err));
   };
 
+  const openPaywall = (source: string) => {
+    analytics.logEvent('paywall_opened', { source });
+    navigation.navigate('Paywall');
+  };
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        <Text style={styles.headerTitle}>{t('title.settings') || 'Réglages'}</Text>
+        <Text style={styles.headerTitle}>{t('title.settings')}</Text>
       </View>
-      
-      <ScrollView contentContainerStyle={styles.contentContainer}>
 
-        {/* Premium banner */}
-        {isPremium ? (
-          <TouchableOpacity
-            style={styles.premiumActiveBadge}
-            activeOpacity={0.85}
-            onPress={() => {
-              const url = Platform.OS === 'ios'
-                ? 'https://apps.apple.com/account/subscriptions'
-                : 'https://play.google.com/store/account/subscriptions';
-              Alert.alert(
-                t('premium.manageTitle'),
-                t('premium.manageMessage'),
-                [
-                  { text: t('settings.cancel'), style: 'cancel' },
-                  { text: t('premium.manageCta'), onPress: () => Linking.openURL(url) },
-                ]
-              );
-            }}
-          >
-            <View style={styles.premiumIconBox}>
-              <MaterialCommunityIcons name="star" size={22} color={theme.onPrimary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.premiumActiveText}>{t('premium.settingsBannerActive')}</Text>
-              <Text style={styles.premiumActiveSub}>{t('premium.upsellSubtitle')}</Text>
-            </View>
-            <MaterialCommunityIcons name="chevron-right" size={18} color={theme.gold} />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={styles.premiumBanner}
-            onPress={() => { analytics.logEvent('paywall_opened', { source: 'settings_banner' }); navigation.navigate('Paywall'); }}
-            activeOpacity={0.9}
-          >
-            <Text style={styles.premiumDeco1}>+</Text>
-            <Text style={styles.premiumDeco2}>+</Text>
-            <View style={styles.premiumIconBox}>
-              <View style={styles.premiumIconShine} />
-              <MaterialCommunityIcons name="star" size={26} color={theme.onPrimary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.premiumBannerTitle}>{t('premium.settingsBannerTitle')}</Text>
-              <Text style={styles.premiumBannerSub}>{t('premium.upsellSubtitle')}</Text>
-            </View>
-            <MaterialCommunityIcons name="chevron-right" size={20} color={theme.gold} />
-          </TouchableOpacity>
-        )}
+      <ScrollView contentContainerStyle={styles.content}>
 
-        {/* Quick action cards */}
-        <View style={styles.quickCardsRow}>
-          <TouchableOpacity
-            style={styles.quickCard}
-            onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'rate_app' }); showReviewModalManually(); }}
-            activeOpacity={0.85}
-          >
-            <View style={styles.quickCardIcon}>
-              <MaterialCommunityIcons name="star" size={22} color={theme.gold} />
+        {/* Carte profil : ouvre Mon profil (nom, email, mot de passe, déconnexion, suppression) */}
+        <TouchableOpacity
+          style={[styles.card, styles.profileCard]}
+          activeOpacity={0.85}
+          onPress={() => {
+            analytics.logEvent('settings_item_tapped', { item: 'profile_card' });
+            navigation.navigate('MyProfile');
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={t('settings.editProfile')}
+        >
+          <View>
+            <View style={[styles.avatar, isPremium && styles.avatarPremium]}>
+              <Text style={styles.avatarText}>{initialOf(userInfo?.username, userInfo?.email)}</Text>
             </View>
-            <Text style={styles.quickCardTitle}>{t('settings.rateApp')}</Text>
-          </TouchableOpacity>
+            {isPremium && (
+              <View style={styles.crownBadge} accessibilityLabel={t('premium.cardTitle')}>
+                <MaterialCommunityIcons name="crown" size={19} color={theme.gold} />
+              </View>
+            )}
+          </View>
+          <Text style={styles.profileName} numberOfLines={1}>{userInfo?.username}</Text>
+          <Text style={styles.profileEmail} numberOfLines={1}>{userInfo?.email}</Text>
+          {isPremium && <Text style={styles.premiumLabel}>{t('premium.cardTitle')}</Text>}
+          <View style={styles.editPill}>
+            <Text style={styles.editPillText}>{t('settings.editProfile')}</Text>
+            <MaterialCommunityIcons name="chevron-right" size={16} color={theme.accent} />
+          </View>
+        </TouchableOpacity>
+
+        {/* Préférences */}
+        <View style={[styles.card, styles.prefCard]}>
+          <Text style={styles.cardTitle}>{t('settings.preferences')}</Text>
+
+          <View style={[styles.prefRow, canUseDarkMode && styles.prefRowWrap]}>
+            <View style={[styles.iconTile, { backgroundColor: theme.tintViolet }]}>
+              <MaterialCommunityIcons name="weather-night" size={20} color={theme.categoryAccent[4]} />
+            </View>
+            <Text style={styles.prefLabel}>
+              {t('settings.darkMode')}{!canUseDarkMode && <Text style={styles.star}> ★</Text>}
+            </Text>
+            {canUseDarkMode ? (
+              <View style={styles.segment}>
+                {THEME_OPTIONS.map(({ value, labelKey }) => {
+                  const selected = preference === value;
+                  return (
+                    <TouchableOpacity
+                      key={value}
+                      style={[styles.segmentItem, selected && styles.segmentItemOn]}
+                      hitSlop={{ top: 4, bottom: 4 }}
+                      onPress={() => {
+                        setPreference(value);
+                        analytics.logEvent('theme_preference_changed', { preference: value });
+                      }}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                    >
+                      <Text style={[styles.segmentText, selected && styles.segmentTextOn]}>{t(labelKey)}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.unlock} onPress={() => openPaywall('dark_mode')} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}>
+                <Text style={styles.unlockText}>{t('premium.cta_short')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {isNursingActivitySupported() && (
+            <TouchableOpacity
+              style={[styles.prefRow, styles.prefRowBorder]}
+              onPress={() => {
+                analytics.logEvent('settings_item_tapped', { item: 'nursing_live_activity' });
+                navigation.navigate('NursingLockScreenSetting');
+              }}
+            >
+              <View style={[styles.iconTile, { backgroundColor: theme.tintTeal }]}>
+                <MaterialCommunityIcons name="cellphone-lock" size={20} color={theme.onTintTeal} />
+              </View>
+              <Text style={styles.prefLabel}>{t('settings.nursingLockScreenShort')}</Text>
+              <MaterialCommunityIcons name="chevron-right" size={20} color={theme.textMuted} />
+            </TouchableOpacity>
+          )}
+
+          <View style={[styles.prefRow, styles.prefRowBorder]}>
+            <View style={[styles.iconTile, { backgroundColor: theme.tintTerracotta }]}>
+              <MaterialCommunityIcons name="email-outline" size={20} color={theme.onTintTerracotta} />
+            </View>
+            <Text style={styles.prefLabel}>{t('settings.emailOptIn')}</Text>
+            <Switch
+              value={emailOptIn}
+              onValueChange={handleEmailOptIn}
+              disabled={savingOptIn}
+              thumbColor={emailOptIn ? theme.primary : theme.textMuted}
+              trackColor={{ false: theme.separator, true: theme.switchOn }}
+              accessibilityLabel={t('settings.emailOptIn')}
+            />
+          </View>
+        </View>
+
+        {/* Aidez-nous / Notez-nous */}
+        <View style={styles.halfRow}>
           <TouchableOpacity
-            style={styles.quickCard}
+            style={[styles.card, styles.halfCard]}
             onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'feedback' }); handleFeedback(); }}
             activeOpacity={0.85}
           >
-            <View style={styles.quickCardIcon}>
-              <MaterialCommunityIcons name="lightbulb-on" size={22} color={theme.gold} />
+            <View style={[styles.iconTileLarge, { backgroundColor: theme.tintSage }]}>
+              <MaterialCommunityIcons name="lightbulb-on-outline" size={22} color={theme.onTintSage} />
             </View>
-            <Text style={styles.quickCardTitle}>{t('settings.feedback')}</Text>
+            <Text style={styles.halfTitle}>{t('settings.helpUs')}</Text>
+            <Text style={styles.halfSub}>{t('settings.helpUsSub')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.card, styles.halfCard]}
+            onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'rate_app' }); showReviewModalManually(); }}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.iconTileLarge, { backgroundColor: theme.tintGold }]}>
+              <MaterialCommunityIcons name="star" size={22} color={theme.onTintGold} />
+            </View>
+            <Text style={styles.halfTitle}>{t('settings.rateUs')}</Text>
+            <Text style={styles.halfSub}>{t('settings.rateUsSub')}</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Apparence — visible pour tous, verrouillé hors premium : la masquer
-            empêcherait de découvrir la fonctionnalité. */}
-        <View>
-          <View>
-            <Text style={styles.titleParameter}>{t('settings.appearance')}</Text>
-          </View>
-          <View style={styles.themeCard}>
-            <View style={styles.themeRow}>
-              <View style={{ flex: 1 }}>
-                <View style={styles.themeTitleRow}>
-                  <Text style={styles.themeTitle}>{t('settings.followSystem')}</Text>
-                  {!canUseDarkMode && <Text style={styles.themeStar}>★</Text>}
-                </View>
-                <Text style={styles.themeSub}>{t('settings.followSystemSub')}</Text>
-              </View>
-              {canUseDarkMode ? (
-                <Switch
-                  value={preference === 'system'}
-                  onValueChange={(v) => {
-                    const next = v ? 'system' : (theme.dark ? 'dark' : 'light');
-                    setPreference(next);
-                    analytics.logEvent('theme_preference_changed', { preference: next });
-                  }}
-                  trackColor={{ false: theme.separator, true: theme.primary }}
-                  thumbColor={theme.onPrimary}
-                />
-              ) : (
-                <TouchableOpacity
-                  onPress={() => {
-                    analytics.logEvent('paywall_opened', { source: 'dark_mode' });
-                    navigation.navigate('Paywall');
-                  }}
-                  style={styles.themeUnlock}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.themeUnlockTxt}>{t('premium.cta_short')}</Text>
-                </TouchableOpacity>
-              )}
+        {/* Carte Premium, uniquement hors premium : la couronne du profil suffit sinon */}
+        {!isPremium && (
+          <View style={styles.premiumCard}>
+            <MaterialCommunityIcons name="crown" size={150} color={theme.onPremiumSurface} style={styles.premiumWatermark} />
+            <View style={styles.premiumTitleRow}>
+              <MaterialCommunityIcons name="crown" size={26} color={theme.gold} />
+              <Text style={styles.premiumTitle}>{t('premium.cardTitle')}</Text>
             </View>
-
-            {canUseDarkMode && preference !== 'system' && (
-              <View style={styles.themeSegRow}>
-                {(['light', 'dark'] as const).map((mode) => (
-                  <TouchableOpacity
-                    key={mode}
-                    onPress={() => {
-                      setPreference(mode);
-                      analytics.logEvent('theme_preference_changed', { preference: mode });
-                    }}
-                    style={[styles.themeSeg, preference === mode && styles.themeSegOn]}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={[styles.themeSegTxt, preference === mode && styles.themeSegTxtOn]}>
-                      {t(mode === 'light' ? 'settings.themeLight' : 'settings.themeDark')}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-        </View>
-
-        <View>
-          <View>
-            <Text style={styles.titleParameter}>{t('settings.personalOptions')}</Text>
-          </View>
-          <View>
-            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'change_name' }); navigation.navigate('ChangeName'); }}>
-              <ItemParameter title={t('settings.myName')} icon="account-edit" iconFamily="MaterialCommunityIcons" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'change_email' }); navigation.navigate('ChangeEmail'); }}>
-              <ItemParameter title={t('settings.myEmail')} icon="email-edit" iconFamily="MaterialCommunityIcons" />
-            </TouchableOpacity>
-            {provider === 'email' && (
-              <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'change_password' }); navigation.navigate('ChangePassword'); }}>
-                <ItemParameter title={t('settings.myPassword')} icon="lock-reset" iconFamily="MaterialCommunityIcons" />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              onPress={() => {
-                analytics.logEvent('settings_item_tapped', { item: 'delete_account' });
-                navigation.navigate('DeleteAccount');
-              }}
-            >
-              <ItemParameter title={t('settings.deleteAccount')} icon="account-remove" iconFamily="MaterialCommunityIcons" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'email_opt_in' }); navigation.navigate('EmailOptIn'); }}>
-              <ItemParameter title={t('settings.emailOptIn')} icon="email-newsletter" iconFamily="MaterialCommunityIcons" />
-            </TouchableOpacity>
-            {isNursingActivitySupported() && (
-              <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'nursing_live_activity' }); navigation.navigate('NursingLockScreenSetting'); }}>
-                <ItemParameter title={t('settings.nursingLockScreen')} icon="cellphone-lock" iconFamily="MaterialCommunityIcons" />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity onPress={handleSignOut}>
-              <ItemParameter title={t('settings.signOut')} icon="logout" iconFamily="MaterialCommunityIcons" />
+            <View style={styles.perks}>
+              {PREMIUM_PERKS.map((key) => (
+                <View key={key} style={styles.perk}>
+                  <MaterialCommunityIcons name="check" size={17} color={theme.gold} />
+                  <Text style={styles.perkText}>{t(key)}</Text>
+                </View>
+              ))}
+            </View>
+            <TouchableOpacity style={styles.premiumCta} onPress={() => openPaywall('settings_banner')} activeOpacity={0.9}>
+              <Text style={styles.premiumCtaText}>{t('premium.settingsBannerTitle')}</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        )}
 
-        <View>
-          <View>
-            <Text style={styles.titleParameter}>{t('settings.about')}</Text>
-          </View>
-          <View>
-            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'privacy_policy' }); navigation.navigate('PrivacyPolicy'); }}>
-              <ItemParameter title={t('settings.privacyPolicy')} icon="shield-lock" iconFamily="MaterialCommunityIcons" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'terms_of_use' }); navigation.navigate('TermsOfUse'); }}>
-              <ItemParameter title={t('settings.termsOfUse')} icon="file-document" iconFamily="MaterialCommunityIcons" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'contact_us' }); handleContactUs(); }}>
-              <ItemParameter title={t('settings.contactUs')} icon="email" iconFamily="MaterialCommunityIcons" />
-            </TouchableOpacity>
-
-          </View>
-
+        {/* Pied de page */}
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.footerLink} onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'contact_us' }); handleContactUs(); }}>
+            <Text style={styles.footerText}>{t('settings.contactUs')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.footerLink} onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'privacy_policy' }); navigation.navigate('PrivacyPolicy'); }}>
+            <Text style={styles.footerText}>{t('settings.privacyShort')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.footerLink} onPress={() => { analytics.logEvent('settings_item_tapped', { item: 'terms_of_use' }); navigation.navigate('TermsOfUse'); }}>
+            <Text style={styles.footerText}>{t('settings.termsShort')}</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
   );
-}
+};
 
 export default Settings;
 
 const makeStyles = (theme: Theme) => StyleSheet.create({
-  themeCard: {
-    backgroundColor: theme.card, borderRadius: 12, marginHorizontal: 16, marginBottom: 8,
-    borderWidth: 1, borderColor: theme.border, overflow: 'hidden',
-  },
-  themeRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
-  themeTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  themeTitle: { fontSize: 15, fontWeight: '600', color: theme.text },
-  themeStar: { fontSize: 13, color: theme.gold, fontWeight: '700' },
-  themeSub: { fontSize: 12, color: theme.textSecondary, marginTop: 2 },
-  themeUnlock: {
-    backgroundColor: theme.primary, borderRadius: 8, paddingVertical: 7, paddingHorizontal: 13,
-  },
-  themeUnlockTxt: { color: theme.onPrimary, fontSize: 13, fontWeight: '700' },
-  themeSegRow: {
-    flexDirection: 'row', gap: 8, paddingHorizontal: 14, paddingBottom: 14,
-    borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 12,
-  },
-  themeSeg: {
-    flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 8,
-    backgroundColor: theme.soft, borderWidth: 1, borderColor: theme.border,
-  },
-  themeSegOn: { backgroundColor: theme.primary, borderColor: theme.accent },
-  themeSegTxt: { fontSize: 13.5, fontWeight: '600', color: theme.textSecondary },
-  themeSegTxtOn: { color: theme.onPrimary },
-
-  container: {
-    flex: 1,
-    backgroundColor: theme.background,
-  },
+  container: { flex: 1, backgroundColor: theme.background },
   header: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: 14,
-    paddingHorizontal: 16,
+    justifyContent: 'center', alignItems: 'center',
+    paddingBottom: 14, paddingHorizontal: 16,
     backgroundColor: theme.headerBackground,
   },
-  headerTitle: {
-    fontSize: 22,
-    color: theme.onHeader,
-    fontFamily: 'Pacifico',
-    textAlign: 'center',
-  },
-  titleParameter: {
-    color: theme.textSecondary,
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    marginTop: 3,
-  },
-  contentContainer: {
-    padding: 16,
-    gap: 12,
-  },
-  premiumBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
+  headerTitle: { fontSize: 22, color: theme.onHeader, fontFamily: 'Pacifico', textAlign: 'center' },
+  content: { padding: 16, gap: 16, paddingBottom: 32 },
+
+  card: {
     backgroundColor: theme.card,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: theme.gold,
-    padding: 16,
-    marginBottom: 4,
-  },
-  premiumIconBox: {
-    width: 52, height: 52, borderRadius: 14,
-    backgroundColor: theme.gold,
-    alignItems: 'center', justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  premiumIconShine: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0,
-    height: 26,
-    backgroundColor: 'rgba(255,220,80,0.35)',
-    borderRadius: 14,
-  },
-  premiumBannerTitle: { fontSize: 16, fontWeight: '800', color: theme.goldText, marginBottom: 4, lineHeight: 21 },
-  premiumBannerSub: { fontSize: 13, color: theme.goldText, fontWeight: '400', lineHeight: 18 },
-  premiumDeco1: { position: 'absolute', top: 12, right: 44, fontSize: 14, color: theme.gold, opacity: 0.6 },
-  premiumDeco2: { position: 'absolute', bottom: 12, right: 26, fontSize: 10, color: theme.gold, opacity: 0.45 },
-  premiumActiveBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: theme.card, borderRadius: 20, padding: 14, marginBottom: 4,
-    borderWidth: 1.5, borderColor: theme.gold,
-  },
-  premiumActiveText: { fontSize: 14, fontWeight: '700', color: theme.goldText },
-  premiumActiveSub: { fontSize: 12, color: theme.goldText, marginTop: 2 },
-
-  quickCardsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  quickCard: {
-    flex: 1,
-    backgroundColor: theme.primary,
-    borderRadius: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    gap: 8,
+    borderRadius: 22,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: theme.dark ? 0 : 0.06,
+    shadowRadius: 12,
+    elevation: theme.dark ? 0 : 2,
   },
-  quickCardIcon: {
-    width: 40, height: 40, borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+
+  // Profil
+  profileCard: { alignItems: 'center', paddingTop: 26, paddingBottom: 20, paddingHorizontal: 20 },
+  avatar: {
+    width: 80, height: 80, borderRadius: 40,
+    backgroundColor: theme.tintTerracotta,
+    borderWidth: 2, borderColor: theme.border,
     alignItems: 'center', justifyContent: 'center',
   },
-  quickCardTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: theme.onPrimary,
-    textAlign: 'center',
+  avatarPremium: { borderWidth: 3, borderColor: theme.gold },
+  avatarText: { fontSize: 32, fontWeight: '700', color: theme.onTintTerracotta },
+  crownBadge: {
+    position: 'absolute', top: -16, alignSelf: 'center',
+    width: 34, height: 34, borderRadius: 17,
+    backgroundColor: theme.premiumSurface,
+    borderWidth: 3, borderColor: theme.card,
+    alignItems: 'center', justifyContent: 'center',
+    transform: [{ rotate: '-8deg' }],
   },
+  profileName: { fontSize: 22, fontWeight: '800', color: theme.text, marginTop: 12 },
+  profileEmail: { fontSize: 15, color: theme.textSecondary, marginTop: 2 },
+  premiumLabel: {
+    marginTop: 6, fontSize: 12, fontWeight: '800', letterSpacing: 1.2,
+    textTransform: 'uppercase', color: theme.goldText,
+  },
+  editPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    marginTop: 14, paddingVertical: 9, paddingHorizontal: 16,
+    borderRadius: 999, backgroundColor: theme.background,
+  },
+  editPillText: { fontSize: 14, fontWeight: '700', color: theme.accent },
+
+  // Préférences
+  prefCard: { paddingBottom: 4 },
+  cardTitle: {
+    fontSize: 13, fontWeight: '700', letterSpacing: 0.5, color: theme.textSecondary,
+    paddingTop: 16, paddingHorizontal: 20, paddingBottom: 4,
+  },
+  prefRow: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 62, paddingHorizontal: 20 },
+  prefRowWrap: { flexWrap: 'wrap', paddingVertical: 12, rowGap: 12 },
+  prefRowBorder: { borderTopWidth: 1, borderTopColor: theme.separator },
+  iconTile: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  prefLabel: { flex: 1, fontSize: 16, fontWeight: '600', color: theme.text },
+  star: { color: theme.gold },
+  unlock: {
+    backgroundColor: theme.premiumSurface, borderRadius: 999,
+    paddingVertical: 8, paddingHorizontal: 14,
+  },
+  unlockText: { fontSize: 13, fontWeight: '700', color: theme.gold },
+  segment: {
+    width: '100%', flexDirection: 'row', gap: 4, padding: 4,
+    borderRadius: 12, backgroundColor: theme.soft,
+  },
+  segmentItem: { flex: 1, minHeight: 36, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  segmentItemOn: {
+    backgroundColor: theme.card,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 1,
+  },
+  segmentText: { fontSize: 14, color: theme.textSecondary },
+  segmentTextOn: { fontWeight: '700', color: theme.text },
+
+  // Aidez-nous / Notez-nous
+  halfRow: { flexDirection: 'row', gap: 12 },
+  halfCard: { flex: 1, padding: 18, gap: 4 },
+  iconTileLarge: {
+    width: 42, height: 42, borderRadius: 13,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 10,
+  },
+  halfTitle: { fontSize: 16, fontWeight: '800', color: theme.text },
+  halfSub: { fontSize: 13, lineHeight: 18, color: theme.textSecondary },
+
+  // Premium
+  premiumCard: {
+    backgroundColor: theme.premiumSurface, borderRadius: 24,
+    padding: 20, paddingTop: 22, gap: 16, overflow: 'hidden',
+    // En sombre, la surface se confond presque avec le fond : un liseré doré la détache.
+    borderWidth: theme.dark ? 1 : 0, borderColor: theme.gold,
+  },
+  premiumWatermark: { position: 'absolute', right: -26, top: -36, opacity: 0.08 },
+  premiumTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  premiumTitle: { fontSize: 20, fontWeight: '800', color: theme.onPremiumSurface },
+  perks: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 8 },
+  perk: { width: '50%', flexDirection: 'row', alignItems: 'center', gap: 8, paddingRight: 8 },
+  perkText: { flexShrink: 1, fontSize: 14, color: theme.premiumSurfaceMuted },
+  premiumCta: {
+    backgroundColor: theme.gold, borderRadius: 14, minHeight: 50,
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12,
+  },
+  premiumCtaText: { fontSize: 16, fontWeight: '800', color: theme.onGold, textAlign: 'center' },
+
+  // Pied de page
+  footer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', columnGap: 14 },
+  footerLink: { minHeight: 44, justifyContent: 'center' },
+  footerText: { fontSize: 13.5, color: theme.accent },
 });
-
-
-

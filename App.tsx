@@ -18,12 +18,11 @@ import FirstTaskBiberon from './screens/FirstTaskBiberon';
 import UpdateTask from './screens/UpdateTask';
 import Settings from './Settings';
 import Baby from './Baby';
-import BabyState from './BabyState';
 import BabyTab from './BabyTab';
 import EditBaby from './EditBaby';
 import EditBabyPhoto from './screens/EditBabyPhoto';
 import ChangeName from './screens/ChangeName';
-import EmailOptIn from './screens/EmailOptIn';
+import MyProfile from './screens/MyProfile';
 import NursingLockScreenSetting from './screens/NursingLockScreenSetting';
 import ChangeEmail from './screens/ChangeEmail';
 import DeleteAccount from './screens/DeleteAccount';
@@ -458,17 +457,6 @@ function MainStack() {
         }}
       />
       <Stack.Screen
-        name="BabyState"
-        component={BabyState}
-        options={{
-          headerStyle: { backgroundColor: headerBg },
-          headerTintColor: headerFg,
-          headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
-          headerTitle: t('title.myBaby'),
-          headerBackTitle: ''
-        }}
-      />
-      <Stack.Screen
         name="EditBaby"
         component={EditBaby}
         options={{
@@ -491,13 +479,13 @@ function MainStack() {
         }}
       />
       <Stack.Screen
-        name="EmailOptIn"
-        component={EmailOptIn}
+        name="MyProfile"
+        component={MyProfile}
         options={{
           headerStyle: { backgroundColor: headerBg },
           headerTintColor: headerFg,
           headerTitleStyle: { fontFamily: 'Pacifico', fontSize: 22, color: headerFg },
-          headerTitle: t('settings.emailOptIn'),
+          headerTitle: t('settings.myProfile'),
           headerBackTitle: ''
         }}
       />

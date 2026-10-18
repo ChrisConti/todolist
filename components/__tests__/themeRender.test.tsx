@@ -24,7 +24,6 @@ import StatsContainer from '../stats/StatsContainer';
 import { RythmeChart } from '../RythmeChart';
 import { TendanceChart } from '../TendanceChart';
 import { SingleDayTimeline, CompareDayTimeline } from '../BiberonTimeline';
-import ItemParameter from '../../ItemParameter';
 import IllustrationGround from '../IllustrationGround';
 
 const SLEEP_GROUP = { label: 'L', nightMinutes: 480, napMinutes: 120, daysCount: 1 };
@@ -67,7 +66,6 @@ const CASES: { name: string; mount: () => React.ReactElement; gated?: boolean }[
   { name: 'TendanceChart', mount: () => <TendanceChart tasks={BOTTLES as any} /> },
   { name: 'SingleDayTimeline', mount: () => <SingleDayTimeline tasks={BOTTLES as any} /> },
   { name: 'CompareDayTimeline', mount: () => <CompareDayTimeline todayTasks={BOTTLES as any} yesterdayTasks={BOTTLES as any} /> },
-  { name: 'ItemParameter', mount: () => <ItemParameter title="x" icon="account" iconFamily="MaterialCommunityIcons" backgroundColor={undefined} iconColor={undefined} textColor={undefined} /> },
   { name: 'IllustrationGround', mount: () => <IllustrationGround><></></IllustrationGround> },
 ];
 
