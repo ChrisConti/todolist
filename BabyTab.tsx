@@ -10,8 +10,8 @@ import { ref, deleteObject } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import analytics from './services/analytics';
 import Stork from './assets/parachute2.svg';
-import BabyProfileTab from './BabyProfileTab';
-import BabyFamilyTab from './BabyFamilyTab';
+import BabyProfileCard from './BabyProfileCard';
+import BabyFamilySection from './BabyFamilySection';
 import { useTheme } from './Context/ThemeContext';
 import type { Theme } from './constants/theme';
 import IllustrationGround from './components/IllustrationGround';
@@ -22,11 +22,16 @@ const BabyTab = ({ navigation }) => {
   const { user, babyID, setBabyID, userInfo } = useContext(AuthentificationUserContext);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<'profile' | 'family'>('profile');
   const [loading, setLoading] = useState(false);
   const [babyData, setBabyData] = useState<any>(null);
   const [babyDocId, setBabyDocId] = useState<string>('');
   const [userListDisplay, setUserListDisplay] = useState([]);
+  const [showCopied, setShowCopied] = useState(false);
+
+  const handleCopied = () => {
+    setShowCopied(true);
+    setTimeout(() => setShowCopied(false), 2000);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -238,35 +243,14 @@ const BabyTab = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* Le prénom figure sur la carte : l'en-tête reste générique. */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        <Text style={styles.headerTitle}>{babyData.name || t('baby.title')}</Text>
+        <Text style={styles.headerTitle}>{t('title.myBaby')}</Text>
       </View>
 
-      {/* Tabs Navigation */}
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'profile' && styles.activeTab]}
-          onPress={() => { setActiveTab('profile'); analytics.logEvent('tab_selected', { screen: 'Baby', tab: 'profile' }); }}
-        >
-          <Text style={[styles.tabText, activeTab === 'profile' && styles.activeTabText]}>
-            {t('baby.profile')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'family' && styles.activeTab]}
-          onPress={() => { setActiveTab('family'); analytics.logEvent('tab_selected', { screen: 'Baby', tab: 'family' }); }}
-        >
-          <Text style={[styles.tabText, activeTab === 'family' && styles.activeTabText]}>
-            {t('baby.family')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Tab Content */}
-      {activeTab === 'profile' ? (
-        <BabyProfileTab babyData={babyData} onEdit={handleEdit} />
-      ) : (
-        <BabyFamilyTab
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.pageContent}>
+        <BabyProfileCard babyData={babyData} onEdit={handleEdit} />
+        <BabyFamilySection
           babyID={babyID}
           babyName={babyData.name || ''}
           babyDocId={babyDocId}
@@ -276,7 +260,17 @@ const BabyTab = ({ navigation }) => {
           adminId={babyData.admin}
           onLeaveBaby={deleteBaby}
           onRoleUpdated={loadBabyAndUsers}
+          onCopied={handleCopied}
         />
+      </ScrollView>
+
+      {/* Confirmation iOS de la copie du code, fixe en bas de l'écran */}
+      {showCopied && (
+        <View style={styles.copiedToast} pointerEvents="none">
+          <View style={styles.copiedToastContent}>
+            <Text style={styles.copiedToastText}>{t('success.copied')}</Text>
+          </View>
+        </View>
       )}
     </View>
   );
@@ -307,32 +301,26 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.background,
   },
-  tabsContainer: {
-    flexDirection: 'row',
-    backgroundColor: theme.card,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 15,
-    alignItems: 'center',
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
-  },
-  activeTab: {
-    borderBottomColor: theme.accent,
-  },
-  tabText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.textSecondary,
-  },
-  activeTabText: {
-    color: theme.accent,
-  },
   scrollView: {
     flex: 1,
+  },
+  copiedToast: { position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center' },
+  copiedToastContent: {
+    backgroundColor: theme.success,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  copiedToastText: { color: theme.onPrimary, fontSize: 14, fontWeight: '600' },
+  pageContent: {
+    padding: 16,
+    gap: 24,
+    paddingBottom: 32,
   },
   emptyStateContainer: {
     flexGrow: 1,

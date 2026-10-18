@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Clipboard, ToastAndroid, Platform, Modal, Share } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Clipboard, ToastAndroid, Platform, Modal, Share } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import Copy from './assets/copy.svg';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import analytics from './services/analytics';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from './config';
 import { useTheme } from './Context/ThemeContext';
 import type { Theme } from './constants/theme';
+import { initialOf } from './utils/initials';
 
 const ROLES = ['maman', 'papa', 'mamie', 'papy', 'nounou', 'tata', 'tonton', 'autre'] as const;
 
@@ -16,7 +16,7 @@ const ROLE_EMOJIS: Record<string, string> = {
   nounou: '🍼', tata: '👩‍🦰', tonton: '🧔', autre: '✨',
 };
 
-interface BabyFamilyTabProps {
+interface BabyFamilySectionProps {
   babyID: string;
   babyName: string;
   babyDocId: string;
@@ -30,9 +30,12 @@ interface BabyFamilyTabProps {
   adminId: string;
   onLeaveBaby: () => void;
   onRoleUpdated: () => void;
+  /** Confirmation « Copié » affichée par l'écran parent, hors de la zone qui défile. */
+  onCopied?: () => void;
 }
 
-const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
+// Membres, partage du code et départ, sur la page unique de l'écran Bébé.
+const BabyFamilySection: React.FC<BabyFamilySectionProps> = ({
   babyID,
   babyName,
   babyDocId,
@@ -42,6 +45,7 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
   adminId,
   onLeaveBaby,
   onRoleUpdated,
+  onCopied,
 }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -55,6 +59,8 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
     analytics.logEvent('baby_code_copied', { baby_id: babyID, user_id: currentUserId });
     if (Platform.OS === 'android') {
       ToastAndroid.show(t('success.copied'), ToastAndroid.SHORT);
+    } else if (onCopied) {
+      onCopied();
     } else {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2000);
@@ -101,70 +107,82 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
 
   const isRoleSet = (userId: string) => !!memberRoles[userId];
 
+  // Avatars des membres : teintes du thème, attribuées dans l'ordre d'arrivée.
+  const avatarTints = [
+    { bg: theme.tintTerracotta, fg: theme.onTintTerracotta },
+    { bg: theme.tintSage, fg: theme.onTintSage },
+    { bg: theme.tintViolet, fg: theme.categoryAccent[4] },
+    { bg: theme.tintGold, fg: theme.onTintGold },
+  ];
+
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
-        {/* Membres */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('baby.familyMembers')}</Text>
-          {usersList.map((user) => (
-            <TouchableOpacity
-              key={user.userId}
-              style={styles.userCard}
-              onPress={() => canEditRole(user.userId) ? setEditingUserId(user.userId) : null}
-              activeOpacity={canEditRole(user.userId) ? 0.7 : 1}
-            >
-              <View style={styles.userInfo}>
-                <FontAwesome name="user-circle" size={24} color={theme.accent} />
-                <View style={styles.userDetails}>
+      {/* Membres */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('baby.familyMembers')}</Text>
+        <View style={styles.card}>
+          {usersList.map((user, i) => {
+            const tint = avatarTints[i % avatarTints.length];
+            return (
+              <TouchableOpacity
+                key={user.userId}
+                style={[styles.member, i > 0 && styles.memberBorder]}
+                onPress={() => canEditRole(user.userId) ? setEditingUserId(user.userId) : null}
+                activeOpacity={canEditRole(user.userId) ? 0.7 : 1}
+              >
+                <View style={[styles.avatar, { backgroundColor: tint.bg }]}>
+                  <Text style={[styles.avatarText, { color: tint.fg }]}>{initialOf(user.username, user.email)}</Text>
+                </View>
+                <View style={styles.memberDetails}>
                   <View style={styles.userNameRow}>
-                    <Text style={styles.userName}>{user.username}</Text>
+                    <Text style={styles.userName} numberOfLines={1}>{user.username}</Text>
                     {user.userId === adminId && (
                       <View style={styles.adminBadge}>
                         <Text style={styles.adminBadgeText}>Admin</Text>
                       </View>
                     )}
                   </View>
-                  <Text style={styles.userEmail}>{user.email}</Text>
-                  <View style={styles.roleRow}>
-                    <Text style={[styles.userRole, !isRoleSet(user.userId) && styles.userRoleEmpty]}>
-                      {isRoleSet(user.userId) ? `${ROLE_EMOJIS[memberRoles[user.userId]]} ` : ''}
-                      {getRoleLabel(user.userId)}
-                    </Text>
-                    {canEditRole(user.userId) && (
-                      <FontAwesome name="pencil" size={11} color={theme.textMuted} style={{ marginLeft: 6 }} />
-                    )}
-                  </View>
+                  <Text style={styles.userEmail} numberOfLines={1}>{user.email}</Text>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+                <View style={[styles.roleChip, !isRoleSet(user.userId) && styles.roleChipEmpty]}>
+                  <Text style={[styles.userRole, !isRoleSet(user.userId) && styles.userRoleEmpty]}>
+                    {isRoleSet(user.userId) ? `${ROLE_EMOJIS[memberRoles[user.userId]]} ` : ''}
+                    {getRoleLabel(user.userId)}
+                  </Text>
+                  {canEditRole(user.userId) && (
+                    <FontAwesome name="pencil" size={11} color={theme.textMuted} />
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-
-        {/* Partage */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('baby.shareBaby')}</Text>
-          <View style={styles.codeContainer}>
-            <Text style={styles.codeLabel}>{t('baby.codeLabel')} :</Text>
-            <Text style={styles.codeValue}>{babyID}</Text>
-          </View>
-          <TouchableOpacity style={styles.copyCodeButton} onPress={shareCode}>
-            <Text style={styles.copyCodeText}>{t('baby.shareCode')}</Text>
-            <FontAwesome name="share-alt" size={18} color={theme.onPrimary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.copySecondaryButton} onPress={() => copyToClipboard(babyID)}>
-            <Text style={styles.copySecondaryText}>{t('baby.copyCode')}</Text>
-            <Copy height={16} width={16} />
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.leaveButton} onPress={onLeaveBaby}>
-          <Text style={styles.leaveButtonText}>{t('baby.leaveBaby')}</Text>
-        </TouchableOpacity>
       </View>
+
+      {/* Partage */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('baby.shareBaby')}</Text>
+        <View style={[styles.card, styles.shareCard]}>
+          <View style={styles.codeContainer}>
+            <Text style={styles.codeLabel}>{t('baby.codeLabel')}</Text>
+            <Text style={styles.codeValue} numberOfLines={1} adjustsFontSizeToFit>{babyID}</Text>
+          </View>
+          <View style={styles.shareButtons}>
+            <TouchableOpacity style={styles.shareButton} onPress={shareCode}>
+              <MaterialCommunityIcons name="share-variant" size={17} color={theme.onPrimary} />
+              <Text style={styles.shareButtonText} numberOfLines={1}>{t('baby.shareCode')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.copyButton} onPress={() => copyToClipboard(babyID)}>
+              <MaterialCommunityIcons name="content-copy" size={16} color={theme.accent} />
+              <Text style={styles.copyButtonText} numberOfLines={1}>{t('baby.copyCode')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      <TouchableOpacity style={styles.leaveButton} onPress={onLeaveBaby}>
+        <Text style={styles.leaveButtonText}>{t('baby.leaveBaby')}</Text>
+      </TouchableOpacity>
 
       {/* Modal édition de rôle */}
       <Modal
@@ -216,97 +234,62 @@ const BabyFamilyTab: React.FC<BabyFamilyTabProps> = ({
 };
 
 const makeStyles = (theme: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.background },
-  scrollView: { flex: 1 },
-  contentContainer: { padding: 20, paddingBottom: 100 },
-  section: { marginBottom: 30 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: theme.text, marginBottom: 15 },
-  userCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  container: { gap: 24 },
+  section: { gap: 10 },
+  sectionTitle: {
+    fontSize: 12, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase',
+    color: theme.textSecondary, paddingHorizontal: 4,
+  },
+  card: {
     backgroundColor: theme.card,
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+    borderRadius: 16,
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: theme.dark ? 0 : 0.06,
+    shadowRadius: 12,
+    elevation: theme.dark ? 0 : 2,
   },
-  userInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  userDetails: { marginLeft: 12, flex: 1 },
+  member: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
+  memberBorder: { borderTopWidth: 1, borderTopColor: theme.separator },
+  avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 16, fontWeight: '800' },
+  memberDetails: { flex: 1, minWidth: 0 },
   userNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  userName: { fontSize: 16, fontWeight: '600', color: theme.text },
-  adminBadge: {
-    backgroundColor: theme.background,
-    borderWidth: 1,
-    borderColor: theme.accent,
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
+  userName: { flexShrink: 1, fontSize: 16, fontWeight: '800', color: theme.text },
+  adminBadge: { backgroundColor: theme.tintTerracotta, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  adminBadgeText: { fontSize: 11, color: theme.onTintTerracotta, fontWeight: '800' },
+  userEmail: { fontSize: 13, color: theme.textSecondary, marginTop: 1 },
+  roleChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: theme.tintSage, borderRadius: 999,
+    paddingVertical: 5, paddingHorizontal: 10,
   },
-  adminBadgeText: { fontSize: 10, color: theme.accent, fontWeight: '600' },
-  userEmail: { fontSize: 14, color: theme.textSecondary, marginTop: 2 },
-  roleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  userRole: { fontSize: 13, color: theme.accent, fontWeight: '600' },
+  roleChipEmpty: { backgroundColor: theme.soft },
+  userRole: { fontSize: 14, fontWeight: '700', color: theme.onTintSage },
   userRoleEmpty: { color: theme.textMuted, fontWeight: '500' },
-  shareDescription: { fontSize: 14, color: theme.textSecondary, marginBottom: 15, lineHeight: 20 },
-  copyCodeButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.primary,
-    borderRadius: 10,
-    paddingVertical: 15,
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  copyCodeText: { color: theme.onPrimary, fontSize: 16, fontWeight: '600', marginRight: 10 },
-  copySecondaryButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.accent,
-    borderRadius: 10,
-    paddingVertical: 10,
-    marginBottom: 4,
-  },
-  copySecondaryText: { color: theme.accent, fontSize: 14, fontWeight: '500', marginRight: 8 },
+  shareCard: { padding: 16, gap: 12 },
   codeContainer: {
-    backgroundColor: theme.card,
-    padding: 15,
-    borderRadius: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    backgroundColor: theme.background, borderRadius: 12,
+    paddingVertical: 12, paddingHorizontal: 14,
   },
-  codeLabel: { fontSize: 14, fontWeight: '600', color: theme.textSecondary },
-  codeValue: { fontSize: 14, color: theme.text, fontFamily: 'monospace' },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-    backgroundColor: theme.background,
-    alignItems: 'center',
+  codeLabel: { fontSize: 14, color: theme.textSecondary },
+  // Les anciens bébés ont un code UUID de 36 caractères : il rétrécit au lieu de déborder.
+  codeValue: { flexShrink: 1, marginLeft: 12, fontSize: 22, fontWeight: '800', letterSpacing: 3, color: theme.text },
+  shareButtons: { flexDirection: 'row', gap: 10 },
+  shareButton: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: theme.primary, borderRadius: 12, minHeight: 48, paddingHorizontal: 8,
   },
-  leaveButton: {
-    backgroundColor: theme.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    width: '100%',
-    alignItems: 'center',
+  shareButtonText: { flexShrink: 1, color: theme.onPrimary, fontSize: 14, fontWeight: '800' },
+  copyButton: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    borderWidth: 1.5, borderColor: theme.border, borderRadius: 12, minHeight: 48, paddingHorizontal: 8,
   },
-  leaveButtonText: { color: theme.onPrimary, fontSize: 16, fontWeight: 'bold' },
+  copyButtonText: { flexShrink: 1, color: theme.accent, fontSize: 14, fontWeight: '700' },
+  leaveButton: { alignSelf: 'center', minHeight: 44, justifyContent: 'center', paddingHorizontal: 16 },
+  leaveButtonText: { color: theme.danger, fontSize: 15, fontWeight: '700' },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -366,4 +349,4 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   customToastText: { color: theme.onPrimary, fontSize: 14, fontWeight: '600' },
 });
 
-export default BabyFamilyTab;
+export default BabyFamilySection;
