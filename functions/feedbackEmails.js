@@ -115,7 +115,9 @@ function babyIdsForUser(userId, allBabiesLight) {
 
 function lastTaskDateForUser(userId, allBabiesLight, tasksByBabyId) {
   const babyIds = babyIdsForUser(userId, allBabiesLight);
-  const tasks = babyIds.flatMap((id) => (tasksByBabyId.get(id) || []).filter((t) => t.createdBy === userId));
+  // `user` porte l'uid de l'auteur ; `createdBy` est son pseudo affiché, jamais égal à
+  // l'uid : filtrer dessus excluait tout le monde, d'où 0 candidat « décroché » chaque jour.
+  const tasks = babyIds.flatMap((id) => (tasksByBabyId.get(id) || []).filter((t) => t.user === userId));
   if (tasks.length === 0) return null;
   let latest = null;
   for (const task of tasks) {
@@ -276,3 +278,14 @@ exports.feedbackEmails = onSchedule(
     await runFeedbackEmails(BREVO_API_KEY.value());
   }
 );
+
+// Sélection des destinataires sans envoi, pour vérifier à blanc sur les vraies données.
+// index.js n'exporte que feedbackEmails : ceci n'est pas déployé comme fonction.
+exports._selection = {
+  fetchUsersAndBabiesLight,
+  fetchBabiesWithTasks,
+  findNoBabyCandidates,
+  prefilterChurnUsers,
+  babyIdsForUser,
+  findChurnCandidates,
+};
