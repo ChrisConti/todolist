@@ -126,3 +126,25 @@ secondes d'usage, donc la latence de cet écran a un coût réel sur l'activatio
 **Pistes** — ne monter que le formulaire de la catégorie sélectionnée au lieu des six,
 et différer l'initialisation des chronos. À mesurer avant d'optimiser : la cause exacte
 n'est pas établie.
+
+---
+
+## 6. Écran d'erreur — permettre d'écrire au support
+
+**Demandé le 17/10/2026.** Quand l'app plante, l'écran « Oups ! Une erreur est
+survenue » (`components/ErrorBoundary.tsx`) n'offre qu'un bouton « Réessayer ».
+L'utilisateur n'a aucun moyen de signaler le problème, et nous n'en savons rien
+(`componentDidCatch` se contente d'un `console.error`).
+
+**À faire** — ajouter un bouton « Nous écrire » qui ouvre un `mailto:` vers le
+support, sur le modèle de `handleContactUs` dans `Settings.tsx`, en pré-remplissant
+le corps avec le message d'erreur, la version de l'app et la plateforme.
+
+**Attention** — l'ErrorBoundary enveloppe toute l'app dans `App.tsx`, au-dessus des
+providers : pas de `useTranslation` ni de thème disponibles, d'où `i18next.t()` direct.
+Nouvelles clés à ajouter en FR/EN/ES. Profiter du passage pour envoyer l'erreur à
+Crashlytics ou à l'analytics, au lieu du seul `console.error`.
+
+**Contexte** — déclenché par le crash « Rendered more hooks than during the previous
+render » au lancement (hook `useMemo` placé après un `return` anticipé dans `App.tsx`,
+introduit par `5b6e1eb`, corrigé le 17/10).

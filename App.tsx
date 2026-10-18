@@ -196,6 +196,24 @@ log.debug('Setting up authentication listener...', 'App.tsx');
     };
   }, []);
 
+  // Doit rester avant le return anticipé ci-dessous : un hook appelé après
+  // ferait planter l'app à la fin du chargement (« Rendered more hooks »).
+  const navTheme = useMemo(() => {
+    const base = theme.dark ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        background: theme.background,
+        card: theme.headerBackground,
+        text: theme.onHeader,
+        border: theme.border,
+        primary: theme.accent,
+        notification: theme.danger,
+      },
+    };
+  }, [theme]);
+
   if (!fontsLoaded || isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -229,22 +247,6 @@ log.debug('Setting up authentication listener...', 'App.tsx');
       Analytics.logScreenView(name);
     }
   };
-
-  const navTheme = useMemo(() => {
-    const base = theme.dark ? DarkTheme : DefaultTheme;
-    return {
-      ...base,
-      colors: {
-        ...base.colors,
-        background: theme.background,
-        card: theme.headerBackground,
-        text: theme.onHeader,
-        border: theme.border,
-        primary: theme.accent,
-        notification: theme.danger,
-      },
-    };
-  }, [theme]);
 
   return (
     <SafeAreaProvider>
