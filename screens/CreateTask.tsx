@@ -2,8 +2,7 @@ import React, { useMemo, useContext, useEffect, useRef, useState } from 'react';
 import { useTheme } from '../Context/ThemeContext';
 import type { Theme } from '../constants/theme';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Keyboard, ScrollView, TouchableWithoutFeedback, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { db, babiesRef } from '../config.js';
-import { doc, getDocsFromServer, query, updateDoc, where } from 'firebase/firestore';
+import { addBabyTask } from '../utils/babyTasks';
 import { useReviewPrompt } from '../Context/ReviewPromptContext';
 import moment from 'moment';
 
@@ -133,20 +132,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
 
     setLoading(true);
 
-    const queryResult = query(babiesRef, where('id', '==', babySelected));
     try {
-      const querySnapshot = await getDocsFromServer(queryResult);
-
-      if (querySnapshot.empty) {
-        console.error('No baby found with this ID');
-        setLoading(false);
-        Alert.alert(t('error.title'), t('error.babyNotFound') || 'Baby not found');
-        return;
-      }
-      
-      // Ne prendre que le premier document trouvé
-      const document = querySnapshot.docs[0];
-      
       const bfValues = breastfeedingRef.current?.getValues();
       const taskDate =
         selectedImage === 5 &&
@@ -193,9 +179,14 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         comment: note,
       };
 
-      await updateDoc(doc(db, 'Baby', document.id), {
-        tasks: [...document.data().tasks, newTask],
-      });
+      const result = await addBabyTask(babySelected, newTask);
+
+      if (result === 'babyNotFound') {
+        console.error('No baby found with this ID');
+        setLoading(false);
+        Alert.alert(t('error.title'), t('error.babyNotFound') || 'Baby not found');
+        return;
+      }
 
       // Update biberon widget if it's a bottle task
       if (selectedImage === 0) {
@@ -227,15 +218,20 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         ...(selectedImage === 3 && { sleep_type: sleepType }),
         ...(selectedImage === 3 && sleepLocation !== null && { sleep_location: sleepLocation }),
         ...(selectedImage === 5 && bfValues?.mode && { breastfeeding_mode: bfValues.mode }),
+        ...(result === 'queued' && { queued: true }),
       });
-      
+
       // Incrémente le compteur et affiche la modal si besoin
       await handleTaskCreated();
-      
+
       // Nettoyer les timers sauvegardés
       await breastfeedingRef.current?.clearTimers();
 
       setLoading(false);
+      // En file d'attente : on ferme quand même, sinon un nouvel essai créerait un doublon.
+      if (result === 'queued') {
+        Alert.alert(t('task.queuedTitle'), t('task.queuedMessage'));
+      }
       navigation.goBack();
 
     } catch (error: any) {

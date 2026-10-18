@@ -2,8 +2,7 @@ import React, { useMemo, useContext, useRef, useState } from 'react';
 import { useTheme } from '../Context/ThemeContext';
 import type { Theme } from '../constants/theme';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Keyboard, ScrollView, TouchableWithoutFeedback, ActivityIndicator, Alert } from 'react-native';
-import { babiesRef, userRef, db } from '../config.js';
-import { query, getDocs, getDocsFromServer, updateDoc, where, doc } from 'firebase/firestore';
+import { updateBabyTask, removeBabyTask } from '../utils/babyTasks';
 import moment from 'moment';
 import DateTimePicker from "react-native-modal-datetime-picker";
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
@@ -74,98 +73,104 @@ const UpdateTask = ({ route, navigation }) => {
     }
 
     setLoading(true);
-    
-    const queryResult = query(babiesRef, where('id', '==', babyID));
-    try {
-      const querySnapshot = await getDocsFromServer(queryResult);
 
-      if (querySnapshot.empty) {
+    try {
+      const bfValues = breastfeedingRef.current?.getValues();
+      const result = await updateBabyTask(babyID, task.uid, (current) => {
+        const updatedTask = {
+          ...current,
+          id: selectedImage,
+          date: time,
+          label: selectedImage === 3
+            ? ((sleepHours || sleepMinutes) ? String(parseInt(sleepHours || '0') * 60 + parseInt(sleepMinutes || '0')) : 0)
+            : (label || 0),
+          // Only include diaperType and diaperContent for diaper tasks (id === 1)
+          ...(selectedImage === 1 && diaperType !== null && { diaperType }),
+          ...(selectedImage === 1 && diaperType !== null && { idCaca: diaperType }), // Backward compatibility only if selected
+          ...(selectedImage === 1 && diaperContent !== null && { diaperContent }),
+          boobLeft: bfValues && bfValues.nursingType !== 'pumping' ? (bfValues.mode === 'manual' ? bfValues.manualLeft * 60 : bfValues.timer1) : (bfValues?.nursingType === 'pumping' ? 0 : (task.boobLeft || 0)),
+          boobRight: bfValues && bfValues.nursingType !== 'pumping' ? (bfValues.mode === 'manual' ? bfValues.manualRight * 60 : bfValues.timer2) : (bfValues?.nursingType === 'pumping' ? 0 : (task.boobRight || 0)),
+          breastfeedingMode:
+            selectedImage === 5 && bfValues?.nursingType !== 'pumping'
+              ? (bfValues?.mode ?? task.breastfeedingMode ?? 'timer')
+              : null,
+          // 'direct' explicite à l'édition : une tâche repassée de tirage à tétée
+          // doit effacer nursingType, sinon la valeur précédente persiste.
+          ...(selectedImage === 5 && bfValues ? {
+            nursingType: bfValues.nursingType,
+            pumpedLeftMl: bfValues.nursingType === 'pumping' ? bfValues.pumpedLeftMl : null,
+            pumpedRightMl: bfValues.nursingType === 'pumping' ? bfValues.pumpedRightMl : null,
+            pumpedMl: bfValues.nursingType === 'pumping' ? bfValues.pumpedMl : null,
+            pumpedDurationMin: bfValues.nursingType === 'pumping' && bfValues.pumpedDurationMin > 0 ? bfValues.pumpedDurationMin : null,
+          } : {}),
+          milkType: selectedImage === 0 ? milkType : null,
+          sleepType: selectedImage === 3 ? sleepType : null,
+          sleepLocation: selectedImage === 3 ? sleepLocation : null,
+          ...(selectedImage === 4 && temperatureDuration && { temperatureDuration: parseInt(temperatureDuration) }),
+          // NE PAS MODIFIER user et createdBy - garder les valeurs originales
+          comment: note,
+        };
+        // Remove diaper fields if not a diaper task (to avoid undefined in Firestore)
+        if (selectedImage !== 1) {
+          delete updatedTask.diaperType;
+          delete updatedTask.diaperContent;
+          delete updatedTask.idCaca;
+        }
+        // Remove diaper fields if user deselected them
+        if (selectedImage === 1 && diaperType === null) {
+          delete updatedTask.diaperType;
+          delete updatedTask.idCaca;
+        }
+        if (selectedImage === 1 && diaperContent === null) {
+          delete updatedTask.diaperContent;
+        }
+        return updatedTask;
+      });
+
+      if (result === 'babyNotFound') {
         setLoading(false);
         Alert.alert(t('error.title'), t('error.babyNotFound') || 'Baby not found');
         return;
       }
-      
-      for (const document of querySnapshot.docs) {
-        const data = document.data();
-        const bfValues = breastfeedingRef.current?.getValues();
-        const tasks = data.tasks.map(t => {
-          if (t.uid === task.uid) {
-            const updatedTask = {
-              ...t,
-              id: selectedImage,
-              date: time,
-              label: selectedImage === 3
-                ? ((sleepHours || sleepMinutes) ? String(parseInt(sleepHours || '0') * 60 + parseInt(sleepMinutes || '0')) : 0)
-                : (label || 0),
-              // Only include diaperType and diaperContent for diaper tasks (id === 1)
-              ...(selectedImage === 1 && diaperType !== null && { diaperType }),
-              ...(selectedImage === 1 && diaperType !== null && { idCaca: diaperType }), // Backward compatibility only if selected
-              ...(selectedImage === 1 && diaperContent !== null && { diaperContent }),
-              boobLeft: bfValues && bfValues.nursingType !== 'pumping' ? (bfValues.mode === 'manual' ? bfValues.manualLeft * 60 : bfValues.timer1) : (bfValues?.nursingType === 'pumping' ? 0 : (task.boobLeft || 0)),
-              boobRight: bfValues && bfValues.nursingType !== 'pumping' ? (bfValues.mode === 'manual' ? bfValues.manualRight * 60 : bfValues.timer2) : (bfValues?.nursingType === 'pumping' ? 0 : (task.boobRight || 0)),
-              breastfeedingMode:
-                selectedImage === 5 && bfValues?.nursingType !== 'pumping'
-                  ? (bfValues?.mode ?? task.breastfeedingMode ?? 'timer')
-                  : null,
-              // 'direct' explicite à l'édition : une tâche repassée de tirage à tétée
-              // doit effacer nursingType, sinon la valeur précédente persiste.
-              ...(selectedImage === 5 && bfValues ? {
-                nursingType: bfValues.nursingType,
-                pumpedLeftMl: bfValues.nursingType === 'pumping' ? bfValues.pumpedLeftMl : null,
-                pumpedRightMl: bfValues.nursingType === 'pumping' ? bfValues.pumpedRightMl : null,
-                pumpedMl: bfValues.nursingType === 'pumping' ? bfValues.pumpedMl : null,
-                pumpedDurationMin: bfValues.nursingType === 'pumping' && bfValues.pumpedDurationMin > 0 ? bfValues.pumpedDurationMin : null,
-              } : {}),
-              milkType: selectedImage === 0 ? milkType : null,
-              sleepType: selectedImage === 3 ? sleepType : null,
-              sleepLocation: selectedImage === 3 ? sleepLocation : null,
-              ...(selectedImage === 4 && temperatureDuration && { temperatureDuration: parseInt(temperatureDuration) }),
-              // NE PAS MODIFIER user et createdBy - garder les valeurs originales
-              comment: note,
-            };
-            // Remove diaper fields if not a diaper task (to avoid undefined in Firestore)
-            if (selectedImage !== 1) {
-              delete updatedTask.diaperType;
-              delete updatedTask.diaperContent;
-              delete updatedTask.idCaca;
-            }
-            // Remove diaper fields if user deselected them
-            if (selectedImage === 1 && diaperType === null) {
-              delete updatedTask.diaperType;
-              delete updatedTask.idCaca;
-            }
-            if (selectedImage === 1 && diaperContent === null) {
-              delete updatedTask.diaperContent;
-            }
-            return updatedTask;
-          }
-          return t;
-        });
+      // Supprimée entre-temps, par exemple par l'autre parent : réessayer ne servirait à rien.
+      if (result === 'taskNotFound') {
+        setLoading(false);
+        Alert.alert(t('error.title'), t('error.taskDeletedMeanwhile'));
+        navigation.goBack();
+        return;
+      }
+      if (result === 'timeout') {
+        setLoading(false);
+        Alert.alert(t('error.title'), t('error.networkError'));
+        return;
+      }
 
-        await updateDoc(doc(db, 'Baby', document.id), { tasks });
+      Analytics.logEvent('task_updated', {
+        task_type: TASK_LABELS[selectedImage] || 'unknown',
+        baby_id: babyID,
+        ...(selectedImage === 0 && milkType !== null && { milk_type: milkType }),
+        ...((selectedImage === 0 || selectedImage === 2) && label && { label_source: labelSource }),
+        ...(selectedImage === 1 && diaperType !== null && { diaper_type: diaperType }),
+        ...(selectedImage === 1 && diaperContent !== null && { diaper_content: diaperContent }),
+        ...(selectedImage === 3 && { sleep_type: sleepType }),
+        ...(selectedImage === 3 && sleepLocation !== null && { sleep_location: sleepLocation }),
+        ...(result === 'queued' && { queued: true }),
+      });
 
-        Analytics.logEvent('task_updated', {
-          task_type: TASK_LABELS[selectedImage] || 'unknown',
-          baby_id: babyID,
-          ...(selectedImage === 0 && milkType !== null && { milk_type: milkType }),
-          ...((selectedImage === 0 || selectedImage === 2) && label && { label_source: labelSource }),
-          ...(selectedImage === 1 && diaperType !== null && { diaper_type: diaperType }),
-          ...(selectedImage === 1 && diaperContent !== null && { diaper_content: diaperContent }),
-          ...(selectedImage === 3 && { sleep_type: sleepType }),
-          ...(selectedImage === 3 && sleepLocation !== null && { sleep_location: sleepLocation }),
-        });
-
-        // Update biberon widget if it's a bottle task
-        if (selectedImage === 0) {
-          const { updateBiberonWidget } = require('../utils/widgetBridge');
-          updateBiberonWidget(Number(label) || 0, milkType, new Date(selectedDate));
-        }
+      // Update biberon widget if it's a bottle task
+      if (selectedImage === 0) {
+        const { updateBiberonWidget } = require('../utils/widgetBridge');
+        updateBiberonWidget(Number(label) || 0, milkType, new Date(selectedDate));
       }
 
       // Nettoyer les timers sauvegardés
       await breastfeedingRef.current?.clearTimers();
 
       setLoading(false);
+      // Déjà appliquée à l'écran, partira au retour du réseau : réessayer créerait un doublon.
+      if (result === 'queued') {
+        Alert.alert(t('task.queuedTitle'), t('task.queuedMessage'));
+      }
       navigation.goBack();
     } catch (error: any) {
       console.error('Error updating task:', error);
@@ -193,24 +198,35 @@ const UpdateTask = ({ route, navigation }) => {
             setLoading(true);
             
             try {
-              const queryResult = query(babiesRef, where('id', '==', babyID));
-              const querySnapshot = await getDocsFromServer(queryResult);
-              const updatePromises = querySnapshot.docs.map(async (document) => {
-                const currentTasks = document.data().tasks;
-                const updatedTasks = currentTasks.filter(task2 => task2.uid !== task.uid);
-                await updateDoc(doc(db, 'Baby', document.id), { tasks: updatedTasks });
-              });
-              await Promise.all(updatePromises);
+              // 'taskNotFound' : déjà supprimée (par l'autre parent), le but est atteint.
+              const result = await removeBabyTask(babyID, task.uid);
+              if (result === 'babyNotFound') {
+                setLoading(false);
+                Alert.alert(t('error.title'), t('error.babyNotFound') || 'Baby not found');
+                return;
+              }
+              if (result === 'timeout') {
+                setLoading(false);
+                Alert.alert(t('error.title'), t('error.networkError'));
+                return;
+              }
 
-              Analytics.logEvent('task_deleted', {
-                task_type: TASK_LABELS[task.id] || 'unknown',
-                baby_id: babyID,
-              });
+              // 'taskNotFound' : déjà supprimée, rien à compter.
+              if (result === 'saved' || result === 'queued') {
+                Analytics.logEvent('task_deleted', {
+                  task_type: TASK_LABELS[task.id] || 'unknown',
+                  baby_id: babyID,
+                  ...(result === 'queued' && { queued: true }),
+                });
+              }
 
               // Nettoyer les timers sauvegardés
               await breastfeedingRef.current?.clearTimers();
 
               setLoading(false);
+              if (result === 'queued') {
+                Alert.alert(t('task.queuedTitle'), t('task.queuedMessage'));
+              }
               navigation.navigate('MainTabs');
             } catch (error: any) {
               console.error('Error removing task:', error);

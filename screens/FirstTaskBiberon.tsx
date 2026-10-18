@@ -4,10 +4,9 @@ import type { Theme } from '../constants/theme';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import moment from 'moment';
 import uuid from 'react-native-uuid';
-import { babiesRef, db } from '../config';
+import { addBabyTask } from '../utils/babyTasks';
 import { AuthentificationUserContext } from '../Context/AuthentificationContext';
 import { useReviewPrompt } from '../Context/ReviewPromptContext';
 import analytics from '../services/analytics';
@@ -60,15 +59,6 @@ const FirstTaskBiberon = ({ navigation, route }: any) => {
     setLoading(true);
 
     try {
-      const babyQuery = query(babiesRef, where('id', '==', babyID));
-      const querySnapshot = await getDocs(babyQuery);
-      if (querySnapshot.empty) {
-        setLoading(false);
-        Alert.alert(t('error.title'), t('error.babyNotFound') || 'Baby not found');
-        return;
-      }
-      const document = querySnapshot.docs[0];
-
       const taskDate = moment().subtract(selectedMinutes, 'minutes').format('YYYY-MM-DD HH:mm:ss');
       const newTask = {
         uid: uuid.v4(),
@@ -87,9 +77,12 @@ const FirstTaskBiberon = ({ navigation, route }: any) => {
         comment: '',
       };
 
-      await updateDoc(doc(db, 'Baby', document.id), {
-        tasks: [...(document.data().tasks || []), newTask],
-      });
+      const result = await addBabyTask(babyID, newTask);
+      if (result === 'babyNotFound') {
+        setLoading(false);
+        Alert.alert(t('error.title'), t('error.babyNotFound') || 'Baby not found');
+        return;
+      }
 
       const { updateBiberonWidget } = require('../utils/widgetBridge');
       updateBiberonWidget(Number(selectedMl) || 0, milkType, new Date(taskDate));
@@ -102,6 +95,7 @@ const FirstTaskBiberon = ({ navigation, route }: any) => {
         user_id: user.uid,
         milk_type: milkType,
         onboarding: true,
+        ...(result === 'queued' && { queued: true }),
       });
       analytics.logEvent('first_task_saved', {
         baby_id: babyID,
@@ -112,6 +106,10 @@ const FirstTaskBiberon = ({ navigation, route }: any) => {
       await handleTaskCreated();
 
       setLoading(false);
+      // En file d'attente : on avance quand même, sinon un nouvel essai créerait un doublon.
+      if (result === 'queued') {
+        Alert.alert(t('task.queuedTitle'), t('task.queuedMessage'));
+      }
       goHome();
     } catch (error) {
       console.error('Error saving first task:', error);
