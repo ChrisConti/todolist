@@ -46,7 +46,7 @@ interface PeriodStats {
   temperature: CategoryStats;
 }
 
-type CategoryKey = 'biberon' | 'allaitement' | 'tireLait' | 'sommeil' | 'couche' | 'temperature';
+type CategoryKey = 'biberon' | 'allaitement' | 'sommeil' | 'couche' | 'temperature';
 
 const GAP = 12;
 const H_PAD = 8;
@@ -90,12 +90,6 @@ const getRowValues = (
         rd > 0 ? formatDurationShort(rd) : '–',
       ];
     }
-    case 'tireLait':
-      if (stats.count === 0) return ['–', ''];
-      return [
-        `${stats.count}`,
-        stats.quantity != null && stats.quantity > 0 ? formatQuantity(stats.quantity) : '',
-      ];
     case 'sommeil':
       if (stats.count === 0) return ['–', ''];
       return [
@@ -156,7 +150,8 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
           break;
         }
         case TASK_TYPES.BREASTFEEDING: {
-          // Les tirages sont comptés à part (stats.tireLait), pas comme des tétées.
+          // Les tirages sont comptés à part (stats.tireLait), pas comme des tétées : ils
+          // entrent dans le total « Activités », le détail est dans l'onglet Tire-lait.
           if ((task as any).nursingType === 'pumping') {
             stats.tireLait.count++;
             stats.tireLait.quantity! += Number((task as any).pumpedMl) || 0;
@@ -208,7 +203,7 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
   const navTo = (category: string) => {
     Analytics.logEvent('stats_category_tapped', { category });
     if (category === 'biberon') return navigation.navigate('BiberonInsights');
-    const idMap: Record<string, number> = { allaitement: 5, tireLait: 5, sommeil: 3, couche: 1, temperature: 4 };
+    const idMap: Record<string, number> = { allaitement: 5, sommeil: 3, couche: 1, temperature: 4 };
     navigation.navigate('CategoryDetail', { categoryId: idMap[category] });
   };
 
@@ -294,8 +289,6 @@ const AllStats: React.FC<AllStatsProps> = ({ navigation, tasks }) => {
           {renderCard(AllaitementIcon as any, theme.category[5], 'allaitement')}
         </View>
         <View style={styles.row}>
-          {(todayStats.tireLait.count + yesterdayStats.tireLait.count + last7DaysStats.tireLait.count) > 0 &&
-            renderCard(AllaitementIcon as any, theme.pumping, 'tireLait')}
           {renderCard(DodoIcon as any, theme.category[3], 'sommeil')}
           <View style={styles.rowSpacer} />
           {renderCard(CoucheIcon as any, theme.category[1], 'couche')}
