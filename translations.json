@@ -327,6 +327,11 @@
       "joiningBaby": "You are joining {{name}}!",
       "continueProfile": "Continue"
     },
+    "forceUpdate": {
+      "title": "A new version of TribuBaby is available",
+      "message": "This version is no longer supported. Please update the app to continue.",
+      "button": "Update"
+    },
     "task": {
       "createdBy": "Created by",
       "date": "On date",
@@ -1198,6 +1203,11 @@
       "joiningBaby": "Vous rejoignez {{name}} !",
       "continueProfile": "Continuer"
     },
+    "forceUpdate": {
+      "title": "Une nouvelle version de TribuBaby est disponible",
+      "message": "Cette version n'est plus prise en charge. Mettez l'application à jour pour continuer.",
+      "button": "Mettre à jour"
+    },
     "task": {
       "createdBy": "Créé par",
       "date": "En date du",
@@ -2042,6 +2052,11 @@
       },
       "joiningBaby": "¡Te unes a {{name}}!",
       "continueProfile": "Continuar"
+    },
+    "forceUpdate": {
+      "title": "Hay una nueva versión de TribuBaby disponible",
+      "message": "Esta versión ya no es compatible. Actualiza la aplicación para continuar.",
+      "button": "Actualizar"
     },
     "task": {
       "createdBy": "Creado por",

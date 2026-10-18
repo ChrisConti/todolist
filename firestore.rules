@@ -13,6 +13,13 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // Configuration de l'app (version minimale) : lue avant même la connexion,
+    // modifiée uniquement depuis la console Firebase.
+    match /Config/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // Règles pour la collection AppInstalls
     // Écriture par tout utilisateur authentifié, lecture réservée aux admins
     match /AppInstalls/{docId} {

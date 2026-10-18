@@ -5,6 +5,7 @@ import { I18nextProvider } from 'react-i18next';
 import { StyleSheet, View, ActivityIndicator, Platform, StatusBar, Linking } from 'react-native';
 import i18n from './i18n';
 import ErrorBoundary from './components/ErrorBoundary';
+import ForceUpdateGate from './components/ForceUpdateGate';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -52,7 +53,7 @@ import BabyHeadIcon from './components/BabyHeadIcon';
 import { trackFirstOpen } from './utils/firstOpenTracker';
 import { configureGoogleSignIn } from './utils/socialAuth';
 import Analytics, { initAmplitude, initAppsFlyer, getPendingAcquisitionData, clearPendingAcquisitionData } from './services/analytics';
-import Constants from 'expo-constants';
+import * as Application from 'expo-application';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -146,7 +147,8 @@ log.debug('Setting up authentication listener...', 'App.tsx');
                   const updates: Record<string, any> = {
                     lastLoginDate: new Date().toISOString(),
                     platform: Platform.OS,
-                    appVersion: Constants.expoConfig?.version ?? null,
+                    // Version du binaire (celle du store), comme pour la mise à jour obligatoire.
+                    appVersion: Application.nativeApplicationVersion ?? null,
                   };
 
                   // Save acquisition data only once (first install)
@@ -623,9 +625,11 @@ export default function App() {
       <AuthentificationUserProvider>
         <PremiumProvider>
           <ThemeProvider>
-            <ReviewPromptProvider>
-              <RootNavigator />
-            </ReviewPromptProvider>
+            <ForceUpdateGate>
+              <ReviewPromptProvider>
+                <RootNavigator />
+              </ReviewPromptProvider>
+            </ForceUpdateGate>
           </ThemeProvider>
         </PremiumProvider>
       </AuthentificationUserProvider>
