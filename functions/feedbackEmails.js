@@ -133,6 +133,12 @@ function findChurnCandidates(prefiltered, allBabiesLight, tasksByBabyId, now) {
     const lastTask = lastTaskDateForUser(u.userId, allBabiesLight, tasksByBabyId);
     if (!lastTask) return false; // n'a jamais rien saisi -> pas ce segment
     if (lastTask > silenceCutoff) return false; // encore actif récemment
+    // Ne plus saisir n'est pas décrocher : un parent qui consulte pendant que l'autre
+    // saisit tout ouvre encore l'app. lastLoginDate (ISO, écrit par App.tsx à chaque
+    // démarrage à froid ou connexion, PAS au retour de l'arrière-plan) récent l'exclut ;
+    // absent ou illisible, on s'en tient aux tâches.
+    const lastLogin = new Date(u.lastLoginDate);
+    if (!isNaN(lastLogin.getTime()) && lastLogin > silenceCutoff) return false;
     return true;
   });
 }
