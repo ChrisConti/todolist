@@ -72,6 +72,7 @@ function RootNavigator() {
 
   // Store unsubscribe so the auth listener is properly cleaned up on unmount
   const unsubscribeAuthRef = useRef<(() => void) | null>(null);
+  const initTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigationRef = useRef<any>(null);
   const currentScreenRef = useRef<string>('');
   const screenEnterTimeRef = useRef<number>(0);
@@ -95,7 +96,10 @@ function RootNavigator() {
 
   useEffect(() => {
     async function loadResourcesAndDataAsync() {
-      const timeoutId = setTimeout(() => {
+      // Filet de sécurité : si la vérification de connexion ne répond pas, on ouvre
+      // l'app quand même. Annulé seulement quand elle a abouti (voir le finally
+      // du listener), pas dès son lancement.
+      initTimeoutRef.current = setTimeout(() => {
         log.error('App initialization timeout', 'App.tsx');
         setIsLoading(false);
       }, APP_INIT_TIMEOUT);
@@ -174,21 +178,19 @@ log.debug('Setting up authentication listener...', 'App.tsx');
             log.error('Error in auth state change handler', 'App.tsx', error);
             setUser(null);
           } finally {
+            if (initTimeoutRef.current) clearTimeout(initTimeoutRef.current);
             setIsLoading(false);
           }
         }, (error) => {
           log.error('Auth state listener error', 'App.tsx', error);
+          if (initTimeoutRef.current) clearTimeout(initTimeoutRef.current);
           setIsLoading(false);
         });
 
       } catch (e) {
         log.error('Error during app initialization', 'App.tsx', e);
+        if (initTimeoutRef.current) clearTimeout(initTimeoutRef.current);
         setIsLoading(false);
-      } finally {
-        clearTimeout(timeoutId);
-        log.debug('Hiding splash screen...', 'App.tsx');
-        await SplashScreen.hideAsync();
-        log.info('Splash screen hidden - App should be visible now', 'App.tsx');
       }
     }
 
@@ -196,8 +198,20 @@ log.debug('Setting up authentication listener...', 'App.tsx');
 
     return () => {
       unsubscribeAuthRef.current?.();
+      if (initTimeoutRef.current) clearTimeout(initTimeoutRef.current);
     };
   }, []);
+
+  // L'écran de démarrage reste affiché jusqu'à ce que l'app soit prête : sans ça,
+  // un loader s'intercalait entre lui et l'accueil le temps de la vérification de
+  // connexion (deux allers-retours Firestore).
+  useEffect(() => {
+    if (!fontsLoaded || isLoading) return;
+    log.debug('Hiding splash screen...', 'App.tsx');
+    SplashScreen.hideAsync()
+      .then(() => log.info('Splash screen hidden - App should be visible now', 'App.tsx'))
+      .catch(() => {});
+  }, [fontsLoaded, isLoading]);
 
   // Doit rester avant le return anticipé ci-dessous : un hook appelé après
   // ferait planter l'app à la fin du chargement (« Rendered more hooks »).
@@ -219,8 +233,9 @@ log.debug('Setting up authentication listener...', 'App.tsx');
 
   if (!fontsLoaded || isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+      // Normalement masqué par l'écran de démarrage ; aux couleurs du thème s'il se voit.
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
+        <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }
