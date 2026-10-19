@@ -51,3 +51,30 @@ Rapport complet : [`reviews/2026-08-23.md`](reviews/2026-08-23.md) · Plan d'ex�
 2. Bébés 0-tâche de la cohorte Android post-1.3.4 alignés sur iOS (~15%).
 3. Impressions recherche iOS : ~250/sem → 350+/sem si « biberon » ou « allaitement » entre dans le top 10.
 4. Notes FR 81 → 95+.
+
+## v1.3.5 — 30/09/2026 (iOS uniquement) — *entrée ajoutée a posteriori le 19/10*
+
+**Metadata App Store FR** (décidée à la review du 23/08)
+- Titre `Tribu Baby : Suivi Bébé Simple` → `Tribu Baby : Suivi Biberon`
+- Sous-titre `Biberon, Allaitement, Sommeil` → `Bébé, Allaitement, Sommeil`
+- Keywords supposés inchangés (non vérifié : sous-titre et keywords réellement en ligne avant la 1.3.7 n'ont pas été relus dans ASC) ; description et captures modifiées en même temps.
+
+**Résultat (review du 19/10)** : « biberon » #20 → #16-18 seulement ; « suivi bébé », « journal bébé » et « sommeil bébé » hors du top 100 dès le 01/10 ; inscriptions iOS ~31 → 25/semaine. Hypothèse « Suivi (titre) + Bébé (sous-titre) suffit » **infirmée**.
+
+## Review du 19/10/2026
+
+Rapport complet : [`reviews/2026-10-19.md`](reviews/2026-10-19.md).
+
+**Actions décidées**
+- [x] **Metadata iOS avec la 1.3.7** — saisie dans App Store Connect le 19/10/2026, part avec la soumission 1.3.7 (en ligne à l'approbation Apple) :
+  - Titre → `Tribu Baby: Suivi Bébé Biberon` (30)
+  - Sous-titre → `Allaitement, Tire-lait, Sieste` (30)
+  - Keywords → `tétée,couche,sommeil,nourrisson,carnet,santé,journal,repas,croissance,nouveau,né,nounou,crèche` (94)
+- [ ] Publier la 1.3.x sur le Play Store (reconduit — dépend du chantier Premium Android).
+- [ ] Exports App Store Connect fournis à chaque review.
+
+**Hypothèses à vérifier à la review du ~02/11**
+1. « suivi bébé » de retour dans le top 30 iOS.
+2. « tire lait » entre dans le top 50 iOS.
+3. Inscriptions iOS revenues à ~30/semaine.
+4. « biberon » se maintient dans le top 20 malgré le titre plus chargé.
