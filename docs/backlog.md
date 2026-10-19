@@ -148,3 +148,52 @@ Crashlytics ou à l'analytics, au lieu du seul `console.error`.
 **Contexte** — déclenché par le crash « Rendered more hooks than during the previous
 render » au lancement (hook `useMemo` placé après un `return` anticipé dans `App.tsx`,
 introduit par `5b6e1eb`, corrigé le 17/10).
+
+---
+
+## 7. Suivi du poids et de la taille sur l'écran Bébé
+
+**Idée produit du 19/10/2026, à cadrer avant de coder.** Aujourd'hui le bébé n'a
+qu'un poids et une taille, sans date (renseignés par 30 % des bébés actifs) :
+impossible de suivre une croissance.
+
+**Ce qui a été décidé**
+- Carte d'identité : l'âge passe sous le prénom ; le sexe n'est plus affiché (il
+  reste en base et dans « Modifier », nécessaire aux stats) ; la bande
+  Âge / Sexe / Poids / Taille disparaît.
+- Nouvelle carte « Croissance », en lecture seule : sélecteur Poids / Taille (Poids
+  par défaut), une courbe, chaque point légendé (valeur + date), le temps écoulé
+  entre deux points sous la courbe.
+- Une seule mesure : la courbe se prolonge en pointillés qui s'effacent, pour
+  signifier qu'on attend la suivante.
+- Aucune saisie sur l'écran Bébé : un écran dédié permet d'ajouter un poids ou une
+  taille.
+- Pas de courbes OMS : on veut rester léger.
+
+**Avis technique**
+- Pas d'échelle : cadrage automatique entre la plus petite et la plus grande valeur.
+  Risque : une variation minime (5,80 → 5,82 kg) paraît aussi raide qu'un vrai gain.
+  Parade proposée : écrire l'écart sur chaque segment (« +400 g · 15 j »).
+- Compatibilité : les anciennes versions ne connaissent que `Baby.weight` /
+  `Baby.height` et les modifient depuis « Modifier ». Garder ces deux champs égaux à
+  la dernière mesure de l'historique.
+
+**Questions ouvertes** (recommandation entre parenthèses)
+1. Espacement horizontal des points : régulier, ou proportionnel au temps ? (régulier)
+2. Points affichés : les 6 derniers, ou tous avec défilement ? (6 derniers)
+3. Légende : valeur + date sur chaque point, ou seulement le dernier ? (chaque point)
+4. Accès à l'écran d'ajout : bouton qui suit l'onglet (« Ajouter un poids »), ou un
+   seul « Ajouter une mesure » ? (bouton qui suit l'onglet)
+5. Écran d'ajout : valeur + date modifiable (carnet de santé) ; historique avec
+   suppression d'une mesure erronée ? (oui)
+6. Poids / taille déjà saisis, sans date : premier point daté de la dernière
+   modification de la fiche, « date inconnue », ou ignorés ? (dernière modification)
+7. Retirer poids et taille de l'écran « Modifier » ? (oui)
+8. Gratuit ou Premium ? (gratuit, donnée saisie par le parent)
+9. Aucune mesure : courbe fantôme en pointillés + « Ajoutez une première mesure »,
+   ou carte masquée ? (courbe fantôme)
+10. Unités : kg à 2 décimales, cm à 1 décimale, écarts en g et cm ; kg / cm aussi
+    pour les États-Unis ? (oui, comme aujourd'hui)
+
+**Ensuite** : maquettes de chaque cas (0, 1, 2 et 6 mesures, onglet Taille, écran
+d'ajout) dans le canevas « Maquettes Réglages et Bébé ».
