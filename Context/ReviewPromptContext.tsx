@@ -29,7 +29,7 @@ interface ReviewPromptContextType {
 const ReviewPromptContext = createContext<ReviewPromptContextType | undefined>(undefined);
 
 const APP_STORE_URL = 'https://apps.apple.com/app/id6740452792?action=write-review';
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.tribubaby.tribubaby';
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.tribubaby.app';
 
 export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const authContext = useContext(AuthentificationUserContext);
@@ -141,7 +141,7 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
         if (available) {
           await StoreReview.requestReview();
         } else {
-          const marketUrl = `market://details?id=com.tribubaby.tribubaby`;
+          const marketUrl = `market://details?id=com.tribubaby.app`;
           const canOpenMarket = await Linking.canOpenURL(marketUrl);
           await Linking.openURL(canOpenMarket ? marketUrl : PLAY_STORE_URL);
         }
@@ -185,7 +185,7 @@ export const ReviewPromptProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       let urlToOpen = Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL;
       if (Platform.OS === 'android') {
-        const marketUrl = `market://details?id=com.tribubaby.tribubaby`;
+        const marketUrl = `market://details?id=com.tribubaby.app`;
         const canOpenMarket = await Linking.canOpenURL(marketUrl);
         urlToOpen = canOpenMarket ? marketUrl : PLAY_STORE_URL;
       }

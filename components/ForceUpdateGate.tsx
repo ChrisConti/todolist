@@ -12,8 +12,8 @@ import { log } from '../utils/logger';
 import { customMessageFor, isUpdateRequired, minVersionFor, parseVersion } from '../utils/appVersion';
 
 const APP_STORE_URL = 'https://apps.apple.com/app/id6740452792';
-const PLAY_STORE_URL = 'market://details?id=com.tribubaby.tribubaby';
-const PLAY_STORE_WEB_URL = 'https://play.google.com/store/apps/details?id=com.tribubaby.tribubaby';
+const PLAY_STORE_URL = 'market://details?id=com.tribubaby.app';
+const PLAY_STORE_WEB_URL = 'https://play.google.com/store/apps/details?id=com.tribubaby.app';
 
 // Version du binaire installé (versionName Android / CFBundleShortVersionString iOS), celle
 // que voit le store. Pas Constants.expoConfig.version : c'est la version d'app.json, que la
