@@ -61,6 +61,16 @@ const Tab = createBottomTabNavigator();
 
 SplashScreen.preventAutoHideAsync();
 
+// Erreurs de renouvellement du jeton qui signifient une session réellement morte
+// (compte supprimé ou désactivé, jeton révoqué). Toute autre erreur — réseau en
+// tête — laisse l'utilisateur connecté.
+const INVALID_SESSION_CODES = new Set([
+  'auth/user-token-expired',
+  'auth/user-disabled',
+  'auth/user-not-found',
+  'auth/invalid-user-token',
+]);
+
 function RootNavigator() {
   const { theme } = useTheme();
   const { user, setUser } = useContext(AuthentificationUserContext);
@@ -124,16 +134,20 @@ log.debug('Setting up authentication listener...', 'App.tsx');
               Analytics.setUserId(firebaseUser.uid);
               Analytics.setUserProperty('platform', Platform.OS);
 
-              // Verify token is still valid
+              // Verify token is still valid. Sans réseau le renouvellement échoue
+              // forcément : on ne déconnecte que si la session est réellement invalide.
               try {
                 await firebaseUser.getIdToken(true);
                 log.debug('Token refreshed successfully', 'App.tsx');
-              } catch (tokenError) {
-                log.error('Token refresh failed, signing out', 'App.tsx', tokenError);
-                await auth.signOut();
-                setUser(null);
-                setIsLoading(false);
-                return;
+              } catch (tokenError: any) {
+                if (INVALID_SESSION_CODES.has(tokenError?.code)) {
+                  log.error('Session invalid, signing out', 'App.tsx', tokenError);
+                  await auth.signOut();
+                  setUser(null);
+                  setIsLoading(false);
+                  return;
+                }
+                log.warn(`Token refresh failed (${tokenError?.code ?? 'unknown'}), keeping session`, 'App.tsx');
               }
 
               // Track first open now that user is authenticated
