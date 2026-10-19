@@ -1,8 +1,6 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Linking, Switch } from 'react-native';
-import React, { useMemo, useContext, useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Linking } from 'react-native';
+import React, { useMemo, useContext, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
-import { db, userRef } from './config.js';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { useTranslation } from 'react-i18next';
 import analytics from './services/analytics';
@@ -15,52 +13,20 @@ import { isNursingActivitySupported } from './utils/nursingActivityBridge';
 import type { Theme } from './constants/theme';
 import { initialOf } from './utils/initials';
 
-const THEME_OPTIONS = [
-  { value: 'system', labelKey: 'settings.themeSystem' },
-  { value: 'light', labelKey: 'settings.themeLightShort' },
-  { value: 'dark', labelKey: 'settings.themeDarkShort' },
-] as const;
-
 const PREMIUM_PERKS = ['premium.perkStats', 'premium.perkExport', 'premium.perkWidget', 'premium.perkDarkMode'];
 
 const Settings = ({ navigation }) => {
-  const { user, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
+  const { userInfo } = useContext(AuthentificationUserContext);
   const { showReviewModalManually } = useReviewPrompt();
   const { isPremium } = usePremium();
-  const { theme, preference, setPreference, canUseDarkMode } = useTheme();
+  const { theme, canUseDarkMode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const [emailOptIn, setEmailOptIn] = useState<boolean>(userInfo?.emailOptIn ?? false);
-  const [savingOptIn, setSavingOptIn] = useState(false);
 
   useEffect(() => {
     analytics.logScreenView('Settings');
   }, []);
-
-  // userInfo arrive parfois après le premier rendu : l'interrupteur doit suivre.
-  useEffect(() => {
-    setEmailOptIn(userInfo?.emailOptIn ?? false);
-  }, [userInfo?.emailOptIn]);
-
-  // Reprise de l'ancien écran EmailOptIn : bascule optimiste, retour arrière si l'écriture échoue.
-  const handleEmailOptIn = async (value: boolean) => {
-    analytics.logEvent('email_opt_in_changed', { enabled: value });
-    setEmailOptIn(value);
-    setSavingOptIn(true);
-    try {
-      const snap = await getDocs(query(userRef, where('userId', '==', user.uid)));
-      if (!snap.empty) {
-        await updateDoc(doc(db, 'Users', snap.docs[0].id), { emailOptIn: value });
-        setUserInfo({ ...userInfo, emailOptIn: value });
-      }
-    } catch (error) {
-      console.error('Error updating emailOptIn:', error);
-      setEmailOptIn(!value);
-    } finally {
-      setSavingOptIn(false);
-    }
-  };
 
   const handleContactUs = () => {
     const subject = 'Contact Tribu baby';
@@ -119,47 +85,52 @@ const Settings = ({ navigation }) => {
           </View>
         </TouchableOpacity>
 
+        {/* Carte Premium, uniquement hors premium, juste sous le profil : visible sans défiler */}
+        {!isPremium && (
+          <View style={styles.premiumCard}>
+            <MaterialCommunityIcons name="crown" size={150} color={theme.onPremiumSurface} style={styles.premiumWatermark} />
+            <View style={styles.premiumTitleRow}>
+              <MaterialCommunityIcons name="crown" size={26} color={theme.gold} />
+              <Text style={styles.premiumTitle}>{t('premium.cardTitle')}</Text>
+            </View>
+            <View style={styles.perks}>
+              {PREMIUM_PERKS.map((key) => (
+                <View key={key} style={styles.perk}>
+                  <MaterialCommunityIcons name="check" size={17} color={theme.gold} />
+                  <Text style={styles.perkText}>{t(key)}</Text>
+                </View>
+              ))}
+            </View>
+            <TouchableOpacity style={styles.premiumCta} onPress={() => openPaywall('settings_banner')} activeOpacity={0.9}>
+              <Text style={styles.premiumCtaText}>{t('premium.settingsBannerTitle')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Préférences */}
         <View style={[styles.card, styles.prefCard]}>
           <Text style={styles.cardTitle}>{t('settings.preferences')}</Text>
 
-          <View style={[styles.prefRow, canUseDarkMode && styles.prefRowWrap]}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={styles.prefRow}
+            onPress={() => {
+              analytics.logEvent('settings_item_tapped', { item: 'dark_mode' });
+              navigation.navigate('DarkModeSetting');
+            }}
+          >
             <View style={[styles.iconTile, { backgroundColor: theme.tintViolet }]}>
               <MaterialCommunityIcons name="weather-night" size={20} color={theme.categoryAccent[4]} />
             </View>
             <Text style={styles.prefLabel}>
               {t('settings.darkMode')}{!canUseDarkMode && <Text style={styles.star}> ★</Text>}
             </Text>
-            {canUseDarkMode ? (
-              <View style={styles.segment}>
-                {THEME_OPTIONS.map(({ value, labelKey }) => {
-                  const selected = preference === value;
-                  return (
-                    <TouchableOpacity
-                      key={value}
-                      style={[styles.segmentItem, selected && styles.segmentItemOn]}
-                      hitSlop={{ top: 4, bottom: 4 }}
-                      onPress={() => {
-                        setPreference(value);
-                        analytics.logEvent('theme_preference_changed', { preference: value });
-                      }}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected }}
-                    >
-                      <Text style={[styles.segmentText, selected && styles.segmentTextOn]}>{t(labelKey)}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            ) : (
-              <TouchableOpacity style={styles.unlock} onPress={() => openPaywall('dark_mode')} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}>
-                <Text style={styles.unlockText}>{t('premium.cta_short')}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+            <MaterialCommunityIcons name="chevron-right" size={20} color={theme.textMuted} />
+          </TouchableOpacity>
 
           {isNursingActivitySupported() && (
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.prefRow, styles.prefRowBorder]}
               onPress={() => {
                 analytics.logEvent('settings_item_tapped', { item: 'nursing_live_activity' });
@@ -174,20 +145,20 @@ const Settings = ({ navigation }) => {
             </TouchableOpacity>
           )}
 
-          <View style={[styles.prefRow, styles.prefRowBorder]}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={[styles.prefRow, styles.prefRowBorder]}
+            onPress={() => {
+              analytics.logEvent('settings_item_tapped', { item: 'email_opt_in' });
+              navigation.navigate('EmailOptIn');
+            }}
+          >
             <View style={[styles.iconTile, { backgroundColor: theme.tintTerracotta }]}>
               <MaterialCommunityIcons name="email-outline" size={20} color={theme.onTintTerracotta} />
             </View>
             <Text style={styles.prefLabel}>{t('settings.emailOptIn')}</Text>
-            <Switch
-              value={emailOptIn}
-              onValueChange={handleEmailOptIn}
-              disabled={savingOptIn}
-              thumbColor={emailOptIn ? theme.primary : theme.textMuted}
-              trackColor={{ false: theme.separator, true: theme.switchOn }}
-              accessibilityLabel={t('settings.emailOptIn')}
-            />
-          </View>
+            <MaterialCommunityIcons name="chevron-right" size={20} color={theme.textMuted} />
+          </TouchableOpacity>
         </View>
 
         {/* Aidez-nous / Notez-nous */}
@@ -215,28 +186,6 @@ const Settings = ({ navigation }) => {
             <Text style={styles.halfSub}>{t('settings.rateUsSub')}</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Carte Premium, uniquement hors premium : la couronne du profil suffit sinon */}
-        {!isPremium && (
-          <View style={styles.premiumCard}>
-            <MaterialCommunityIcons name="crown" size={150} color={theme.onPremiumSurface} style={styles.premiumWatermark} />
-            <View style={styles.premiumTitleRow}>
-              <MaterialCommunityIcons name="crown" size={26} color={theme.gold} />
-              <Text style={styles.premiumTitle}>{t('premium.cardTitle')}</Text>
-            </View>
-            <View style={styles.perks}>
-              {PREMIUM_PERKS.map((key) => (
-                <View key={key} style={styles.perk}>
-                  <MaterialCommunityIcons name="check" size={17} color={theme.gold} />
-                  <Text style={styles.perkText}>{t(key)}</Text>
-                </View>
-              ))}
-            </View>
-            <TouchableOpacity style={styles.premiumCta} onPress={() => openPaywall('settings_banner')} activeOpacity={0.9}>
-              <Text style={styles.premiumCtaText}>{t('premium.settingsBannerTitle')}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
 
         {/* Pied de page */}
         <View style={styles.footer}>
@@ -315,27 +264,10 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     paddingTop: 16, paddingHorizontal: 20, paddingBottom: 4,
   },
   prefRow: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 62, paddingHorizontal: 20 },
-  prefRowWrap: { flexWrap: 'wrap', paddingVertical: 12, rowGap: 12 },
   prefRowBorder: { borderTopWidth: 1, borderTopColor: theme.separator },
   iconTile: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   prefLabel: { flex: 1, fontSize: 16, fontWeight: '600', color: theme.text },
   star: { color: theme.gold },
-  unlock: {
-    backgroundColor: theme.premiumSurface, borderRadius: 999,
-    paddingVertical: 8, paddingHorizontal: 14,
-  },
-  unlockText: { fontSize: 13, fontWeight: '700', color: theme.gold },
-  segment: {
-    width: '100%', flexDirection: 'row', gap: 4, padding: 4,
-    borderRadius: 12, backgroundColor: theme.soft,
-  },
-  segmentItem: { flex: 1, minHeight: 36, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  segmentItemOn: {
-    backgroundColor: theme.card,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 1,
-  },
-  segmentText: { fontSize: 14, color: theme.textSecondary },
-  segmentTextOn: { fontWeight: '700', color: theme.text },
 
   // Aidez-nous / Notez-nous
   halfRow: { flexDirection: 'row', gap: 12 },

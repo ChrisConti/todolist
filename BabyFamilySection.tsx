@@ -289,7 +289,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   },
   copyButtonText: { flexShrink: 1, color: theme.accent, fontSize: 14, fontWeight: '700' },
   leaveButton: { alignSelf: 'center', minHeight: 44, justifyContent: 'center', paddingHorizontal: 16 },
-  leaveButtonText: { color: theme.danger, fontSize: 15, fontWeight: '700' },
+  leaveButtonText: { color: theme.accent, fontSize: 15, fontWeight: '700' },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',

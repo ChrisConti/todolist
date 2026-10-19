@@ -23,6 +23,8 @@ import EditBaby from './EditBaby';
 import EditBabyPhoto from './screens/EditBabyPhoto';
 import ChangeName from './screens/ChangeName';
 import MyProfile from './screens/MyProfile';
+import EmailOptIn from './screens/EmailOptIn';
+import DarkModeSetting from './screens/DarkModeSetting';
 import NursingLockScreenSetting from './screens/NursingLockScreenSetting';
 import ChangeEmail from './screens/ChangeEmail';
 import DeleteAccount from './screens/DeleteAccount';
@@ -475,6 +477,28 @@ function MainStack() {
           headerTintColor: headerFg,
           headerTitleStyle: { fontFamily: 'Pacifico', fontSize:22, color: headerFg },
           headerTitle: t('baby.editPhoto'),
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen
+        name="EmailOptIn"
+        component={EmailOptIn}
+        options={{
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize: 22, color: headerFg },
+          headerTitle: t('settings.emailOptIn'),
+          headerBackTitle: ''
+        }}
+      />
+      <Stack.Screen
+        name="DarkModeSetting"
+        component={DarkModeSetting}
+        options={{
+          headerStyle: { backgroundColor: headerBg },
+          headerTintColor: headerFg,
+          headerTitleStyle: { fontFamily: 'Pacifico', fontSize: 22, color: headerFg },
+          headerTitle: t('settings.darkMode'),
           headerBackTitle: ''
         }}
       />

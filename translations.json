@@ -415,7 +415,8 @@
       "rateUs": "Rate us",
       "rateUsSub": "It really helps us",
       "privacyShort": "Privacy",
-      "termsShort": "Terms"
+      "termsShort": "Terms",
+      "emailOptInDescription": "Receive feedback requests and app improvement messages"
     },
     "title": {
       "signup": "Sign Up",
@@ -1295,7 +1296,8 @@
       "rateUs": "Notez-nous",
       "rateUsSub": "Ça nous aide énormément",
       "privacyShort": "Confidentialité",
-      "termsShort": "CGU"
+      "termsShort": "CGU",
+      "emailOptInDescription": "Recevoir des demandes de retour et messages d'amélioration de l'app"
     },
     "enterValidName": "Veuillez entrer un nom valide",
     "modification": "Modification",
@@ -2149,7 +2151,8 @@
       "rateUs": "Valóranos",
       "rateUsSub": "Nos ayuda muchísimo",
       "privacyShort": "Privacidad",
-      "termsShort": "Términos"
+      "termsShort": "Términos",
+      "emailOptInDescription": "Recibir solicitudes de opinión y mensajes de mejora de la app"
     },
     "enterValidName": "Por favor, introduce un nombre válido",
     "enterValidEmail": "Por favor, introduce un correo válido",
