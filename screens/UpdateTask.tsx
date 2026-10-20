@@ -268,7 +268,6 @@ const UpdateTask = ({ route, navigation }) => {
                 keyboardType="numeric"
                 onChangeText={(inputText) => { setLabel(inputText); setLabelSource('manual'); }}
                 value={label}
-                returnKeyLabel='Done'
                 returnKeyType='done'
                 onSubmitEditing={Keyboard.dismiss}
                 maxLength={10}
@@ -316,7 +315,6 @@ const UpdateTask = ({ route, navigation }) => {
                 keyboardType='default'
                 onChangeText={(inputText) => { setLabel(inputText); setLabelSource('manual'); }}
                 value={label}
-                returnKeyLabel='Done'
                 returnKeyType='done'
                 onSubmitEditing={Keyboard.dismiss}
                 maxLength={30}
@@ -384,7 +382,6 @@ const UpdateTask = ({ route, navigation }) => {
                 keyboardType="numeric"
                 onChangeText={(inputText) => setLabel(inputText)}
                 value={label}
-                returnKeyLabel='Done'
                 returnKeyType='done'
                 onSubmitEditing={Keyboard.dismiss}
                 maxLength={5}
@@ -399,7 +396,6 @@ const UpdateTask = ({ route, navigation }) => {
                 keyboardType="numeric"
                 onChangeText={(inputText) => setTemperatureDuration(inputText)}
                 value={temperatureDuration}
-                returnKeyLabel='Done'
                 returnKeyType='done'
                 onSubmitEditing={Keyboard.dismiss}
                 maxLength={4}
