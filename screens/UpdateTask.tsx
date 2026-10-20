@@ -1,7 +1,7 @@
 import React, { useMemo, useContext, useRef, useState } from 'react';
 import { useTheme } from '../Context/ThemeContext';
 import type { Theme } from '../constants/theme';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Keyboard, ScrollView, TouchableWithoutFeedback, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Keyboard, ScrollView, TouchableWithoutFeedback, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { updateBabyTask, removeBabyTask } from '../utils/babyTasks';
 import moment from 'moment';
 import DateTimePicker from "react-native-modal-datetime-picker";
@@ -15,7 +15,7 @@ import Couche from '../assets/couche-color.svg';
 import Sante from '../assets/sante-color.svg';
 import Biberon from '../assets/biberon-color.svg';
 import Analytics from '../services/analytics';
-import { TASK_LABELS } from '../utils/constants';
+import { TASK_LABELS, KEYBOARD_CONFIG } from '../utils/constants';
 import { useAndroidBottomInset } from '../utils/useAndroidBottomInset';
 
 const UpdateTask = ({ route, navigation }) => {
@@ -431,6 +431,13 @@ const UpdateTask = ({ route, navigation }) => {
     }
 
   return (
+    // Même gestion du clavier que CreateTask : sans elle, le clavier masquait le
+    // commentaire et les boutons (Android en edge-to-edge ne redimensionne plus).
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={KEYBOARD_CONFIG.BEHAVIOR}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
+    >
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         <ScrollView
@@ -661,6 +668,7 @@ const UpdateTask = ({ route, navigation }) => {
         </View>
       </View>
     </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
