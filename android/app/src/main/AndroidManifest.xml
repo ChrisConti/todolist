@@ -9,7 +9,6 @@
   <!-- Camera permission for taking photos -->
   <uses-permission android:name="android.permission.CAMERA"/>
 
-  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
   <uses-permission android:name="android.permission.VIBRATE"/>
   <queries>
     <intent>
