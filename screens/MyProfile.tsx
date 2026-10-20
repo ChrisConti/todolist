@@ -9,6 +9,7 @@ import { useTheme } from '../Context/ThemeContext';
 import type { Theme } from '../constants/theme';
 import analytics from '../services/analytics';
 import { initialOf } from '../utils/initials';
+import { signOutGoogle } from '../utils/socialAuth';
 
 // Ouvert depuis la carte profil des Paramètres : tout ce qui touche au compte.
 const MyProfile = ({ navigation }) => {
@@ -24,6 +25,7 @@ const MyProfile = ({ navigation }) => {
 
   const handleSignOut = () => {
     analytics.logEvent('sign_out', { provider });
+    if (provider === 'google') signOutGoogle();
     signOut(auth)
       .then(() => {
         setUser(null);

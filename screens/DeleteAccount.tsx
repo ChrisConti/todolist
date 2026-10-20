@@ -7,6 +7,7 @@ import { AuthentificationUserContext } from '../Context/AuthentificationContext'
 import { useTranslation } from 'react-i18next';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider, deleteUser, signOut, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { signOutGoogle } from '../utils/socialAuth';
 const AppleAuthentication = Platform.OS === 'ios' ? require('expo-apple-authentication') : null;
 import Analytics from '../services/analytics';
 import { useTheme } from '../Context/ThemeContext';
@@ -189,6 +190,7 @@ const DeleteAccount = ({ route, navigation }) => {
               // deleteUser() triggers onAuthStateChanged(null) in App.tsx,
               // which sets user=null and automatically renders AuthStack (Connection).
               await signOut(auth);
+              if (provider === 'google') await signOutGoogle();
               setUser(null);
               setBabyID(null);
               setUserInfo(null);

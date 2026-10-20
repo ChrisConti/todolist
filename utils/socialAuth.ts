@@ -28,6 +28,18 @@ export const configureGoogleSignIn = () => {
 };
 
 /**
+ * Oublie le compte Google choisi. Sans ça, sur Android, la connexion Google suivante
+ * reprend le même compte sans proposer le sélecteur : impossible d'en changer.
+ */
+export const signOutGoogle = async () => {
+  try {
+    await GoogleSignin.signOut();
+  } catch {
+    // Pas de session Google (compte e-mail ou Apple) : rien à faire.
+  }
+};
+
+/**
  * Sign in with Google
  */
 export const signInWithGoogle = async () => {
@@ -40,6 +52,13 @@ export const signInWithGoogle = async () => {
     // Get user info from Google
     const userInfo = await GoogleSignin.signIn();
     log.info(`Google Sign-In response: ${JSON.stringify(userInfo)}`, 'socialAuth');
+
+    // v16 : fermer la feuille Google renvoie { type: 'cancelled' } au lieu de lever une
+    // erreur. Sans ce test, l'absence de jeton affichait « erreur de connexion Google ».
+    if (userInfo.type === 'cancelled') {
+      log.info('Google Sign-In cancelled by user', 'socialAuth');
+      return null;
+    }
 
     const idToken = userInfo.data?.idToken;
 
