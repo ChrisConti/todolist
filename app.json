@@ -29,7 +29,7 @@
         "foregroundImage": "./assets/baby.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.tribubaby.tribubaby",
+      "package": "com.tribubaby.app",
       "versionCode": 15
     },
     "web": {
