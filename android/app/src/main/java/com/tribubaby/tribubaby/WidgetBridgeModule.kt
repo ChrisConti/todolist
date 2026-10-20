@@ -35,4 +35,18 @@ class WidgetBridgeModule(private val reactContext: ReactApplicationContext) :
             BiberonWidget.updateWidget(context, manager, id)
         }
     }
+
+    // Pendant de WidgetBridge.m (iOS). Mémorise le statut premium pour le widget ;
+    // l'affichage du widget ne l'utilise pas encore (décision produit en attente).
+    @ReactMethod
+    fun savePremiumStatus(isPremium: Boolean) {
+        reactContext.getSharedPreferences(BiberonWidget.PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_IS_PREMIUM, isPremium)
+            .apply()
+    }
+
+    companion object {
+        const val KEY_IS_PREMIUM = "isPremium"
+    }
 }
