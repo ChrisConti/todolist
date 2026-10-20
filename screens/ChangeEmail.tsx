@@ -8,12 +8,14 @@ import { getAuth, updateEmail, reauthenticateWithCredential, EmailAuthProvider }
 import Analytics from '../services/analytics';
 import { useTheme } from '../Context/ThemeContext';
 import type { Theme } from '../constants/theme';
+import { useAndroidBottomInset } from '../utils/useAndroidBottomInset';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ChangeEmail = ({ route, navigation }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const androidBottomInset = useAndroidBottomInset();
   const { t } = useTranslation();
   const { user, userInfo, setUserInfo } = useContext(AuthentificationUserContext);
   const [email, setEmail] = useState(userInfo.email || '');
@@ -139,7 +141,7 @@ const ChangeEmail = ({ route, navigation }) => {
       </ScrollView>
 
       {!isReadOnly && (
-        <View style={styles.footer}>
+        <View style={[styles.footer, androidBottomInset > 0 && { paddingBottom: 10 + androidBottomInset }]}>
           <Text style={styles.errorText}>{userError}</Text>
           <TouchableOpacity style={[styles.button, loading && { opacity: 0.6 }]} onPress={updateUserEmail} disabled={loading}>
             <Text style={styles.buttonText}>{t('validate')}</Text>

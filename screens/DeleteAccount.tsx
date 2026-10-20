@@ -11,10 +11,12 @@ const AppleAuthentication = Platform.OS === 'ios' ? require('expo-apple-authenti
 import Analytics from '../services/analytics';
 import { useTheme } from '../Context/ThemeContext';
 import type { Theme } from '../constants/theme';
+import { useAndroidBottomInset } from '../utils/useAndroidBottomInset';
 
 const DeleteAccount = ({ route, navigation }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const androidBottomInset = useAndroidBottomInset();
   const { t } = useTranslation();
   const { user, setUser, babyID, setBabyID, setUserInfo, userInfo } = useContext(AuthentificationUserContext);
   const [password, setPassword] = useState('');
@@ -243,7 +245,7 @@ const DeleteAccount = ({ route, navigation }) => {
         )}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, androidBottomInset > 0 && { paddingBottom: 10 + androidBottomInset }]}>
         <Text style={styles.errorText}>{userError}</Text>
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}

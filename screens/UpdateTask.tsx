@@ -16,10 +16,12 @@ import Sante from '../assets/sante-color.svg';
 import Biberon from '../assets/biberon-color.svg';
 import Analytics from '../services/analytics';
 import { TASK_LABELS } from '../utils/constants';
+import { useAndroidBottomInset } from '../utils/useAndroidBottomInset';
 
 const UpdateTask = ({ route, navigation }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const androidBottomInset = useAndroidBottomInset();
   const { t } = useTranslation();
   const { user, babyID, userInfo } = useContext(AuthentificationUserContext);
 
@@ -637,7 +639,7 @@ const UpdateTask = ({ route, navigation }) => {
         </ScrollView>
 
         {/* Footer */}
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: androidBottomInset }]}>
           <TouchableOpacity onPress={updateBabyTasks} disabled={loading}>
             <View style={[styles.button, loading && styles.buttonDisabled]}>
               {loading ? (

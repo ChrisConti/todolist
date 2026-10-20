@@ -8,10 +8,12 @@ import { KEYBOARD_CONFIG } from '../utils/constants';
 import Analytics from '../services/analytics';
 import { useTheme } from '../Context/ThemeContext';
 import type { Theme } from '../constants/theme';
+import { useAndroidBottomInset } from '../utils/useAndroidBottomInset';
 
 const ChangePassword = ({ route, navigation }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const androidBottomInset = useAndroidBottomInset();
   const { t } = useTranslation();
   const { user } = useContext(AuthentificationUserContext);
 
@@ -40,7 +42,7 @@ const ChangePassword = ({ route, navigation }) => {
           </Text>
         </View>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, androidBottomInset > 0 && { bottom: 10 + androidBottomInset }]}>
           <TouchableOpacity style={styles.button} onPress={onHandleForgetPassword}>
             <Text style={styles.buttonText}>{t('settings.sendEmail')}</Text>
           </TouchableOpacity>

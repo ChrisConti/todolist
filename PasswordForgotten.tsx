@@ -5,12 +5,14 @@ import { auth } from './config';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from './Context/ThemeContext';
 import type { Theme } from './constants/theme';
+import { useAndroidBottomInset } from './utils/useAndroidBottomInset';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const PasswordForgotten = ({ navigation }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const androidBottomInset = useAndroidBottomInset();
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [userError, setError] = useState('');
@@ -53,7 +55,7 @@ const PasswordForgotten = ({ navigation }) => {
         <View style={styles.content}>
           <Text style={styles.successText}>{t('settings.resetPasswordEmailSentConfirm')}</Text>
         </View>
-        <View style={styles.footer}>
+        <View style={[styles.footer, androidBottomInset > 0 && { paddingBottom: 20 + androidBottomInset }]}>
           <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Connection')}>
             <Text style={styles.buttonText}>{t('button.backToLogin')}</Text>
           </TouchableOpacity>
@@ -88,7 +90,7 @@ const PasswordForgotten = ({ navigation }) => {
         {userError !== '' && <Text style={styles.errorText}>{userError}</Text>}
       </View>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, androidBottomInset > 0 && { paddingBottom: 20 + androidBottomInset }]}>
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={onHandleForgetPassword}

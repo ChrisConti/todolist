@@ -7,10 +7,12 @@ import { useTranslation } from 'react-i18next';
 import Analytics from '../services/analytics';
 import { useTheme } from '../Context/ThemeContext';
 import type { Theme } from '../constants/theme';
+import { useAndroidBottomInset } from '../utils/useAndroidBottomInset';
 
 const ChangeName = ({ route, navigation }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const androidBottomInset = useAndroidBottomInset();
   const { t } = useTranslation();
   const { user, userInfo, setUserInfo } = useContext(AuthentificationUserContext);
   const [name, setName] = useState(userInfo?.username || '');
@@ -82,7 +84,7 @@ const ChangeName = ({ route, navigation }) => {
         />
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, androidBottomInset > 0 && { paddingBottom: 10 + androidBottomInset }]}>
         <Text style={styles.errorText}>{userError}</Text>
         <TouchableOpacity style={[styles.button, loading && { opacity: 0.6 }]} onPress={onHandleModification} disabled={loading}>
           <Text style={styles.buttonText}>{t('validate')}</Text>

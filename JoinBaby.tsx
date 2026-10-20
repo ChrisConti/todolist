@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KEYBOARD_CONFIG } from './utils/constants';
 import { useTheme } from './Context/ThemeContext';
 import type { Theme } from './constants/theme';
+import { useAndroidBottomInset } from './utils/useAndroidBottomInset';
 
 const ROLES = ['maman', 'papa', 'mamie', 'papy', 'nounou', 'tata', 'tonton', 'autre'] as const;
 const AGE_RANGES = ['under25', 'r25to30', 'r30to35', 'r35to40', 'over40'] as const;
@@ -21,6 +22,7 @@ const ROLE_EMOJIS: Record<string, string> = {
 const JoinBaby = ({ navigation }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const androidBottomInset = useAndroidBottomInset();
   const { t } = useTranslation();
   const { user, setBabyID, userInfo, setUserInfo } = useContext(AuthentificationUserContext);
   const [step, setStep] = useState<'code' | 'profile'>('code');
@@ -228,7 +230,7 @@ const JoinBaby = ({ navigation }) => {
           )}
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, androidBottomInset > 0 && { paddingBottom: 10 + androidBottomInset }]}>
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={onConfirmProfile}
@@ -269,7 +271,7 @@ const JoinBaby = ({ navigation }) => {
         />
         {userError ? <Text style={styles.errorText}>{userError}</Text> : null}
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, androidBottomInset > 0 && { paddingBottom: 10 + androidBottomInset }]}>
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={onValidateCode}

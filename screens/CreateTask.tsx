@@ -21,6 +21,7 @@ import Biberon from '../assets/biberon-color.svg';
 import analytics from '../services/analytics';
 import { KEYBOARD_CONFIG } from '../utils/constants';
 import BreastfeedingSection, { BreastfeedingRef } from '../components/BreastfeedingSection';
+import { useAndroidBottomInset } from '../utils/useAndroidBottomInset';
 
 
 const IMAGES = [
@@ -39,6 +40,7 @@ interface CreateTaskProps {
 const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const androidBottomInset = useAndroidBottomInset();
   const { handleTaskCreated } = useReviewPrompt();
   const { t } = useTranslation();
   const task = undefined;
@@ -694,7 +696,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
           {/* Footer */}
           <View style={{
             position: 'absolute',
-            bottom: 10,
+            bottom: 10 + androidBottomInset,
             left: 0,
             right: 0,
             backgroundColor: 'transparent',
