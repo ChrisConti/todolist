@@ -257,6 +257,7 @@ const JoinBaby = ({ navigation }) => {
         <TextInput
           ref={inputRef}
           style={styles.input}
+          placeholderTextColor={theme.textMuted}
           placeholder={t('placeholder.code')}
           keyboardType="default"
           autoCapitalize="none"
@@ -450,6 +451,8 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   input: {
     width: '100%',
     height: 50,
+    // Sans couleur, Android applique le textColor noir de styles.xml : illisible en sombre.
+    color: theme.text,
     borderBottomWidth: 1,
     borderColor: theme.accent,
     borderRadius: 8,

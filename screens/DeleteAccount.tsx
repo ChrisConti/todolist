@@ -228,6 +228,7 @@ const DeleteAccount = ({ route, navigation }) => {
             <TextInput
               ref={inputRef}
               style={styles.input}
+          placeholderTextColor={theme.textMuted}
               placeholder={t('password')}
               secureTextEntry
               autoCorrect={false}
@@ -278,6 +279,8 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
   input: {
     width: '100%',
     height: 50,
+    // Sans couleur, Android applique le textColor noir de styles.xml : illisible en sombre.
+    color: theme.text,
     borderWidth: 1,
     borderColor: theme.accent,
     borderRadius: 8,

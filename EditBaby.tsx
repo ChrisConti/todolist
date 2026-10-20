@@ -438,6 +438,7 @@ const EditBaby = ({ navigation, route }) => {
         </Text>
         <TextInput
           style={styles.input}
+          placeholderTextColor={theme.textMuted}
           placeholder={t('placeholder.firstName')}
           value={name}
           onChangeText={setName}
@@ -451,6 +452,7 @@ const EditBaby = ({ navigation, route }) => {
         </Text>
         <TextInput
           style={styles.input}
+          placeholderTextColor={theme.textMuted}
           placeholder={t('placeholder.birthdate')}
           value={birthdate}
           onChangeText={handleBirthdateChange}
@@ -462,6 +464,7 @@ const EditBaby = ({ navigation, route }) => {
         <Text style={styles.label}>{t('baby.weight')}</Text>
         <TextInput
           style={styles.input}
+          placeholderTextColor={theme.textMuted}
           placeholder={t('placeholder.weight')}
           value={weight}
           onChangeText={setWeight}
@@ -473,6 +476,7 @@ const EditBaby = ({ navigation, route }) => {
         <Text style={styles.label}>{t('baby.height')}</Text>
         <TextInput
           style={styles.input}
+          placeholderTextColor={theme.textMuted}
           placeholder={t('placeholder.height')}
           value={height}
           onChangeText={setHeight}
@@ -627,6 +631,8 @@ const makeStyles = (theme: Theme) => StyleSheet.create({
     paddingHorizontal: 15,
     backgroundColor: theme.card,
     fontSize: 16,
+    // Sans couleur, Android applique le textColor noir de styles.xml : illisible en sombre.
+    color: theme.text,
   },
   errorText: {
     color: theme.danger,
