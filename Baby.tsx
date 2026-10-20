@@ -139,7 +139,9 @@ const Baby = ({ navigation }) => {
       } catch { /* Non-critical */ }
 
       setLoading(false);
-      navigation.navigate('FirstBiberon', { babyID: uniqueId, babyName: trimmedName });
+      // replace : le formulaire du bébé déjà créé sort de la pile. Avec navigate, le
+      // retour Android y ramenait encore rempli, et Valider créait un second bébé.
+      navigation.replace('FirstBiberon', { babyID: uniqueId, babyName: trimmedName });
     } catch (error: any) {
       setLoading(false);
       if (error.code === 'permission-denied') setError(t('error.permissionDenied') || 'Permission denied');
