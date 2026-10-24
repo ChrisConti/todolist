@@ -8,3 +8,10 @@ export function useAndroidBottomInset(): number {
   const { bottom } = useSafeAreaInsets();
   return Platform.OS === 'android' ? bottom : 0;
 }
+
+// Même chose en haut : la barre d'état (et l'encoche) recouvre l'écran. Le SafeAreaView
+// de react-native, lui, ne fait rien sur Android.
+export function useAndroidTopInset(): number {
+  const { top } = useSafeAreaInsets();
+  return Platform.OS === 'android' ? top : 0;
+}

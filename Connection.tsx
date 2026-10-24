@@ -16,10 +16,13 @@ import i18n from './i18n';
 import { useTheme } from './Context/ThemeContext';
 import type { Theme } from './constants/theme';
 import IllustrationGround from './components/IllustrationGround';
+import { useAndroidBottomInset, useAndroidTopInset } from './utils/useAndroidBottomInset';
 
 const ConnectionScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const androidTopInset = useAndroidTopInset();
+  const androidBottomInset = useAndroidBottomInset();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userError, setError] = useState('');
@@ -135,7 +138,7 @@ const ConnectionScreen = ({ navigation }) => {
     >
       <ScrollView
         style={{ flex: 1, backgroundColor: theme.primary }}
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={[styles.scrollContainer, Platform.OS === 'android' && { paddingTop: Math.max(60, androidTopInset + 20), paddingBottom: 40 + androidBottomInset }]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.container}>

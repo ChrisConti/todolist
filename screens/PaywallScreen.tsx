@@ -11,6 +11,7 @@ import { usePremium } from '../Context/PremiumContext';
 import Analytics from '../services/analytics';
 import { useTheme } from '../Context/ThemeContext';
 import type { Theme } from '../constants/theme';
+import { useAndroidBottomInset, useAndroidTopInset } from '../utils/useAndroidBottomInset';
 
 // ─── Mini-preview : CSV export ───────────────────────────────────────────────
 
@@ -129,6 +130,8 @@ const FEATURES = [
 export default function PaywallScreen({ navigation }: any) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const androidTopInset = useAndroidTopInset();
+  const androidBottomInset = useAndroidBottomInset();
   const { t } = useTranslation();
   const { purchase, restore, isLoading, purchaseError, priceString, priceStatus, retryPrice } = usePremium();
 
@@ -155,7 +158,7 @@ export default function PaywallScreen({ navigation }: any) {
   return (
     <SafeAreaView style={styles.safe}>
       <TouchableOpacity
-        style={styles.closeBtn}
+        style={[styles.closeBtn, androidTopInset > 0 && { top: androidTopInset + 12 }]}
         onPress={handleClose}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
@@ -163,7 +166,7 @@ export default function PaywallScreen({ navigation }: any) {
       </TouchableOpacity>
 
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, Platform.OS === 'android' && { paddingTop: androidTopInset + 64, paddingBottom: 40 + androidBottomInset }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
