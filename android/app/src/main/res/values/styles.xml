@@ -1,11 +1,23 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-  <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+  <!-- DayNight : les alertes et le sélecteur de date suivent le mode choisi dans l'app
+       (ThemeContext le pousse via Appearance.setColorScheme). En Light, ils restaient
+       blancs en mode sombre. -->
+  <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
     <item name="android:textColor">@android:color/black</item>
+    <item name="alertDialogTheme">@style/AppDialogTheme</item>
+    <item name="android:alertDialogTheme">@style/AppDialogTheme</item>
+    <item name="android:datePickerDialogTheme">@style/AppDialogTheme</item>
+    <item name="android:timePickerDialogTheme">@style/AppDialogTheme</item>
     <item name="android:editTextStyle">@style/ResetEditText</item>
     <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     <item name="colorPrimary">@color/colorPrimary</item>
     <item name="android:statusBarColor">#C75B4A</item>
     <item name="android:forceDarkAllowed">false</item>
+  </style>
+  <!-- Sans cette surcharge, le textColor noir d'AppTheme se propage aux boîtes de
+       dialogue : texte noir sur fond sombre. -->
+  <style name="AppDialogTheme" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+    <item name="android:textColor">?android:attr/textColorPrimary</item>
   </style>
   <style name="ResetEditText" parent="@android:style/Widget.EditText">
     <item name="android:padding">0dp</item>
