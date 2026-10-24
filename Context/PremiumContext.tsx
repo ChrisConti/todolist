@@ -10,7 +10,7 @@ import Analytics from '../services/analytics';
 
 const ENTITLEMENT_ID = 'Single Purchase';
 const RC_API_KEY_IOS = 'appl_vQnfZpgKJPmMvOuZHyODGWaKOYT';
-const RC_API_KEY_ANDROID = 'goog_REPLACE_WITH_YOUR_ANDROID_KEY';
+const RC_API_KEY_ANDROID = 'goog_tBFOOmaLHUQExfrTvrFnQLiBcJH';
 
 // Tous les comptes créés avant cette date sont early adopters → premium offert
 const PREMIUM_LAUNCH_DATE = new Date('2026-05-15');
