@@ -56,6 +56,7 @@ const DeleteAccount = ({ route, navigation }) => {
       // Google reauthentication
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
+      if (userInfo.type === 'cancelled') throw { cancelled: true };
       const idToken = userInfo.data?.idToken;
 
       if (!idToken) {
@@ -95,6 +96,8 @@ const DeleteAccount = ({ route, navigation }) => {
     try {
       await reauthenticateUser(currentUser);
     } catch (error: any) {
+      // Fermer la feuille Google ou Apple n'est pas une erreur : on reste sur l'écran.
+      if (error?.cancelled || error?.code === 'ERR_REQUEST_CANCELED') return;
       if (provider === 'email') {
         setError(t('incorrectPassword') || 'Incorrect password');
       } else {
@@ -190,7 +193,7 @@ const DeleteAccount = ({ route, navigation }) => {
               // deleteUser() triggers onAuthStateChanged(null) in App.tsx,
               // which sets user=null and automatically renders AuthStack (Connection).
               await signOut(auth);
-              if (provider === 'google') await signOutGoogle();
+              await signOutGoogle();
               setUser(null);
               setBabyID(null);
               setUserInfo(null);

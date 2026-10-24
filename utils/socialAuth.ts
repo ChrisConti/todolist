@@ -205,7 +205,9 @@ export const signInWithApple = async () => {
     log.error('Apple Sign-In error', 'socialAuth', error);
 
     // User cancelled
-    if (error.code === 'ERR_CANCELED') {
+    // expo-apple-authentication renvoie ERR_REQUEST_CANCELED ; ERR_CANCELED ne
+    // correspondait jamais, et annuler affichait une alerte d'erreur.
+    if (error.code === 'ERR_REQUEST_CANCELED' || error.code === 'ERR_CANCELED') {
       log.info('User cancelled Apple Sign-In', 'socialAuth');
       return;
     }

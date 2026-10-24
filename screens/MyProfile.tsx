@@ -25,7 +25,8 @@ const MyProfile = ({ navigation }) => {
 
   const handleSignOut = () => {
     analytics.logEvent('sign_out', { provider });
-    if (provider === 'google') signOutGoogle();
+    // Sans condition : un compte e-mail peut aussi s'être connecté via Google.
+    signOutGoogle();
     signOut(auth)
       .then(() => {
         setUser(null);
