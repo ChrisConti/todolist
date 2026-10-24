@@ -8,6 +8,9 @@
     <item name="android:alertDialogTheme">@style/AppDialogTheme</item>
     <item name="android:datePickerDialogTheme">@style/AppDialogTheme</item>
     <item name="android:timePickerDialogTheme">@style/AppDialogTheme</item>
+    <!-- RN construit le titre des Alert avec le thème de l'activité, pas celui du
+         dialogue (AlertFragment.getAccessibleTitle) : sans ce style, titre noir en sombre. -->
+    <item name="android:windowTitleStyle">@style/AppDialogTitle</item>
     <item name="android:editTextStyle">@style/ResetEditText</item>
     <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     <item name="colorPrimary">@color/colorPrimary</item>
@@ -17,6 +20,10 @@
   <!-- Sans cette surcharge, le textColor noir d'AppTheme se propage aux boîtes de
        dialogue : texte noir sur fond sombre. -->
   <style name="AppDialogTheme" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+    <item name="android:textColor">?android:attr/textColorPrimary</item>
+  </style>
+  <style name="AppDialogTitle">
+    <item name="android:textAppearance">@style/TextAppearance.AppCompat.Title</item>
     <item name="android:textColor">?android:attr/textColorPrimary</item>
   </style>
   <style name="ResetEditText" parent="@android:style/Widget.EditText">
