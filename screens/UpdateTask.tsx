@@ -47,6 +47,10 @@ const UpdateTask = ({ route, navigation }) => {
 
   const handleDateChange = (date) => {
     if (date) {
+      // Sur Android, maximumDate ne borne que le jour : l'horloge laisse choisir
+      // 23:00 à 14:00. Une heure future est ramenée à maintenant.
+      const now = new Date();
+      if (date > now) date = now;
       setSelectedDate(date);
       setTime(moment(date).format('YYYY-MM-DD HH:mm:ss'));
       setIsDateTimePickerVisible(false);
