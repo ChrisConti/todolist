@@ -435,6 +435,7 @@ const UpdateTask = ({ route, navigation }) => {
     // commentaire et les boutons (Android en edge-to-edge ne redimensionne plus).
     <KeyboardAvoidingView
       style={{ flex: 1 }}
+      enabled={Platform.OS === 'android'}
       behavior={KEYBOARD_CONFIG.BEHAVIOR}
       keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_CONFIG.IOS_OFFSET : KEYBOARD_CONFIG.ANDROID_OFFSET}
     >
@@ -442,7 +443,7 @@ const UpdateTask = ({ route, navigation }) => {
       <View style={styles.container}>
         <ScrollView
           style={{ flex: 1, width: '100%' }}
-          contentContainerStyle={{ paddingBottom: 180, alignItems: 'center' }}
+          contentContainerStyle={{ paddingBottom: 180 + androidBottomInset, alignItems: 'center' }}
           showsVerticalScrollIndicator={true}
           keyboardShouldPersistTaps="handled"
         >
@@ -641,12 +642,12 @@ const UpdateTask = ({ route, navigation }) => {
           </View>
           <View style={styles.timePickerContainer}>
             <Text style={styles.timePickerLabel}>{t('Par')}</Text>
-            <Text>{task.createdBy}</Text>
+            <Text style={{ color: theme.text }}>{task.createdBy}</Text>
             </View>
         </ScrollView>
 
         {/* Footer */}
-        <View style={[styles.footer, { paddingBottom: androidBottomInset }]}>
+        <View style={[styles.footer, { paddingBottom: 10 + androidBottomInset }]}>
           <TouchableOpacity onPress={updateBabyTasks} disabled={loading}>
             <View style={[styles.button, loading && styles.buttonDisabled]}>
               {loading ? (

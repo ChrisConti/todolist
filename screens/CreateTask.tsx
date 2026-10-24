@@ -464,7 +464,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ route, navigation }) => {
         <View style={{ flex: 1, backgroundColor: theme.background, alignItems: 'center', paddingTop: 10, }}>
           <ScrollView
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingBottom: 100, alignItems: 'center' }}
+            contentContainerStyle={{ paddingBottom: 100 + androidBottomInset, alignItems: 'center' }}
             showsVerticalScrollIndicator={true}
           >
             {/* Image picker */}

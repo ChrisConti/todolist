@@ -17,6 +17,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useTranslation } from 'react-i18next';
+import { useAndroidBottomInset } from './utils/useAndroidBottomInset';
 import { FontAwesome } from '@expo/vector-icons';
 import { AuthentificationUserContext } from './Context/AuthentificationContext';
 import { babiesRef, storage } from './config';
@@ -40,6 +41,7 @@ import IllustrationGround from './components/IllustrationGround';
 const EditBaby = ({ navigation, route }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const androidBottomInset = useAndroidBottomInset();
   const { t } = useTranslation();
   const { user, babyID: contextBabyID } = useContext(AuthentificationUserContext);
   const { babyData: initialBabyData } = route.params;
@@ -486,7 +488,7 @@ const EditBaby = ({ navigation, route }) => {
       </ScrollView>
 
       {/* Footer avec boutons */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: 20 + androidBottomInset }]}>
         <TouchableOpacity
           style={[styles.saveButton, loading && styles.buttonDisabled]}
           onPress={handleSave}
