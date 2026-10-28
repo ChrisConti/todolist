@@ -49,7 +49,9 @@ const FirstTaskBiberon = ({ navigation, route }: any) => {
 
   // popTo et non navigate : en React Navigation 7, navigate empile un second MainTabs
   // par-dessus cet écran, et le retour arrière y ramenait (bébé créé deux fois en 1.2.x).
-  const goHome = () => navigation.popTo('MainTabs');
+  // { screen: 'Home' } : popTo garde l'onglet actif (Bébé ou Statistiques si on venait
+  // de là) ; ce paramètre fait basculer les onglets sur l'accueil.
+  const goHome = () => navigation.popTo('MainTabs', { screen: 'Home' });
 
   const handleSkip = () => {
     analytics.logEvent('first_task_skipped', { baby_id: babyID });

@@ -56,7 +56,7 @@ const PasswordForgotten = ({ navigation }) => {
           <Text style={styles.successText}>{t('settings.resetPasswordEmailSentConfirm')}</Text>
         </View>
         <View style={[styles.footer, androidBottomInset > 0 && { paddingBottom: 20 + androidBottomInset }]}>
-          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Connection')}>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.popTo('Connection')}>
             <Text style={styles.buttonText}>{t('button.backToLogin')}</Text>
           </TouchableOpacity>
         </View>
