@@ -145,7 +145,8 @@ const JoinBaby = ({ navigation }) => {
 
       setLoading(false);
       Alert.alert(t('congratsjoinbaby'));
-      navigation.navigate('MainTabs');
+      // popTo : navigate empilerait un second MainTabs au-dessus du formulaire.
+      navigation.popTo('MainTabs');
     } catch (error) {
       console.error('Error joining baby:', error);
       setLoading(false);

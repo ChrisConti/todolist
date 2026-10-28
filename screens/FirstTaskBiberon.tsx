@@ -47,7 +47,9 @@ const FirstTaskBiberon = ({ navigation, route }: any) => {
   const [milkType, setMilkType] = useState<string>('artificial');
   const [loading, setLoading] = useState(false);
 
-  const goHome = () => navigation.navigate('MainTabs');
+  // popTo et non navigate : en React Navigation 7, navigate empile un second MainTabs
+  // par-dessus cet écran, et le retour arrière y ramenait (bébé créé deux fois en 1.2.x).
+  const goHome = () => navigation.popTo('MainTabs');
 
   const handleSkip = () => {
     analytics.logEvent('first_task_skipped', { baby_id: babyID });

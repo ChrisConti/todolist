@@ -233,7 +233,9 @@ const UpdateTask = ({ route, navigation }) => {
               if (result === 'queued') {
                 Alert.alert(t('task.queuedTitle'), t('task.queuedMessage'));
               }
-              navigation.navigate('MainTabs');
+              // popTo : navigate empilerait un second MainTabs, et le retour arrière
+              // ramènerait sur la fiche de la tâche supprimée.
+              navigation.popTo('MainTabs');
             } catch (error: any) {
               console.error('Error removing task:', error);
               setLoading(false);
