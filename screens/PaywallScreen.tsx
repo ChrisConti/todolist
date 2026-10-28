@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   SafeAreaView, Platform, ActivityIndicator,
@@ -144,11 +144,28 @@ export default function PaywallScreen({ navigation }: any) {
     Analytics.logEvent('paywall_viewed');
   }, []);
 
-  const handlePurchase = async () => {
+  // Bloque les appuis répétés : sans ça, 6 appuis en 3 s ouvraient autant de feuilles
+  // de paiement Apple (constaté le 27/10). Le ref coupe les appuis rapprochés avant
+  // que le state n'ait re-rendu le bouton désactivé.
+  const busyRef = useRef(false);
+  const [busy, setBusy] = useState(false);
+  const runExclusive = async (action: () => Promise<void>) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBusy(true);
+    try {
+      await action();
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
+  };
+
+  const handlePurchase = () => runExclusive(async () => {
     Analytics.logEvent('purchase_tapped', { price: priceString });
     const success = await purchase();
     if (success) navigation.goBack();
-  };
+  });
 
   const handleClose = () => {
     Analytics.logEvent('paywall_closed');
@@ -217,10 +234,10 @@ export default function PaywallScreen({ navigation }: any) {
         <TouchableOpacity
           style={[styles.cta, !priceReady && styles.ctaDisabled]}
           onPress={handlePurchase}
-          disabled={isLoading || !priceReady}
+          disabled={isLoading || busy || !priceReady}
           activeOpacity={0.85}
         >
-          {isLoading || priceStatus === 'loading' ? (
+          {isLoading || busy || priceStatus === 'loading' ? (
             <ActivityIndicator color={theme.gold} />
           ) : (
             <>
@@ -239,7 +256,7 @@ export default function PaywallScreen({ navigation }: any) {
         {/* Restore + mention */}
         <View style={styles.footer}>
           {Platform.OS === 'ios' && (
-            <TouchableOpacity onPress={() => { Analytics.logEvent('restore_tapped'); restore(); }} activeOpacity={0.7}>
+            <TouchableOpacity onPress={() => runExclusive(async () => { Analytics.logEvent('restore_tapped'); await restore(); })} disabled={busy} activeOpacity={0.7}>
               <Text style={styles.restoreLink}>{t('premium.restore')}</Text>
             </TouchableOpacity>
           )}
