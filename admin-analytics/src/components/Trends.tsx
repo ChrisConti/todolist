@@ -8,8 +8,7 @@ const Info: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </span>
 );
 import { getAllBabies, getAllUsers } from '../services/analyticsService';
-import { getDocsFromServer } from 'firebase/firestore';
-import { appInstallsRef } from '../config/firebase';
+import { getInstallsSnapshot, useDataVersion } from '../services/dataStore';
 import type { Baby, User } from '../types';
 import { parseBabyDate } from '../types';
 import type { ChartOptions } from 'chart.js';
@@ -102,9 +101,10 @@ export const Trends: React.FC = () => {
     tasks: true,
   });
 
+  const dataVersion = useDataVersion();
   useEffect(() => {
     loadAllData();
-  }, []);
+  }, [dataVersion]);
 
   useEffect(() => {
     if (dataLoaded) computeTimeSeries(allBabies, allUsers, allInstalls);
@@ -118,7 +118,7 @@ export const Trends: React.FC = () => {
       const [babies, users, installsSnapshot] = await Promise.all([
         getAllBabies(),
         getAllUsers(),
-        getDocsFromServer(appInstallsRef).catch(() => ({ docs: [] as any[] })),
+        getInstallsSnapshot(),
       ]);
       const installs = (installsSnapshot as any).docs.map((doc: any) => doc.data());
 

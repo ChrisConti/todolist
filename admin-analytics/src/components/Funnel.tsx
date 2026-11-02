@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { DateRange, PresetRange } from '../types';
 import { DateRangeSelector } from './DateRangeSelector';
 import { getAnalyticsMetrics } from '../services/analyticsService';
+import { useDataVersion } from '../services/dataStore';
 import './Funnel.css';
 
 export const Funnel: React.FC = () => {
@@ -13,9 +14,10 @@ export const Funnel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<any>(null);
 
+  const dataVersion = useDataVersion();
   useEffect(() => {
     loadMetrics();
-  }, [dateRange]);
+  }, [dateRange, dataVersion]);
 
   const loadMetrics = async () => {
     try {

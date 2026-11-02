@@ -3,6 +3,7 @@ import type { DateRange, PresetRange, AnalyticsMetrics, User, Baby } from '../ty
 import { parseBabyDate } from '../types';
 import { DateRangeSelector } from './DateRangeSelector';
 import { getAnalyticsMetrics, getAllUsers, getAllBabies, isRealPremiumPurchase, getPremiumPurchaseDate } from '../services/analyticsService';
+import { useDataVersion } from '../services/dataStore';
 import { ListModal } from './ListModal';
 import { Charts } from './Charts';
 import { BabyDetailsModal } from './BabyDetailsModal';
@@ -42,7 +43,9 @@ export const Analytics: React.FC = () => {
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [delayDetail, setDelayDetail] = useState<DelayDetail | null>(null);
 
-  useEffect(() => { loadMetrics(); }, [dateRange, searchTerm]);
+  const dataVersion = useDataVersion();
+  // La recherche ne relit plus le serveur : les données sont en mémoire (dataStore).
+  useEffect(() => { loadMetrics(); }, [dateRange, searchTerm, dataVersion]);
 
   const loadMetrics = async () => {
     try {

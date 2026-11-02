@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { invalidateData, useDataLoadedAt } from '../services/dataStore';
 import type { AppType, TabType } from '../App';
 import './Layout.css';
 
@@ -30,6 +31,7 @@ export const Layout: React.FC<LayoutProps> = ({
   onTabChange,
 }) => {
   const { currentUser, signOut } = useAuth();
+  const loadedAt = useDataLoadedAt();
 
   const handleSignOut = async () => {
     if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
@@ -57,6 +59,17 @@ export const Layout: React.FC<LayoutProps> = ({
             </button>
           </div>
           <div className="header-right">
+            {activeApp === 'tribubaby' && (
+              <button
+                onClick={invalidateData}
+                className="logout-button"
+                title="Les données sont lues une fois par visite ; ce bouton relit la base."
+              >
+                {loadedAt
+                  ? `↻ Rafraîchir (données de ${loadedAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })})`
+                  : 'Chargement…'}
+              </button>
+            )}
             <span className="user-email">{currentUser?.email}</span>
             <button onClick={handleSignOut} className="logout-button">
               Déconnexion

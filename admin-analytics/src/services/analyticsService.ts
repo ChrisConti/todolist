@@ -1,5 +1,4 @@
-import { getDocsFromServer } from 'firebase/firestore';
-import { usersRef, babiesRef, appInstallsRef } from '../config/firebase';
+import { getUsersSnapshot, getBabiesSnapshot, getInstallsSnapshot } from './dataStore';
 import type { AnalyticsMetrics, DateRange, User, Baby } from '../types';
 import { parseBabyDate } from '../types';
 
@@ -50,10 +49,9 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
   try {
     console.log('🔄 [DEBUG] Fetching data from Firestore at:', new Date().toISOString());
 
-    // ALWAYS fetch all data (date filtering done client-side to support both old string and new Timestamp formats)
-    // Use getDocsFromServer to bypass cache and get fresh data after deletions
-    const usersSnapshot = await getDocsFromServer(usersRef);
-    const babiesSnapshot = await getDocsFromServer(babiesRef);
+    // Toute la base, filtrée côté client (dates en string ou en Timestamp). Lue une
+    // seule fois par visite (dataStore) ; « Rafraîchir » relit le serveur.
+    const [usersSnapshot, babiesSnapshot] = await Promise.all([getUsersSnapshot(), getBabiesSnapshot()]);
 
     const allUsersRaw: User[] = usersSnapshot.docs.map(doc => ({
       userId: doc.id,
@@ -81,8 +79,8 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
     // Fetch installs (may not exist yet)
     let allInstalls: AppInstall[] = [];
     try {
-      const installsSnapshot = await getDocsFromServer(appInstallsRef);
-      allInstalls = installsSnapshot.docs.map(doc => doc.data() as AppInstall);
+      const installsSnapshot = await getInstallsSnapshot();
+      allInstalls = installsSnapshot.docs.map((doc: any) => doc.data() as AppInstall);
     } catch (installsError) {
       console.warn('AppInstalls collection not accessible (may not exist yet):', installsError);
       // Continue with empty installs array
@@ -793,7 +791,7 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
  * Get all users (for listing)
  */
 export const getAllUsers = async (): Promise<User[]> => {
-  const snapshot = await getDocsFromServer(usersRef);
+  const snapshot = await getUsersSnapshot();
   return snapshot.docs
     .map(doc => ({ userId: doc.id, ...doc.data() } as User))
     .filter(u => !TEST_EMAILS.has(u.email));
@@ -803,7 +801,7 @@ export const getAllUsers = async (): Promise<User[]> => {
  * Get all babies (for listing)
  */
 export const getAllBabies = async (searchTerm?: string): Promise<Baby[]> => {
-  const usersSnap = await getDocsFromServer(usersRef);
+  const usersSnap = await getUsersSnapshot();
   const testIds = new Set(
     usersSnap.docs
       .map(doc => ({ userId: doc.id, ...doc.data() } as User))
@@ -811,7 +809,7 @@ export const getAllBabies = async (searchTerm?: string): Promise<Baby[]> => {
       .map(u => u.userId)
   );
 
-  const snapshot = await getDocsFromServer(babiesRef);
+  const snapshot = await getBabiesSnapshot();
   let babies = snapshot.docs
     .map(doc => ({ ...doc.data(), id: doc.id } as Baby))
     .filter(b => !b.admin || !testIds.has(b.admin));

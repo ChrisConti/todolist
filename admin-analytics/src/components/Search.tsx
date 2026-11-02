@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { Baby, User } from '../types';
 import { getAllBabies, getAllUsers } from '../services/analyticsService';
+import { useDataVersion } from '../services/dataStore';
 import { BabyDetailsModal } from './BabyDetailsModal';
 import { UserDetailsModal } from './UserDetailsModal';
 import './Search.css';
@@ -29,9 +30,10 @@ export const Search: React.FC = () => {
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
+  const dataVersion = useDataVersion();
   useEffect(() => {
     loadBabies();
-  }, []);
+  }, [dataVersion]);
 
   useEffect(() => {
     filterBabiesByAge();

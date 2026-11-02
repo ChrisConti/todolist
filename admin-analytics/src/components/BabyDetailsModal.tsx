@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Line, Pie } from 'react-chartjs-2';
 import { doc, deleteDoc } from 'firebase/firestore';
+import { invalidateData } from '../services/dataStore';
 import { db } from '../config/firebase';
 import type { Baby } from '../types';
 import type { ChartOptions } from 'chart.js';
@@ -297,6 +298,8 @@ export const BabyDetailsModal: React.FC<BabyDetailsModalProps> = ({ isOpen, onCl
 
       await deleteDoc(babyDocRef);
       console.log('Baby deleted successfully from Firestore');
+      // Les données en mémoire contiennent encore ce bébé : on les relit.
+      invalidateData();
 
       // Close the confirmation dialog
       setShowDeleteConfirm(false);

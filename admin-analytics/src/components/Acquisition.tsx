@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Bar } from 'react-chartjs-2';
-import { getDocsFromServer } from 'firebase/firestore';
-import { appInstallsRef } from '../config/firebase';
+import { getInstallsSnapshot, useDataVersion } from '../services/dataStore';
 import { getAllUsers } from '../services/analyticsService';
 import { DateRangeSelector } from './DateRangeSelector';
 import type { User, DateRange, PresetRange } from '../types';
@@ -124,7 +123,8 @@ export const Acquisition: React.FC = () => {
   const [preset, setPreset] = useState<PresetRange>('all');
   const [dateRange, setDateRange] = useState<DateRange>({ start: null, end: null });
 
-  useEffect(() => { loadRawData(); }, []);
+  const dataVersion = useDataVersion();
+  useEffect(() => { loadRawData(); }, [dataVersion]);
 
   useEffect(() => {
     if (rawEvents.length > 0 || !loading) applyFilter(rawEvents, dateRange);
@@ -136,7 +136,7 @@ export const Acquisition: React.FC = () => {
       setError(null);
 
       const [installsSnap, users] = await Promise.all([
-        getDocsFromServer(appInstallsRef).catch(() => ({ docs: [] as any[] })),
+        getInstallsSnapshot(),
         getAllUsers(),
       ]);
 
