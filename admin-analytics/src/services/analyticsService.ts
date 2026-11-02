@@ -1,4 +1,4 @@
-import { getUsersSnapshot, getBabiesSnapshot, getInstallsSnapshot, getBabiesForPeriod } from './dataStore';
+import { getUsersSnapshot, getBabiesSnapshot, getInstallsSnapshot, getBabiesForPeriod, getBabiesOfUsers } from './dataStore';
 import type { AnalyticsMetrics, DateRange, User, Baby } from '../types';
 import { parseBabyDate } from '../types';
 
@@ -67,6 +67,10 @@ const loadBabiesFor = async (dateRange: DateRange, allUsersRaw: User[]): Promise
   const docs = await getBabiesForPeriod(previousStart, dateRange.end, periodUserIds);
   return docs.map(doc => ({ ...doc.data(), id: doc.id } as Baby));
 };
+
+/** Bébés de ces comptes, hors sous-ensemble chargé pour la période. */
+export const getBabiesForUsers = async (userIds: string[]): Promise<Baby[]> =>
+  (await getBabiesOfUsers(userIds)).map(doc => ({ ...doc.data(), id: doc.id } as Baby));
 
 /**
  * Get analytics metrics for a given date range

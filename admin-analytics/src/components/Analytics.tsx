@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { DateRange, PresetRange, AnalyticsMetrics, User, Baby } from '../types';
 import { parseBabyDate } from '../types';
 import { DateRangeSelector } from './DateRangeSelector';
-import { getAnalyticsMetrics, getAllUsers, getAllBabies, isRealPremiumPurchase, getPremiumPurchaseDate } from '../services/analyticsService';
-import { useDataVersion } from '../services/dataStore';
+import { getAnalyticsMetrics, getAllUsers, getAllBabies, getBabiesForUsers, isRealPremiumPurchase, getPremiumPurchaseDate } from '../services/analyticsService';
+import { useDataVersion, invalidateData } from '../services/dataStore';
 import { ListModal } from './ListModal';
 import { Charts } from './Charts';
 import { BabyDetailsModal } from './BabyDetailsModal';
@@ -54,7 +54,12 @@ export const Analytics: React.FC = () => {
   // La recherche ne relit plus le serveur : les données sont en mémoire (dataStore).
   useEffect(() => { loadMetrics(); }, [dateRange, searchTerm, dataVersion]);
 
+  // Seule la dernière demande peut écrire l'état : sinon « Tout » (~100 s) lancé avant
+  // « 7 jours » (2 s) finissait par écraser les chiffres affichés sous « 7 jours ».
+  const requestIdRef = useRef(0);
   const loadMetrics = async () => {
+    const requestId = ++requestIdRef.current;
+    const isCurrent = () => requestId === requestIdRef.current;
     try {
       setLoading(true);
       setError(null);
@@ -63,19 +68,22 @@ export const Analytics: React.FC = () => {
         getAllUsers(),
         getAllBabies(searchTerm, dateRange),
       ]);
+      if (!isCurrent()) return;
       setMetrics(data);
       setAllUsers(users);
       setAllBabies(babies);
     } catch (err: any) {
-      setError(err.message || 'Erreur lors du chargement des métriques');
+      if (isCurrent()) setError(err.message || 'Erreur lors du chargement des métriques');
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   };
 
   const handleBabyClick = (baby: Baby) => { setSelectedBaby(baby); setIsBabyModalOpen(true); };
   const handleUserClick = (user: User) => {
-    const baby = allBabies.find(b => b.user?.includes(user.userId));
+    // linkedBaby déjà résolu par la liste (ex. acheteurs) : les bébés chargés ne
+    // couvrent que la période.
+    const baby = user.linkedBaby ?? allBabies.find(b => b.user?.includes(user.userId));
     setSelectedUser({ ...user, linkedBaby: baby ?? undefined });
     setIsUserModalOpen(true);
   };
@@ -95,8 +103,13 @@ export const Analytics: React.FC = () => {
       if (!isNaN(d.getTime())) userCreationMap.set(u.userId, d);
     });
 
+    // Mêmes bébés que la carte : ceux créés dans la période (les bébés chargés incluent
+    // aussi la période précédente et les bébés rejoints).
+    const cardBabies = dateRange.start && dateRange.end
+      ? allBabies.filter(b => { const d = parseBabyDate(b); return d && d >= dateRange.start! && d <= dateRange.end!; })
+      : allBabies;
     const entries: DelayEntry[] = [];
-    allBabies.forEach(baby => {
+    cardBabies.forEach(baby => {
       if (!baby.tasks?.length) return;
       const sorted = [...baby.tasks].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       const firstTaskDate = new Date(sorted[0].date);
@@ -130,7 +143,8 @@ export const Analytics: React.FC = () => {
     setDelayDetail({ type, title: titles[type], min: pick3('start'), mid: pick3('mid'), max: pick3('end') });
   };
 
-  const handleBabyDeleted = async () => { setModalType(null); setModalData([]); await loadMetrics(); };
+  // La suppression appelle invalidateData, qui recharge déjà via dataVersion.
+  const handleBabyDeleted = async () => { setModalType(null); setModalData([]); };
 
   const renderTrend = (current: number, previous?: number) => {
     if (!previous || !metrics?.previousPeriod) return null;
@@ -246,7 +260,11 @@ export const Analytics: React.FC = () => {
           const byPurchaseDate = (list: User[]) => list.sort((a, b) =>
             ((getPremiumPurchaseDate(b)?.getTime()) ?? 0) - ((getPremiumPurchaseDate(a)?.getTime()) ?? 0)
           );
-          setModalData(byPurchaseDate(allUsers.filter(u => isRealPremiumPurchase(u) && inPeriod(u))).map(u => ({ ...u, linkedBaby: allBabies.find(b => b.user?.includes(u.userId)) })));
+          // Acheteurs de toute la base : leurs bébés ne sont pas forcément dans ceux
+          // chargés pour la période, on les lit (quelques dizaines au plus).
+          const buyers = byPurchaseDate(allUsers.filter(u => isRealPremiumPurchase(u) && inPeriod(u)));
+          const buyersBabies = await getBabiesForUsers(buyers.map(u => u.userId));
+          setModalData(buyers.map(u => ({ ...u, linkedBaby: buyersBabies.find(b => b.user?.includes(u.userId)) })));
           break;
         }
       }
@@ -291,7 +309,7 @@ export const Analytics: React.FC = () => {
     <div className="analytics">
       <div className="header-with-info">
         <h2>Vue d'ensemble</h2>
-        <button className="refresh-btn" onClick={loadMetrics} disabled={loading}>🔄 Actualiser</button>
+        <button className="refresh-btn" onClick={invalidateData} disabled={loading}>🔄 Actualiser</button>
         <div className="info-tooltip">
           <span className="info-icon">ℹ️</span>
           <div className="tooltip-content">
@@ -690,7 +708,7 @@ export const Analytics: React.FC = () => {
                 <li><strong>Sans tâche :</strong> profil bébé créé mais jamais utilisé pour logger une action</li>
                 <li><strong>1 tâche exactement :</strong> a testé l'app une fois puis n'est pas revenu</li>
                 <li><strong>2–5 tâches :</strong> usage très court, souvent 1-2 jours puis abandon</li>
-                <li>Calculé sur l'ensemble de la base (pas filtré par période)</li>
+                <li>Calculé sur les bébés créés dans la période choisie</li>
               </ul>
             </Info>
           </h3>

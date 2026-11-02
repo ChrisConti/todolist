@@ -46,6 +46,31 @@ export const getInstallsSnapshot = (): Promise<QuerySnapshot | { docs: [] }> =>
     return { docs: [] as [] };
   }));
 
+// Les versions ≤ 1.2.0 (sans ForceUpdateGate) écrivent encore CreatedDate en texte
+// local « YYYY-MM-DD HH:mm:ss », qui se trie comme une date.
+const fmtLegacy = (d: Date) => {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+};
+
+const mergeById = (snaps: QuerySnapshot[]): QueryDocumentSnapshot[] => {
+  const byId = new Map<string, QueryDocumentSnapshot>();
+  snaps.forEach((s) => s.docs.forEach((d) => byId.set(d.id, d)));
+  return [...byId.values()];
+};
+
+const memberQueries = (userIds: string[]) => {
+  const qs = [];
+  for (let i = 0; i < userIds.length; i += 30) {
+    qs.push(query(babiesRef, where('user', 'array-contains-any', userIds.slice(i, i + 30))));
+  }
+  return qs;
+};
+
+/** Bébés auxquels appartiennent ces comptes (ex. acheteurs listés dans une modale). */
+export const getBabiesOfUsers = async (userIds: string[]): Promise<QueryDocumentSnapshot[]> =>
+  mergeById(await Promise.all(memberQueries(userIds).map((q) => getDocsFromServer(q))));
+
 /**
  * Bébés utiles à une période, sans lire toute la collection (lire Baby en entier prend
  * ~100 s : les tâches y sont embarquées) :
@@ -66,16 +91,13 @@ export const getBabiesForPeriod = (start: Date, end: Date, userIds: string[]): P
     where('createdDate', '>=', Timestamp.fromDate(start)),
     where('createdDate', '<=', Timestamp.fromDate(end)),
   );
-  const byMembers = [];
-  for (let i = 0; i < userIds.length; i += 30) {
-    byMembers.push(query(babiesRef, where('user', 'array-contains-any', userIds.slice(i, i + 30))));
-  }
-  const promise = markLoaded(Promise.all([created, ...byMembers].map((q) => getDocsFromServer(q))))
-    .then((snaps) => {
-      const byId = new Map<string, QueryDocumentSnapshot>();
-      snaps.forEach((s) => s.docs.forEach((d) => byId.set(d.id, d)));
-      return [...byId.values()];
-    })
+  const createdLegacy = query(
+    babiesRef,
+    where('CreatedDate', '>=', fmtLegacy(start)),
+    where('CreatedDate', '<=', fmtLegacy(end)),
+  );
+  const promise = markLoaded(Promise.all([created, createdLegacy, ...memberQueries(userIds)].map((q) => getDocsFromServer(q))))
+    .then(mergeById)
     .catch((e) => {
       periodCache.delete(key);
       throw e;

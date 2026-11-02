@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { DateRange, PresetRange } from '../types';
 import { DateRangeSelector } from './DateRangeSelector';
 import { getAnalyticsMetrics } from '../services/analyticsService';
@@ -7,9 +7,11 @@ import './Funnel.css';
 
 export const Funnel: React.FC = () => {
   const [preset, setPreset] = useState<PresetRange>('today');
-  const [dateRange, setDateRange] = useState<DateRange>({
-    start: null,
-    end: null,
+  // Le bouton « Aujourd'hui » était surligné mais toute la base était chargée (~100 s).
+  const [dateRange, setDateRange] = useState<DateRange>(() => {
+    const start = new Date(); start.setHours(0, 0, 0, 0);
+    const end = new Date(); end.setHours(23, 59, 59, 999);
+    return { start, end };
   });
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<any>(null);
@@ -19,15 +21,17 @@ export const Funnel: React.FC = () => {
     loadMetrics();
   }, [dateRange, dataVersion]);
 
+  const requestIdRef = useRef(0);
   const loadMetrics = async () => {
+    const requestId = ++requestIdRef.current;
     try {
       setLoading(true);
       const data = await getAnalyticsMetrics(dateRange);
-      setMetrics(data);
+      if (requestId === requestIdRef.current) setMetrics(data);
     } catch (err) {
       console.error('Error loading metrics:', err);
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
   };
 
