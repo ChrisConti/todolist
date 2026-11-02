@@ -27,8 +27,15 @@ const Info: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 export const Analytics: React.FC = () => {
-  const [preset, setPreset] = useState<PresetRange>('all');
-  const [dateRange, setDateRange] = useState<DateRange>({ start: null, end: null });
+  // Ouvre sur « Aujourd'hui » : seuls les bébés de la période sont lus (quelques
+  // secondes). « Tout » relit toute la base, ~100 s à cause des tâches embarquées.
+  const [preset, setPreset] = useState<PresetRange>('today');
+  const [dateRange, setDateRange] = useState<DateRange>(() => {
+    const start = new Date(); start.setHours(0, 0, 0, 0);
+    const end = new Date(); end.setHours(23, 59, 59, 999);
+    return { start, end };
+  });
+  const isWholeBase = !dateRange.start || !dateRange.end;
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,7 +61,7 @@ export const Analytics: React.FC = () => {
       const [data, users, babies] = await Promise.all([
         getAnalyticsMetrics(dateRange, searchTerm),
         getAllUsers(),
-        getAllBabies(searchTerm),
+        getAllBabies(searchTerm, dateRange),
       ]);
       setMetrics(data);
       setAllUsers(users);
@@ -137,7 +144,7 @@ export const Analytics: React.FC = () => {
     if (!type) return;
     try {
       const allUsers = await getAllUsers();
-      const allBabies = await getAllBabies(searchTerm);
+      const allBabies = await getAllBabies(searchTerm, dateRange);
       const userEmailMap = new Map<string, string>();
       allUsers.forEach(u => userEmailMap.set(u.userId, u.email));
 
@@ -978,7 +985,13 @@ export const Analytics: React.FC = () => {
         </div>
       )}
 
-      {metrics && allUsers.length > 0 && allBabies.length > 0 && (
+      {!isWholeBase && (
+        <div className="info-box">
+          <p>Le tunnel des comptes et les graphiques globaux portent sur toute la base : ils s'affichent sur <strong>« Tout »</strong> (chargement d'environ 2 minutes).</p>
+        </div>
+      )}
+
+      {isWholeBase && metrics && allUsers.length > 0 && allBabies.length > 0 && (
         <Charts users={allUsers} babies={allBabies} iosDownloads={metrics.iosDownloads} androidDownloads={metrics.androidDownloads} />
       )}
 

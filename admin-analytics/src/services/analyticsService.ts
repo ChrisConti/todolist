@@ -1,4 +1,4 @@
-import { getUsersSnapshot, getBabiesSnapshot, getInstallsSnapshot } from './dataStore';
+import { getUsersSnapshot, getBabiesSnapshot, getInstallsSnapshot, getBabiesForPeriod } from './dataStore';
 import type { AnalyticsMetrics, DateRange, User, Baby } from '../types';
 import { parseBabyDate } from '../types';
 
@@ -43,25 +43,49 @@ export const getPremiumPurchaseDate = (u: User): Date | null => {
 };
 
 /**
+ * Bébés à charger pour une période : sur une période, seulement ceux créés dans la
+ * période (et la précédente, pour les tendances) et ceux des comptes de la période ;
+ * sans période (« Tout »), toute la collection (~100 s).
+ */
+// Les bébés les plus anciens n'ont que l'ancien champ texte CreatedDate (le plus récent
+// date du 01/05/2026), invisible pour une requête sur createdDate.
+const LEGACY_CREATED_DATE_UNTIL = new Date('2026-05-02');
+
+const loadBabiesFor = async (dateRange: DateRange, allUsersRaw: User[]): Promise<Baby[]> => {
+  const duration = dateRange.start && dateRange.end ? dateRange.end.getTime() - dateRange.start.getTime() : 0;
+  const previousStart = dateRange.start ? new Date(dateRange.start.getTime() - duration) : null;
+  if (!dateRange.start || !dateRange.end || !previousStart || previousStart < LEGACY_CREATED_DATE_UNTIL) {
+    const snap = await getBabiesSnapshot();
+    return snap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Baby));
+  }
+  const periodUserIds = allUsersRaw
+    .filter(u => {
+      const d = getUserCreationDate(u);
+      return d && d >= dateRange.start! && d <= dateRange.end!;
+    })
+    .map(u => u.userId);
+  const docs = await getBabiesForPeriod(previousStart, dateRange.end, periodUserIds);
+  return docs.map(doc => ({ ...doc.data(), id: doc.id } as Baby));
+};
+
+/**
  * Get analytics metrics for a given date range
  */
 export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: string): Promise<AnalyticsMetrics> => {
   try {
     console.log('🔄 [DEBUG] Fetching data from Firestore at:', new Date().toISOString());
 
-    // Toute la base, filtrée côté client (dates en string ou en Timestamp). Lue une
-    // seule fois par visite (dataStore) ; « Rafraîchir » relit le serveur.
-    const [usersSnapshot, babiesSnapshot] = await Promise.all([getUsersSnapshot(), getBabiesSnapshot()]);
+    // Tous les comptes (1,4 s), mais seulement les bébés utiles à la période : sur une
+    // période, « allBabies » ne contient que ceux-là (voir loadBabiesFor). Données
+    // gardées en mémoire (dataStore) ; « Rafraîchir » relit le serveur.
+    const usersSnapshot = await getUsersSnapshot();
 
     const allUsersRaw: User[] = usersSnapshot.docs.map(doc => ({
       userId: doc.id,
       ...doc.data()
     } as User));
 
-    const allBabiesRaw: Baby[] = babiesSnapshot.docs.map(doc => ({
-      ...doc.data(),
-      id: doc.id
-    } as Baby));
+    const allBabiesRaw: Baby[] = await loadBabiesFor(dateRange, allUsersRaw);
 
     // Exclude test accounts and their babies from all stats
     const testUserIds = new Set(allUsersRaw.filter(u => TEST_EMAILS.has(u.email)).map(u => u.userId));
@@ -741,7 +765,10 @@ export const getAnalyticsMetrics = async (dateRange: DateRange, searchTerm?: str
       else if (babyMemberSet.has(u.userId)) funnelJoined++;
       else funnelNoBaby++;
     });
-    const userFunnel = allUsers.length > 0 ? {
+    // Tunnel global (tous les comptes × tous les bébés) : faux sur une période, où seuls
+    // les bébés de la période sont chargés. Calculé uniquement sur « Tout ».
+    const isWholeBase = !dateRange.start || !dateRange.end;
+    const userFunnel = isWholeBase && allUsers.length > 0 ? {
       createdBaby: funnelCreated,
       joinedBaby: funnelJoined,
       noBaby: funnelNoBaby,
@@ -800,18 +827,13 @@ export const getAllUsers = async (): Promise<User[]> => {
 /**
  * Get all babies (for listing)
  */
-export const getAllBabies = async (searchTerm?: string): Promise<Baby[]> => {
+export const getAllBabies = async (searchTerm?: string, dateRange: DateRange = { start: null, end: null }): Promise<Baby[]> => {
   const usersSnap = await getUsersSnapshot();
-  const testIds = new Set(
-    usersSnap.docs
-      .map(doc => ({ userId: doc.id, ...doc.data() } as User))
-      .filter(u => TEST_EMAILS.has(u.email))
-      .map(u => u.userId)
-  );
+  const allUsersRaw = usersSnap.docs.map(doc => ({ userId: doc.id, ...doc.data() } as User));
+  const testIds = new Set(allUsersRaw.filter(u => TEST_EMAILS.has(u.email)).map(u => u.userId));
 
-  const snapshot = await getBabiesSnapshot();
-  let babies = snapshot.docs
-    .map(doc => ({ ...doc.data(), id: doc.id } as Baby))
+  // Sans période : toute la collection. Avec : seulement les bébés utiles à la période.
+  let babies = (await loadBabiesFor(dateRange, allUsersRaw))
     .filter(b => !b.admin || !testIds.has(b.admin));
 
   // Filter by baby name if search term is provided

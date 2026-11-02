@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { getDocsFromServer, type QuerySnapshot } from 'firebase/firestore';
+import { getDocsFromServer, query, where, Timestamp, type QuerySnapshot, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { usersRef, babiesRef, appInstallsRef } from '../config/firebase';
 
 /**
@@ -46,11 +46,50 @@ export const getInstallsSnapshot = (): Promise<QuerySnapshot | { docs: [] }> =>
     return { docs: [] as [] };
   }));
 
+/**
+ * Bébés utiles à une période, sans lire toute la collection (lire Baby en entier prend
+ * ~100 s : les tâches y sont embarquées) :
+ * - ceux créés entre start et end (createdDate est un Timestamp pour tous les bébés
+ *   récents ; seuls des bébés anciens ont l'ancien champ texte CreatedDate) ;
+ * - ceux auxquels appartiennent les comptes donnés (comptes de la période qui ont
+ *   rejoint un bébé plus ancien), par paquets de 30 (limite d'array-contains-any).
+ */
+const periodCache = new Map<string, Promise<QueryDocumentSnapshot[]>>();
+
+export const getBabiesForPeriod = (start: Date, end: Date, userIds: string[]): Promise<QueryDocumentSnapshot[]> => {
+  const key = `${start.getTime()}|${end.getTime()}|${[...userIds].sort().join(',')}`;
+  const cached = periodCache.get(key);
+  if (cached) return cached;
+
+  const created = query(
+    babiesRef,
+    where('createdDate', '>=', Timestamp.fromDate(start)),
+    where('createdDate', '<=', Timestamp.fromDate(end)),
+  );
+  const byMembers = [];
+  for (let i = 0; i < userIds.length; i += 30) {
+    byMembers.push(query(babiesRef, where('user', 'array-contains-any', userIds.slice(i, i + 30))));
+  }
+  const promise = markLoaded(Promise.all([created, ...byMembers].map((q) => getDocsFromServer(q))))
+    .then((snaps) => {
+      const byId = new Map<string, QueryDocumentSnapshot>();
+      snaps.forEach((s) => s.docs.forEach((d) => byId.set(d.id, d)));
+      return [...byId.values()];
+    })
+    .catch((e) => {
+      periodCache.delete(key);
+      throw e;
+    });
+  periodCache.set(key, promise);
+  return promise;
+};
+
 /** Oublie les données en mémoire ; les onglets abonnés via useDataVersion rechargent. */
 export const invalidateData = () => {
   usersPromise = null;
   babiesPromise = null;
   installsPromise = null;
+  periodCache.clear();
   loadedAt = null;
   version += 1;
   listeners.forEach((l) => l());
